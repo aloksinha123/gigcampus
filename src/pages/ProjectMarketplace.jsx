@@ -1,0 +1,222 @@
+
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
+import api from '../services/api';
+import Navbar from '../components/Navbar';
+
+const ProjectMarketplace = () => {
+    const { user, logout } = useAuth();
+    const { success, error } = useNotification();
+    const navigate = useNavigate();
+
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filters, setFilters] = useState({
+        search: '',
+        category: '',
+        minBudget: '',
+        maxBudget: ''
+    });
+
+    const categories = [
+        'Web Development',
+        'Mobile Development',
+        'UI/UX Design',
+        'Data Science',
+        'Machine Learning',
+        'Content Writing',
+        'Digital Marketing',
+        'Video Editing',
+        'Graphic Design',
+        'Other'
+    ];
+
+    useEffect(() => {
+        fetchProjects();
+    }, []);
+
+    const fetchProjects = async () => {
+        try {
+            setLoading(true);
+            const response = await api.projects.getAll({ status: 'open' });
+            // The API returns { projects: [], totalPages, currentPage, total } or directly []
+            const projectsData = response.data.projects || (Array.isArray(response.data) ? response.data : []);
+            setProjects(projectsData);
+        } catch (err) {
+            error('Failed to load projects');
+            console.error(err);
+            setProjects([]); // Set empty array on error
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFilterChange = (e) => {
+        setFilters({ ...filters, [e.target.name]: e.target.value });
+    };
+
+    const filteredProjects = projects.filter(project => {
+        const matchesSearch = project.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+            project.description.toLowerCase().includes(filters.search.toLowerCase());
+        const matchesCategory = !filters.category || project.category === filters.category;
+        // Budget is now an object with min and max
+        const projectMaxBudget = project.budget?.max || project.budget || 0;
+        const matchesMinBudget = !filters.minBudget || projectMaxBudget >= parseInt(filters.minBudget);
+        const matchesMaxBudget = !filters.maxBudget || projectMaxBudget <= parseInt(filters.maxBudget);
+
+        return matchesSearch && matchesCategory && matchesMinBudget && matchesMaxBudget;
+    });
+
+    const getBudgetColor = (budget) => {
+        if (budget < 500) return 'text-green-600';
+        if (budget < 2000) return 'text-blue-600';
+        return 'text-purple-600';
+    };
+
+    const getStatusBadge = (status) => {
+        const colors = {
+            open: 'bg-green-100 text-green-800',
+            in_progress: 'bg-blue-100 text-blue-800',
+            completed: 'bg-purple-100 text-purple-800',
+            cancelled: 'bg-red-100 text-red-800'
+        };
+        return colors[status] || 'bg-gray-100 text-gray-800';
+    };
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+            {/* Navbar */}
+            <Navbar />
+
+            <div className="max-w-7xl mx-auto px-4 py-8">
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        Project Marketplace
+                    </h1>
+                    <p className="text-gray-600">Browse and bid on exciting projects</p>
+                </div>
+
+                {/* Filters */}
+                <div className="bg-white p-6 rounded-xl shadow-sm mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input
+                            type="text"
+                            name="search"
+                            value={filters.search}
+                            onChange={handleFilterChange}
+                            placeholder="Search projects..."
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <select
+                            name="category"
+                            value={filters.category}
+                            onChange={handleFilterChange}
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">All Categories</option>
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                        <input
+                            type="number"
+                            name="minBudget"
+                            value={filters.minBudget}
+                            onChange={handleFilterChange}
+                            placeholder="Min Budget ($)"
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                            type="number"
+                            name="maxBudget"
+                            value={filters.maxBudget}
+                            onChange={handleFilterChange}
+                            placeholder="Max Budget ($)"
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                </div>
+
+                {/* Projects Grid */}
+                {loading ? (
+                    <div className="text-center py-12">
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <p className="mt-4 text-gray-600">Loading projects...</p>
+                    </div>
+                ) : filteredProjects.length === 0 ? (
+                    <div className="bg-white p-12 rounded-xl shadow-sm text-center">
+                        <div className="text-6xl mb-4">📋</div>
+                        <h3 className="text-xl font-bold mb-2">No projects found</h3>
+                        <p className="text-gray-600 mb-4">Try adjusting your filters or check back later</p>
+                        {user?.role === 'student' && (
+                            <Link to="/my-projects" className="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600">
+                                Post a Project
+                            </Link>
+                        )}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredProjects.map(project => (
+                            <div key={project._id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(project.status)}`}>
+                                        {project.status.replace('_', ' ').toUpperCase()}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                        {new Date(project.createdAt).toLocaleDateString()}
+                                    </span>
+                                </div>
+
+                                <h3 className="text-xl font-bold mb-2 line-clamp-2">{project.title}</h3>
+                                <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
+
+                                <div className="mb-4">
+                                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                        {project.category}
+                                    </span>
+                                </div>
+
+                                <div className="flex justify-between items-center mb-4">
+                                    <div>
+                                        <p className="text-xs text-gray-500">Budget</p>
+                                        <p className={`text-2xl font-bold ${getBudgetColor(project.budget?.max || project.budget || 0)}`}>
+                                            ${project.budget?.min || 0} - ${project.budget?.max || project.budget || 0}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-gray-500">Bids</p>
+                                        <p className="text-2xl font-bold text-gray-700">{project.bidsCount || 0}</p>
+                                    </div>
+                                </div>
+
+                                <div className="mb-4">
+                                    <p className="text-xs text-gray-500 mb-1">Timeline</p>
+                                    <p className="text-sm font-semibold">{project.timeline}</p>
+                                </div>
+
+                                <Link
+                                    to={`/projects/${project._id}`}
+                                    className="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition"
+                                >
+                                    View Details
+                                </Link>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Stats */}
+                {!loading && filteredProjects.length > 0 && (
+                    <div className="mt-8 text-center text-gray-600">
+                        Showing {filteredProjects.length} of {projects.length} projects
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default ProjectMarketplace;
