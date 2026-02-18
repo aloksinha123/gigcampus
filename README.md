@@ -1,125 +1,98 @@
-🚀 GigCampus – Student Freelance Marketplace
+# 🚀 GigCampus – Student Freelance Marketplace
 
 A full-stack freelance marketplace platform connecting students and clients with real-time chat, secure payments, bidding system, and portfolio showcase.
 
-🌍 Live Demo:
-Frontend: https://gigcampus-dq3tec0ka-aloksinha123s-projects.vercel.app
+## 🌍 Live Demo
 
-🧠 About The Project
+-   **Frontend:** [https://gigcampus-dq3tec0ka-aloksinha123s-projects.vercel.app](https://gigcampus-dq3tec0ka-aloksinha123s-projects.vercel.app)
+
+## 🧠 About The Project
 
 GigCampus is a production-ready MERN stack application designed to simulate a real freelance marketplace platform.
 
 It demonstrates:
 
-Full-stack development
+-   Full-stack development
+-   Authentication & authorization
+-   Real-time communication
+-   Escrow-style payment logic
+-   Production deployment
+-   Clean scalable architecture
 
-Authentication & authorization
+## ✨ Features
 
-Real-time communication
+### 🔐 Authentication
 
-Escrow-style payment logic
+-   JWT-based login & registration
+-   Role-based access (Student / Freelancer / Admin)
+-   Secure password hashing
 
-Production deployment
+### 📋 Project Marketplace
 
-Clean scalable architecture
+-   Post and browse projects
+-   Filter and manage listings
+-   Project lifecycle handling
 
-✨ Features
-🔐 Authentication
+### 💰 Bidding System
 
-JWT-based login & registration
+-   Submit proposals
+-   Accept bids
+-   Track bid history
 
-Role-based access (Student / Freelancer / Admin)
+### 💬 Real-Time Chat
 
-Secure password hashing
+-   Socket.io powered messaging
+-   Project-based conversations
+-   Read receipts
 
-📋 Project Marketplace
+### 💳 Payment Logic
 
-Post and browse projects
+-   Escrow-style flow
+-   Release & dispute system
+-   Transaction history
 
-Filter and manage listings
+### ⭐ Reviews & Reputation
 
-Project lifecycle handling
+-   Rating system
+-   Auto reputation updates
 
-💰 Bidding System
+### 🎨 Portfolio Showcase
 
-Submit proposals
+-   Upload work samples
+-   Feature projects
+-   Social interaction (likes/views)
 
-Accept bids
+## 🛠️ Tech Stack
 
-Track bid history
+### Backend
 
-💬 Real-Time Chat
+-   Node.js
+-   Express.js
+-   MongoDB
+-   Mongoose
+-   JWT
+-   Bcrypt
+-   Socket.io
 
-Socket.io powered messaging
+### Frontend
 
-Project-based conversations
+-   React (Vite)
+-   React Router
+-   Axios
+-   Socket.io Client
+-   Tailwind CSS
+-   Context API
 
-Read receipts
+### Deployment
 
-💳 Payment Logic
+-   **Frontend:** Vercel
+-   **Backend:** Render
+-   **Database:** MongoDB Atlas
+-   **Version Control:** GitHub
 
-Escrow-style flow
+## � Project Structure
 
-Release & dispute system
-
-Transaction history
-
-⭐ Reviews & Reputation
-
-Rating system
-
-Auto reputation updates
-
-🎨 Portfolio Showcase
-
-Upload work samples
-
-Feature projects
-
-Social interaction (likes/views)
-
-🛠️ Tech Stack
-Backend
-
-Node.js
-
-Express.js
-
-MongoDB
-
-Mongoose
-
-JWT
-
-Bcrypt
-
-Socket.io
-
-Frontend
-
-React (Vite)
-
-React Router
-
-Axios
-
-Socket.io Client
-
-Tailwind CSS
-
-Context API
-
-Deployment
-
-Frontend: Vercel
-
-Backend: Render
-
-Database: MongoDB Atlas
-
-Version Control: GitHub
-
-📂 Project Structure
+```
 gigcampus/
 ├── backend/
 │   ├── config/
@@ -136,79 +109,69 @@ gigcampus/
 │   ├── components/
 │   ├── App.jsx
 │   └── main.jsx
+```
 
-⚙️ Local Setup
+## ⚙️ Local Setup
 
-Clone the repository
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/aloksinha123/gigcampus.git
+    cd gigcampus
+    ```
 
-git clone https://github.com/aloksinha123/gigcampus.git
-cd gigcampus
+2.  **Install dependencies**
+    ```bash
+    npm install
+    cd backend
+    npm install
+    ```
 
+3.  **Create environment variables**
 
-Install dependencies
+    **Backend `.env`**
+    ```env
+    PORT=5003
+    MONGODB_URI=your_database_url
+    JWT_SECRET=your_secret_key
+    NODE_ENV=development
+    CLIENT_URL=http://localhost:5173
+    ```
 
-npm install
-cd backend
-npm install
+    **Frontend `.env`**
+    ```env
+    VITE_API_URL=http://localhost:5003
+    ```
 
+4.  **Run the project**
 
-Create environment variables
+    **Backend:**
+    ```bash
+    npm run dev
+    ```
 
-Backend .env
+    **Frontend:**
+    ```bash
+    npm run dev
+    ```
 
-PORT=5003
-MONGODB_URI=your_database_url
-JWT_SECRET=your_secret_key
-NODE_ENV=development
-CLIENT_URL=http://localhost:5173
+## 🔐 Security Highlights
 
+-   JWT token validation
+-   Password hashing
+-   Role-based route protection
+-   Input validation
+-   File upload restrictions
+-   Centralized error handling
 
-Frontend .env
+## 👨💻 Author
 
-VITE_API_URL=http://localhost:5003
+**Alok Sinha**
+-   Computer Engineering Student
+-   GitHub: [https://github.com/aloksinha123](https://github.com/aloksinha123)
 
+## � Note
 
-Run the project
-
-Backend:
-
-npm run dev
-
-
-Frontend:
-
-npm run dev
-
-🔐 Security Highlights
-
-JWT token validation
-
-Password hashing
-
-Role-based route protection
-
-Input validation
-
-File upload restrictions
-
-Centralized error handling
-
-👨‍💻 Author
-
-Alok Sinha
-Computer Engineering Student
-GitHub: https://github.com/aloksinha123
-
-📌 Note
-
-The backend is hosted on a free tier service.
-The first request may take a few seconds due to cold start.
+The backend is hosted on a free tier service. The first request may take a few seconds due to cold start.
 
 This version is:
-
-✅ Safe
-✅ Professional
-✅ Recruiter-friendly
-✅ No secrets exposed
-✅ Clean and confident
-
+✅ Safe | ✅ Professional | ✅ Recruiter-friendly | ✅ No secrets exposed | ✅ Clean and confident
