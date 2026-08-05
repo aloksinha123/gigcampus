@@ -1,20 +1,25 @@
 import mongoose from 'mongoose';
 
 const paymentSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
+    },
     project: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Project',
-        required: true
+        required: false
     },
     client: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false
     },
     freelancer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false
     },
     amount: {
         type: Number,
@@ -30,16 +35,19 @@ const paymentSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'escrowed', 'released', 'refunded', 'disputed'],
+        enum: ['pending', 'escrowed', 'released', 'refunded', 'disputed', 'completed', 'verified'],
         default: 'pending'
     },
     escrowedAt: Date,
     releasedAt: Date,
     refundedAt: Date,
     transactionId: String,
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    razorpaySignature: String,
     paymentMethod: {
         type: String,
-        enum: ['card', 'paypal', 'bank_transfer', 'wallet'],
+        enum: ['card', 'paypal', 'bank_transfer', 'wallet', 'razorpay', 'upi', 'netbanking'],
         default: 'card'
     },
     notes: String
@@ -49,6 +57,7 @@ const paymentSchema = new mongoose.Schema({
 
 // Index for payment queries
 paymentSchema.index({ project: 1 });
+paymentSchema.index({ user: 1 });
 paymentSchema.index({ client: 1, status: 1 });
 paymentSchema.index({ freelancer: 1, status: 1 });
 

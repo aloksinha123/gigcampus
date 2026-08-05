@@ -16,6 +16,21 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+    const refreshUser = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        try {
+            const response = await authAPI.getMe();
+            if (response.data) {
+                setUser(response.data);
+                localStorage.setItem('user', JSON.stringify(response.data));
+                return response.data;
+            }
+        } catch (error) {
+            console.error('Failed to refresh user profile from MongoDB:', error);
+        }
+    };
+
     useEffect(() => {
         // Check if user is logged in
         const token = localStorage.getItem('token');
@@ -24,6 +39,7 @@ export const AuthProvider = ({ children }) => {
         if (token && savedUser) {
             setUser(JSON.parse(savedUser));
             setIsAuthenticated(true);
+            refreshUser();
         }
         setLoading(false);
     }, []);
@@ -88,7 +104,8 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
-        updateUser
+        updateUser,
+        refreshUser
     };
 
     return (

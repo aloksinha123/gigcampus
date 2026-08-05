@@ -1,5 +1,8 @@
 import Project from '../models/Project.js';
 import Bid from '../models/Bid.js';
+import User from '../models/User.js';
+import Payment from '../models/Payment.js';
+import Transaction from '../models/Transaction.js';
 import { createNotification } from './notificationController.js';
 
 // @desc    Create new project
@@ -156,7 +159,7 @@ export const getMyProjects = async (req, res) => {
     }
 };
 
-// @desc    Accept bid and assign freelancer
+// @desc    Accept bid and assign freelancer (Wallet -> Escrow Connection)
 // @route   PUT /api/projects/:id/accept-bid/:bidId
 // @access  Private (Owner only)
 export const acceptBid = async (req, res) => {
@@ -178,45 +181,51 @@ export const acceptBid = async (req, res) => {
             return res.status(400).json({ message: 'Project is not open for bids' });
         }
 
-        // Update project
-        project.selectedBid = bid._id;
-        project.freelancer = bid.freelancer;
-        project.status = 'in_progress';
-        await project.save();
-
-        // Update bid status
-        bid.status = 'accepted';
-        await bid.save();
-
-        // Reject other bids
-        await Bid.updateMany(
-            { project: project._id, _id: { $ne: bid._id } },
-            { status: 'rejected' }
-        );
-
-        // Create escrow payment automatically
-        const Payment = (await import('../models/Payment.js')).default;
-        const User = (await import('../models/User.js')).default;
-        const bidAmount = bid.price;
-
-        // Check if client has sufficient balance
-        const client = await User.findById(req.user._id);
-        if (client.wallet.balance < bidAmount) {
-            return res.status(400).json({ message: 'Insufficient wallet balance. Please deposit funds first.' });
+        // Prevent duplicate escrow creation
+        const existingPayment = await Payment.findOne({ project: project._id, status: 'escrowed' });
+        if (existingPayment) {
+            return res.status(400).json({
+                success: false,
+                message: 'Escrow payment already exists for this project.'
+            });
         }
 
+        const bidAmount = bid.price;
+
+        // Step 1: Fetch client's latest wallet balance from MongoDB (Never trust frontend)
+        const client = await User.findById(req.user._id);
+        if (!client || !client.wallet || client.wallet.balance < bidAmount) {
+            // Step 2: Return HTTP 400 if balance is insufficient (without modifying project status or creating escrow)
+            return res.status(400).json({
+                success: false,
+                message: 'Insufficient wallet balance. Please add money to continue.'
+            });
+        }
+
+        // Step 3: Atomic database deduction using $inc with atomic balance check ($gte: bidAmount)
+        const updatedClient = await User.findOneAndUpdate(
+            { _id: req.user._id, 'wallet.balance': { $gte: bidAmount } },
+            { $inc: { 'wallet.balance': -bidAmount } },
+            { new: true }
+        );
+
+        if (!updatedClient) {
+            return res.status(400).json({
+                success: false,
+                message: 'Insufficient wallet balance. Please add money to continue.'
+            });
+        }
+
+        // Step 4: Create Escrow Payment record
         const platformCommissionRate = 0.10; // 10% commission
         const platformCommission = bidAmount * platformCommissionRate;
         const freelancerAmount = bidAmount - platformCommission;
-
-        // Deduct from client wallet
-        client.wallet.balance -= bidAmount;
-        await client.save();
+        const freelancerId = bid.freelancer._id || bid.freelancer;
 
         const payment = await Payment.create({
             project: project._id,
             client: req.user._id,
-            freelancer: bid.freelancer._id,
+            freelancer: freelancerId,
             amount: bidAmount,
             platformCommission: platformCommission,
             freelancerAmount: freelancerAmount,
@@ -227,22 +236,36 @@ export const acceptBid = async (req, res) => {
             notes: `Escrow payment for project: ${project.title}`
         });
 
-        // Create transaction record for client
-        const Transaction = (await import('../models/Transaction.js')).default;
-        await Transaction.create({
+        // Step 5: Create Transaction record
+        const transaction = await Transaction.create({
             user: req.user._id,
             type: 'escrow_payment',
-            amount: -bidAmount,
-            balanceAfter: client.wallet.balance,
+            amount: bidAmount,
+            balanceAfter: updatedClient.wallet.balance,
             project: project._id,
             payment: payment._id,
             description: `Escrow payment for project: ${project.title}`,
             transactionId: payment.transactionId
         });
 
+        // Step 6: Continue existing workflow (Update project status, assign freelancer, accept bid, reject remaining bids)
+        project.selectedBid = bid._id;
+        project.freelancer = freelancerId;
+        project.status = 'in_progress';
+        await project.save();
+
+        bid.status = 'accepted';
+        await bid.save();
+
+        // Reject other bids
+        await Bid.updateMany(
+            { project: project._id, _id: { $ne: bid._id } },
+            { status: 'rejected' }
+        );
+
         // Create notification for freelancer
         await createNotification(
-            bid.freelancer._id,
+            freelancerId,
             'project',
             `Your bid for "${project.title}" has been accepted! You can now start working.`,
             {
@@ -252,14 +275,17 @@ export const acceptBid = async (req, res) => {
             }
         );
 
-        res.json({
+        return res.json({
+            success: true,
             project,
             bid,
             payment,
+            transaction,
+            walletBalance: updatedClient.wallet.balance,
             message: 'Bid accepted successfully. Payment has been escrowed.'
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 

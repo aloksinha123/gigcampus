@@ -8,7 +8,7 @@ import Navbar from '../components/Navbar';
 
 const ProjectDetail = () => {
     const { id } = useParams();
-    const { user, logout } = useAuth();
+    const { user, logout, updateUser } = useAuth();
     const { success, error } = useNotification();
     const navigate = useNavigate();
 

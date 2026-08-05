@@ -57,12 +57,31 @@ const ProjectMarketplace = () => {
         setFilters({ ...filters, [e.target.name]: e.target.value });
     };
 
+    const getNumericBudget = (budget) => {
+        if (typeof budget === 'number') return budget;
+        if (typeof budget === 'object' && budget !== null) {
+            return typeof budget.max === 'number' ? budget.max : (typeof budget.min === 'number' ? budget.min : 0);
+        }
+        return 0;
+    };
+
+    const renderBudget = (budget) => {
+        if (!budget) return '₹0';
+        if (typeof budget === 'number') return `₹${budget}`;
+        if (typeof budget === 'object' && budget !== null) {
+            const min = typeof budget.min === 'number' ? budget.min : 0;
+            const max = typeof budget.max === 'number' ? budget.max : min;
+            if (min === max) return `₹${min}`;
+            return `₹${min} - ₹${max}`;
+        }
+        return '₹0';
+    };
+
     const filteredProjects = projects.filter(project => {
-        const matchesSearch = project.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-            project.description.toLowerCase().includes(filters.search.toLowerCase());
+        const matchesSearch = (project.title || '').toLowerCase().includes(filters.search.toLowerCase()) ||
+            (project.description || '').toLowerCase().includes(filters.search.toLowerCase());
         const matchesCategory = !filters.category || project.category === filters.category;
-        // Budget is now an object with min and max
-        const projectMaxBudget = project.budget?.max || project.budget || 0;
+        const projectMaxBudget = getNumericBudget(project.budget);
         const matchesMinBudget = !filters.minBudget || projectMaxBudget >= parseInt(filters.minBudget);
         const matchesMaxBudget = !filters.maxBudget || projectMaxBudget <= parseInt(filters.maxBudget);
 
@@ -70,8 +89,9 @@ const ProjectMarketplace = () => {
     });
 
     const getBudgetColor = (budget) => {
-        if (budget < 500) return 'text-green-600';
-        if (budget < 2000) return 'text-blue-600';
+        const num = getNumericBudget(budget);
+        if (num < 500) return 'text-green-600';
+        if (num < 2000) return 'text-blue-600';
         return 'text-purple-600';
     };
 
@@ -93,13 +113,11 @@ const ProjectMarketplace = () => {
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Project Marketplace
-                    </h1>
-                    <p className="text-gray-600">Browse and bid on exciting projects</p>
+                    <h1 className="text-4xl font-bold text-gray-800 mb-2">Project Marketplace</h1>
+                    <p className="text-gray-600">Discover and bid on exciting projects</p>
                 </div>
 
-                {/* Filters */}
+                {/* Filters & Search */}
                 <div className="bg-white p-6 rounded-xl shadow-sm mb-8">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <input
@@ -108,39 +126,42 @@ const ProjectMarketplace = () => {
                             value={filters.search}
                             onChange={handleFilterChange}
                             placeholder="Search projects..."
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
+
                         <select
                             name="category"
                             value={filters.category}
                             onChange={handleFilterChange}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="">All Categories</option>
                             {categories.map(cat => (
                                 <option key={cat} value={cat}>{cat}</option>
                             ))}
                         </select>
+
                         <input
                             type="number"
                             name="minBudget"
                             value={filters.minBudget}
                             onChange={handleFilterChange}
                             placeholder="Min Budget ($)"
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
+
                         <input
                             type="number"
                             name="maxBudget"
                             value={filters.maxBudget}
                             onChange={handleFilterChange}
                             placeholder="Max Budget ($)"
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                     </div>
                 </div>
 
-                {/* Projects Grid */}
+                {/* Project Grid */}
                 {loading ? (
                     <div className="text-center py-12">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -148,14 +169,7 @@ const ProjectMarketplace = () => {
                     </div>
                 ) : filteredProjects.length === 0 ? (
                     <div className="bg-white p-12 rounded-xl shadow-sm text-center">
-                        <div className="text-6xl mb-4">📋</div>
-                        <h3 className="text-xl font-bold mb-2">No projects found</h3>
-                        <p className="text-gray-600 mb-4">Try adjusting your filters or check back later</p>
-                        {user?.role === 'student' && (
-                            <Link to="/my-projects" className="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600">
-                                Post a Project
-                            </Link>
-                        )}
+                        <p className="text-gray-500 text-lg">No projects found matching your criteria</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -182,8 +196,8 @@ const ProjectMarketplace = () => {
                                 <div className="flex justify-between items-center mb-4">
                                     <div>
                                         <p className="text-xs text-gray-500">Budget</p>
-                                        <p className={`text-2xl font-bold ${getBudgetColor(project.budget?.max || project.budget || 0)}`}>
-                                            ${project.budget?.min || 0} - ${project.budget?.max || project.budget || 0}
+                                        <p className={`text-2xl font-bold ${getBudgetColor(project.budget)}`}>
+                                            {renderBudget(project.budget)}
                                         </p>
                                     </div>
                                     <div className="text-right">

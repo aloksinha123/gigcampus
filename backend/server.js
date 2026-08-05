@@ -1,8 +1,9 @@
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+
 import connectDB from './config/db.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
@@ -12,14 +13,13 @@ import projectRoutes from './routes/projects.js';
 import bidRoutes from './routes/bids.js';
 import messageRoutes from './routes/messages.js';
 import paymentRoutes from './routes/payments.js';
+import razorpayPaymentRoutes from './routes/paymentRoutes.js';
 import reviewRoutes from './routes/reviews.js';
 import portfolioRoutes from './routes/portfolio.js';
 import userRoutes from './routes/users.js';
 import walletRoutes from './routes/wallet.js';
 import notificationRoutes from './routes/notifications.js';
 import adminRoutes from './routes/adminRoutes.js';
-
-dotenv.config();
 
 // Connect to database
 connectDB();
@@ -51,6 +51,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/bids', bidRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/payments', razorpayPaymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/users', userRoutes);

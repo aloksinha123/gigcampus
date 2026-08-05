@@ -1,5 +1,6 @@
 import Payment from '../models/Payment.js';
 import Project from '../models/Project.js';
+import User from '../models/User.js';
 
 // @desc    Create payment (escrow funds)
 // @route   POST /api/payments
@@ -72,7 +73,6 @@ export const releasePayment = async (req, res) => {
         }
 
         // Transfer funds to freelancer's wallet
-        const User = (await import('../models/User.js')).default;
         await User.findByIdAndUpdate(payment.freelancer, {
             $inc: { 'wallet.balance': payment.freelancerAmount }
         });
@@ -228,3 +228,4 @@ export const getMyPayments = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+

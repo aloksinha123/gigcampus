@@ -47,7 +47,8 @@ const Portfolio = () => {
         try {
             setLoading(true);
             const response = await api.portfolio.getAll();
-            setPortfolios(response.data);
+            const data = Array.isArray(response.data) ? response.data : (response.data?.portfolios || response.data?.data || []);
+            setPortfolios(data);
         } catch (err) {
             error('Failed to load portfolios');
         } finally {
@@ -58,7 +59,8 @@ const Portfolio = () => {
     const fetchMyPortfolio = async () => {
         try {
             const response = await api.portfolio.getMy();
-            setMyPortfolio(response.data);
+            const data = Array.isArray(response.data) ? response.data : (response.data?.portfolios || response.data?.data || []);
+            setMyPortfolio(data);
         } catch (err) {
             console.error('Failed to load my portfolio:', err);
         }
@@ -117,7 +119,8 @@ const Portfolio = () => {
         }
     };
 
-    const displayPortfolios = viewMode === 'browse' ? portfolios : myPortfolio;
+    const rawPortfolios = viewMode === 'browse' ? portfolios : myPortfolio;
+    const displayPortfolios = Array.isArray(rawPortfolios) ? rawPortfolios : [];
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">

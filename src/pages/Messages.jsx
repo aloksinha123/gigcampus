@@ -23,7 +23,8 @@ const Messages = () => {
 
     useEffect(() => {
         // Initialize socket connection
-        const newSocket = io(import.meta.env.VITE_API_URL, {
+        const socketUrl = import.meta.env.VITE_API_URL || 'http://localhost:5003';
+        const newSocket = io(socketUrl, {
             transports: ['websocket'],
             reconnection: true
         });

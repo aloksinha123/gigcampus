@@ -1,9 +1,5 @@
 import mongoose from 'mongoose';
 
-// Disable buffering to fail fast if DB is not connected
-mongoose.set('bufferCommands', false);
-mongoose.set('bufferTimeoutMS', 3000);
-
 const connectDB = async () => {
     try {
         console.log('Attempting to connect to MongoDB...');
