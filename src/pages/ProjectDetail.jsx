@@ -116,12 +116,13 @@ const ProjectDetail = () => {
 
         try {
             await api.projects.complete(id);
-            success('Project completed! Payment released to freelancer.');
+            if (refreshUser) refreshUser();
+            success('Payment released successfully.');
             fetchProjectDetails();
             fetchPayment();
             setShowReviewModal(true);
         } catch (err) {
-            error(err.response?.data?.message || 'Failed to complete project');
+            error(err.response?.data?.message || 'Failed to complete project and release payment.');
         }
     };
 

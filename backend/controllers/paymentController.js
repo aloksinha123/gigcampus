@@ -1,6 +1,8 @@
 import Payment from '../models/Payment.js';
 import Project from '../models/Project.js';
 import User from '../models/User.js';
+import Transaction from '../models/Transaction.js';
+import { createNotification } from './notificationController.js';
 
 // @desc    Create payment (escrow funds)
 // @route   POST /api/payments
@@ -44,61 +46,143 @@ export const createPayment = async (req, res) => {
     }
 };
 
-// @desc    Release payment to freelancer
+// @desc    Release escrow payment to freelancer wallet
 // @route   PUT /api/payments/:id/release
-// @access  Private (Client)
+// @access  Private (Client only)
 export const releasePayment = async (req, res) => {
     try {
         const payment = await Payment.findById(req.params.id);
 
         if (!payment) {
-            return res.status(404).json({ message: 'Payment not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Payment not found.'
+            });
         }
 
         // Verify user is client
         if (payment.client.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ message: 'Not authorized' });
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to release this payment.'
+            });
         }
 
-        // Check payment status
+        // Validation: If payment status is not escrowed, return HTTP 400 (Prevents duplicate payment releases)
         if (payment.status !== 'escrowed') {
-            return res.status(400).json({ message: 'Payment cannot be released in current status' });
+            return res.status(400).json({
+                success: false,
+                message: 'Payment is not in escrowed status or has already been released.'
+            });
         }
 
-        // Calculate amounts if not already set
-        if (!payment.platformCommission || !payment.freelancerAmount) {
-            const platformCommissionRate = 0.10; // 10% commission
-            payment.platformCommission = payment.amount * platformCommissionRate;
-            payment.freelancerAmount = payment.amount - payment.platformCommission;
+        // Verify associated project status == in_progress
+        const project = await Project.findById(payment.project);
+        if (!project) {
+            return res.status(404).json({
+                success: false,
+                message: 'Associated project not found.'
+            });
         }
 
-        // Transfer funds to freelancer's wallet
-        await User.findByIdAndUpdate(payment.freelancer, {
-            $inc: { 'wallet.balance': payment.freelancerAmount }
+        if (project.status !== 'in_progress') {
+            return res.status(400).json({
+                success: false,
+                message: 'Project must be in progress to release payment.'
+            });
+        }
+
+        const escrowAmount = payment.amount;
+
+        // Step 5: Calculate Platform Commission (10%) and Freelancer Net Payout (90%)
+        const platformCommissionRate = 0.10;
+        const platformCommission = escrowAmount * platformCommissionRate;
+        const freelancerAmount = escrowAmount - platformCommission;
+        const freelancerId = payment.freelancer;
+
+        // Step 6: Credit Freelancer Wallet using atomic MongoDB update ($inc)
+        const updatedFreelancer = await User.findByIdAndUpdate(
+            freelancerId,
+            {
+                $inc: {
+                    'wallet.balance': freelancerAmount,
+                    'reputation.completedProjects': 1
+                }
+            },
+            { new: true }
+        );
+
+        if (!updatedFreelancer) {
+            return res.status(400).json({
+                success: false,
+                message: 'Freelancer account not found.'
+            });
+        }
+
+        const freelancerUpdatedBalance = updatedFreelancer.wallet?.balance || freelancerAmount;
+
+        // Step 7: Create Transaction record (type: 'payment_received')
+        const transactionId = `REL-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`.toUpperCase();
+        const transaction = await Transaction.create({
+            user: freelancerId,
+            type: 'payment_received',
+            amount: freelancerAmount,
+            platformCommission: platformCommission,
+            balanceAfter: freelancerUpdatedBalance,
+            project: project._id,
+            payment: payment._id,
+            status: 'completed',
+            description: `Payment received for project: ${project.title} (₹${freelancerAmount.toFixed(2)} after 10% platform fee)`,
+            transactionId: transactionId
         });
 
-        // Release payment
+        // Step 8: Update Payment record (status: 'released')
         payment.status = 'released';
         payment.releasedAt = new Date();
+        payment.platformCommission = platformCommission;
+        payment.freelancerAmount = freelancerAmount;
         await payment.save();
 
-        // Update project status to completed if not already
-        await Project.findByIdAndUpdate(payment.project, {
-            status: 'completed',
-            completedAt: new Date()
-        });
+        // Step 9: Update Project record (status: 'completed')
+        project.status = 'completed';
+        project.completedAt = new Date();
+        await payment.save();
+        await project.save();
 
-        // Update freelancer's completed projects count
-        await User.findByIdAndUpdate(payment.freelancer, {
-            $inc: { 'reputation.completedProjects': 1 }
-        });
+        // Step 10: Send Notifications to Client and Freelancer
+        try {
+            await createNotification(
+                req.user._id,
+                'payment',
+                `Payment of ₹${escrowAmount.toFixed(2)} released successfully for project "${project.title}".`,
+                { project: project._id, payment: payment._id }
+            );
 
-        res.json({
+            await createNotification(
+                freelancerId,
+                'payment',
+                `Payment of ₹${freelancerAmount.toFixed(2)} has been credited to your wallet for project "${project.title}".`,
+                { project: project._id, payment: payment._id }
+            );
+        } catch (notifyErr) {
+            console.warn('Notification failed:', notifyErr.message);
+        }
+
+        // Step 11: Return Success Response
+        return res.status(200).json({
+            success: true,
+            message: 'Payment released successfully.',
             payment,
-            message: `Payment released successfully. ₹${payment.freelancerAmount.toFixed(2)} transferred to freelancer's wallet.`
+            project,
+            transaction,
+            freelancerAmount,
+            platformCommission
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to release payment.'
+        });
     }
 };
 
@@ -228,4 +312,3 @@ export const getMyPayments = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
