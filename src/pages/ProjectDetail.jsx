@@ -6,6 +6,7 @@ import api from '../services/api';
 import MockCheckout from '../components/MockCheckout';
 import Navbar from '../components/Navbar';
 import ProjectTimeline from '../components/ProjectTimeline';
+import SmartBidAnalysisModal from '../components/SmartBidAnalysisModal';
 
 const ProjectDetail = () => {
     const { id } = useParams();
@@ -48,6 +49,60 @@ const ProjectDetail = () => {
 
     // Submit Work Modal State
     const [showSubmitWorkModal, setShowSubmitWorkModal] = useState(false);
+
+    // AI Smart Bid Analyzer State
+    const [analyzingBid, setAnalyzingBid] = useState(false);
+    const [bidAnalysisResult, setBidAnalysisResult] = useState(null);
+    const [showBidAnalysisModal, setShowBidAnalysisModal] = useState(false);
+
+    const handleAnalyzeBid = async () => {
+        if (!bidData.proposal || !bidData.proposal.trim()) {
+            error('Please enter a proposal message to analyze.');
+            return;
+        }
+
+        if (!bidData.bidAmount || Number(bidData.bidAmount) <= 0) {
+            error('Please enter a valid bid amount.');
+            return;
+        }
+
+        let daysNum = 7;
+        if (bidData.deliveryTime) {
+            const parsed = parseInt(bidData.deliveryTime.replace(/\D/g, ''), 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                daysNum = parsed;
+            }
+        }
+
+        try {
+            setAnalyzingBid(true);
+            const response = await api.post('/ai/analyze-bid', {
+                projectDescription: project.description,
+                bidText: bidData.proposal.trim(),
+                budget: Number(bidData.bidAmount),
+                deliveryDays: daysNum
+            });
+
+            if (response.data) {
+                setBidAnalysisResult(response.data);
+                setShowBidAnalysisModal(true);
+                success('✨ Smart Bid Analysis complete!');
+            } else {
+                error('Unable to analyze bid proposal.');
+            }
+        } catch (err) {
+            console.error('Bid Analysis error:', err);
+            error(err.response?.data?.message || 'Unable to analyze bid proposal.');
+        } finally {
+            setAnalyzingBid(false);
+        }
+    };
+
+    const handleApplyImprovedBid = (improvedBidText) => {
+        setBidData(prev => ({ ...prev, proposal: improvedBidText }));
+        setShowBidAnalysisModal(false);
+        success('✨ Improved bid proposal applied to your bid form!');
+    };
 
     // Review Modal State - Already declared above
 
@@ -850,15 +905,46 @@ const ProjectDetail = () => {
                                 />
                             </div>
 
-                            <button
-                                type="submit"
-                                className="w-full bg-purple-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-purple-100 hover:shadow-purple-300 hover:-translate-y-1 transition-all active:scale-95"
-                            >
-                                SUBMIT BID
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button
+                                    type="button"
+                                    onClick={handleAnalyzeBid}
+                                    disabled={analyzingBid}
+                                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100 hover:shadow-indigo-300 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    {analyzingBid ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            <span>Analyzing...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>✨</span>
+                                            <span>Analyze My Bid</span>
+                                        </>
+                                    )}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={analyzingBid}
+                                    className="flex-1 bg-purple-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-purple-100 hover:shadow-purple-300 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
+                                >
+                                    SUBMIT BID
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
+            )}
+
+            {/* Smart Bid Analysis Modal */}
+            {showBidAnalysisModal && (
+                <SmartBidAnalysisModal
+                    analysis={bidAnalysisResult}
+                    onClose={() => setShowBidAnalysisModal(false)}
+                    onApplyImprovedBid={handleApplyImprovedBid}
+                    toastSuccess={success}
+                />
             )}
             {/* Review Modal */}
             {showReviewModal && (
