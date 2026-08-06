@@ -23,6 +23,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import emailRoutes from './routes/emailRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import milestoneRoutes from './routes/milestoneRoutes.js';
+import { createRateLimiter } from './middleware/rateLimiter.js';
 import { verifyEmailConnection } from './config/mail.js';
 
 // Connect to database & verify email service
@@ -50,8 +51,12 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded files
 app.use('/uploads', express.static('public/uploads'));
 
+// Rate limiters for sensitive endpoints
+const authLimiter = createRateLimiter(15 * 60 * 1000, 50, 'Too many auth requests. Please try again after 15 minutes.');
+const aiLimiter = createRateLimiter(15 * 60 * 1000, 30, 'AI generation limit reached. Please wait a few minutes before trying again.');
+
 // API Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/bids', bidRoutes);
 app.use('/api/messages', messageRoutes);
@@ -64,7 +69,7 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/email', emailRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/ai', aiLimiter, aiRoutes);
 app.use('/api/milestones', milestoneRoutes);
 
 // Health check
