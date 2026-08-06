@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
+import { CardSkeleton } from '../components/SkeletonLoader';
 
 const ProjectMarketplace = () => {
     const { user, logout } = useAuth();
@@ -163,9 +164,10 @@ const ProjectMarketplace = () => {
 
                 {/* Project Grid */}
                 {loading ? (
-                    <div className="text-center py-12">
-                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <p className="mt-4 text-gray-600">Loading projects...</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <CardSkeleton />
+                        <CardSkeleton />
+                        <CardSkeleton />
                     </div>
                 ) : filteredProjects.length === 0 ? (
                     <div className="bg-white p-12 rounded-xl shadow-sm text-center">
