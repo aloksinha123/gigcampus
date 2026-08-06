@@ -5,6 +5,7 @@ import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
 import AddMoneyModal from '../components/AddMoneyModal';
+import UserPresence from '../components/UserPresence';
 
 const Profile = () => {
     const { user, logout, refreshUser } = useAuth();
@@ -242,9 +243,16 @@ const Profile = () => {
                                 {user?.username?.charAt(0).toUpperCase()}
                             </div>
                             <div className="ml-6 mb-2">
-                                <h2 className="text-2xl font-bold text-gray-800">
-                                    {profileData.fullName || profileData.username}
-                                </h2>
+                                <div className="flex items-center gap-3">
+                                    <h2 className="text-2xl font-bold text-gray-800">
+                                        {profileData.fullName || profileData.username}
+                                    </h2>
+                                    <UserPresence
+                                        userId={user?._id}
+                                        initialIsOnline={user?.isOnline}
+                                        initialLastSeen={user?.lastSeen}
+                                    />
+                                </div>
                                 <p className="text-gray-600">@{user?.username}</p>
                                 <span className="inline-block mt-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full">
                                     {user?.role?.toUpperCase()}

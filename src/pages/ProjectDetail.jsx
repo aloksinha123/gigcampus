@@ -9,6 +9,7 @@ import ProjectTimeline from '../components/ProjectTimeline';
 import SmartBidAnalysisModal from '../components/SmartBidAnalysisModal';
 import RecommendationResultsModal from '../components/RecommendationResultsModal';
 import MilestoneList from '../components/MilestoneList';
+import UserPresence from '../components/UserPresence';
 
 const ProjectDetail = () => {
     const { id } = useParams();
@@ -670,7 +671,14 @@ const ProjectDetail = () => {
                                                         {bid.freelancer.username ? bid.freelancer.username[0].toUpperCase() : 'U'}
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-2xl font-black text-gray-900 tracking-tighter uppercase">{bid.freelancer.username}</h4>
+                                                        <div className="flex items-center gap-3">
+                                                            <h4 className="text-2xl font-black text-gray-900 tracking-tighter uppercase">{bid.freelancer.username}</h4>
+                                                            <UserPresence
+                                                                userId={bid.freelancer._id}
+                                                                initialIsOnline={bid.freelancer.isOnline}
+                                                                initialLastSeen={bid.freelancer.lastSeen}
+                                                            />
+                                                        </div>
                                                         <div className="flex items-center gap-3 mt-1">
                                                             <div className="flex items-center gap-1">
                                                                 <span className="text-yellow-400">★</span>

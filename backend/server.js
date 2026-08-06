@@ -25,6 +25,8 @@ import aiRoutes from './routes/aiRoutes.js';
 import milestoneRoutes from './routes/milestoneRoutes.js';
 import { createRateLimiter } from './middleware/rateLimiter.js';
 import { verifyEmailConnection } from './config/mail.js';
+import jwt from 'jsonwebtoken';
+import User from './models/User.js';
 
 // Connect to database & verify email service
 connectDB();
@@ -81,9 +83,53 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Active sockets tracking map: Map<userIdString, Set<socketId>>
+const userSocketsMap = new Map();
+
+// Socket Authentication Middleware
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization;
+    if (!token) {
+      return next(new Error('Authentication error: Token missing'));
+    }
+
+    const cleanToken = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+    const decoded = jwt.verify(cleanToken, process.env.JWT_SECRET);
+    socket.userId = decoded.id;
+    next();
+  } catch (err) {
+    console.warn(`Socket auth rejected (${socket.id}):`, err.message);
+    next(new Error('Authentication error: Invalid or expired token'));
+  }
+});
+
 // Socket.io connection handling
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+io.on('connection', async (socket) => {
+  const userId = socket.userId?.toString();
+  console.log(`User connected socket ${socket.id} (User ID: ${userId || 'Unauthenticated'})`);
+
+  if (userId) {
+    if (!userSocketsMap.has(userId)) {
+      userSocketsMap.set(userId, new Set());
+    }
+    const userSet = userSocketsMap.get(userId);
+    const isFirstConnection = userSet.size === 0;
+    userSet.add(socket.id);
+
+    if (isFirstConnection) {
+      try {
+        await User.findByIdAndUpdate(userId, { isOnline: true });
+        io.emit('user-online', {
+          userId,
+          isOnline: true
+        });
+        console.log(`🟢 User ${userId} is now ONLINE`);
+      } catch (dbErr) {
+        console.error('Error setting user online:', dbErr.message);
+      }
+    }
+  }
 
   // Join project room
   socket.on('joinProject', (projectId) => {
@@ -100,7 +146,6 @@ io.on('connection', (socket) => {
   // Send message
   socket.on('sendMessage', (data) => {
     const { projectId, message } = data;
-    // Broadcast to all users in the project room except sender
     socket.to(`project_${projectId}`).emit('newMessage', message);
   });
 
@@ -116,9 +161,9 @@ io.on('connection', (socket) => {
   });
 
   // Join personal room for notifications
-  socket.on('joinPersonal', (userId) => {
-    socket.join(userId.toString());
-    console.log(`User ${socket.id} joined personal room ${userId}`);
+  socket.on('joinPersonal', (roomUserId) => {
+    socket.join(roomUserId.toString());
+    console.log(`User ${socket.id} joined personal room ${roomUserId}`);
   });
 
   // New bid notification
@@ -128,8 +173,31 @@ io.on('connection', (socket) => {
   });
 
   // Disconnect
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log('User disconnected:', socket.id);
+    if (userId && userSocketsMap.has(userId)) {
+      const userSet = userSocketsMap.get(userId);
+      userSet.delete(socket.id);
+
+      if (userSet.size === 0) {
+        userSocketsMap.delete(userId);
+        const lastSeen = new Date();
+        try {
+          await User.findByIdAndUpdate(userId, {
+            isOnline: false,
+            lastSeen
+          });
+          io.emit('user-offline', {
+            userId,
+            isOnline: false,
+            lastSeen
+          });
+          console.log(`⚪ User ${userId} is now OFFLINE (Last seen: ${lastSeen.toISOString()})`);
+        } catch (dbErr) {
+          console.error('Error setting user offline:', dbErr.message);
+        }
+      }
+    }
   });
 });
 

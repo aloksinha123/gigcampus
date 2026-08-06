@@ -5,6 +5,7 @@ import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
 import io from 'socket.io-client';
 import Navbar from '../components/Navbar';
+import UserPresence from '../components/UserPresence';
 
 const Messages = () => {
     const { user, logout } = useAuth();
@@ -227,9 +228,17 @@ const Messages = () => {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <h3 className="font-semibold text-gray-800 truncate">
-                                                            {conv.otherUser?.username}
-                                                        </h3>
+                                                        <div className="flex items-center gap-2 truncate">
+                                                            <h3 className="font-semibold text-gray-800 truncate">
+                                                                {conv.otherUser?.username}
+                                                            </h3>
+                                                            <UserPresence
+                                                                userId={conv.otherUser?._id}
+                                                                initialIsOnline={conv.otherUser?.isOnline}
+                                                                initialLastSeen={conv.otherUser?.lastSeen}
+                                                                showText={false}
+                                                            />
+                                                        </div>
                                                         {conv.lastMessage && (
                                                             <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                                                                 {formatTime(conv.lastMessage.createdAt)}
@@ -280,9 +289,16 @@ const Messages = () => {
                                                     {selectedConversation.otherUser?.username?.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-semibold text-gray-800">
-                                                        {selectedConversation.otherUser?.username}
-                                                    </h3>
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="font-semibold text-gray-800">
+                                                            {selectedConversation.otherUser?.username}
+                                                        </h3>
+                                                        <UserPresence
+                                                            userId={selectedConversation.otherUser?._id}
+                                                            initialIsOnline={selectedConversation.otherUser?.isOnline}
+                                                            initialLastSeen={selectedConversation.otherUser?.lastSeen}
+                                                        />
+                                                    </div>
                                                     <p className="text-sm text-gray-600">
                                                         {selectedConversation.project?.title}
                                                     </p>

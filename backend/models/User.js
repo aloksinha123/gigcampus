@@ -68,6 +68,14 @@ const userSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    isOnline: {
+        type: Boolean,
+        default: false
+    },
+    lastSeen: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true
@@ -98,6 +106,8 @@ userSchema.methods.getPublicProfile = function () {
         profile: this.profile,
         reputation: this.reputation,
         verified: this.verified,
+        isOnline: this.isOnline,
+        lastSeen: this.lastSeen,
         createdAt: this.createdAt
     };
 };
