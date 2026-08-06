@@ -42,6 +42,11 @@ export const authAPI = {
     updateProfile: (data) => api.put('/auth/profile', data)
 };
 
+// AI API
+export const aiAPI = {
+    improveDescription: (description) => api.post('/ai/improve-description', { description })
+};
+
 // Projects API
 export const projectsAPI = {
     getAll: (params) => api.get('/projects', { params }),
