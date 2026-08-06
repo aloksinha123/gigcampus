@@ -5,6 +5,7 @@ import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
 import MockCheckout from '../components/MockCheckout';
 import Navbar from '../components/Navbar';
+import ProjectTimeline from '../components/ProjectTimeline';
 
 const ProjectDetail = () => {
     const { id } = useParams();
@@ -389,7 +390,8 @@ const ProjectDetail = () => {
                         { id: 'details', label: 'Gig Details', icon: '📄', show: true },
                         { id: 'bids', label: `Proposals (${bids.length})`, icon: '🤝', show: project.status === 'open' || isOwner },
                         { id: 'workspace', label: 'Project Workspace', icon: '💻', show: project.status !== 'open' },
-                        { id: 'milestones', label: 'Milestones', icon: '🎯', show: project.status !== 'open' }
+                        { id: 'milestones', label: 'Milestones', icon: '🎯', show: project.status !== 'open' },
+                        { id: 'timeline', label: 'Timeline', icon: '⏱️' }
                     ].map(tab => tab.show !== false && (
                         <button
                             key={tab.id}
@@ -690,6 +692,12 @@ const ProjectDetail = () => {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'timeline' && (
+                        <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
+                            <ProjectTimeline projectId={id} />
                         </div>
                     )}
                 </div>

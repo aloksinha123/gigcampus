@@ -3,6 +3,7 @@ import Project from '../models/Project.js';
 import User from '../models/User.js';
 import { createNotification } from './notificationController.js';
 import { sendNewBidReceivedEmail } from '../services/emailService.js';
+import { logActivity } from '../services/activityService.js';
 
 // @desc    Submit a bid
 // @route   POST /api/bids
@@ -67,6 +68,15 @@ export const submitBid = async (req, res) => {
                 bidId: bid._id
             }
         );
+
+        // Log BID_SUBMITTED Activity Event
+        await logActivity({
+            project: projectDoc._id,
+            user: req.user._id,
+            action: 'BID_SUBMITTED',
+            description: `Submitted a bid proposal of ₹${price}`,
+            metadata: { price, timeline, bidId: bid._id }
+        });
 
         // Send New Bid Received HTML Email to Project Owner (Non-blocking: Bid creation succeeds even if SMTP fails)
         try {

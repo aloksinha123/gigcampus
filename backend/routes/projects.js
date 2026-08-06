@@ -11,7 +11,8 @@ import {
     submitDeliverable,
     approveDeliverable,
     rejectBid,
-    raiseDispute
+    raiseDispute,
+    getProjectTimeline
 } from '../controllers/projectController.js';
 import { protect, student } from '../middleware/auth.js';
 
@@ -27,6 +28,9 @@ router.route('/:id')
     .get(getProject)
     .put(protect, updateProject)
     .delete(protect, deleteProject);
+
+// Timeline Route
+router.get('/:id/timeline', protect, getProjectTimeline);
 
 router.put('/:id/accept-bid/:bidId', protect, student, acceptBid);
 router.put('/:id/complete', protect, student, completeProject);

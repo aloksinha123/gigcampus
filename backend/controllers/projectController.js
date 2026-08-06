@@ -3,8 +3,10 @@ import Bid from '../models/Bid.js';
 import User from '../models/User.js';
 import Payment from '../models/Payment.js';
 import Transaction from '../models/Transaction.js';
+import Activity from '../models/Activity.js';
 import { createNotification } from './notificationController.js';
 import { sendBidAcceptedEmail } from '../services/emailService.js';
+import { logActivity } from '../services/activityService.js';
 
 // @desc    Create new project
 // @route   POST /api/projects
@@ -14,6 +16,15 @@ export const createProject = async (req, res) => {
         const project = await Project.create({
             ...req.body,
             client: req.user._id
+        });
+
+        // Log PROJECT_CREATED Activity Event
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'PROJECT_CREATED',
+            description: `Project "${project.title}" was created`,
+            metadata: { budget: project.budget, category: project.category }
         });
 
         res.status(201).json(project);
@@ -276,6 +287,23 @@ export const acceptBid = async (req, res) => {
             }
         );
 
+        // Log BID_ACCEPTED and ESCROW_CREATED Activity Events
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'BID_ACCEPTED',
+            description: `Accepted bid proposal from freelancer`,
+            metadata: { bidId: bid._id, freelancerId }
+        });
+
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'ESCROW_CREATED',
+            description: `Escrow payment of ₹${bidAmount} created and funds held in escrow`,
+            metadata: { amount: bidAmount, paymentId: payment._id }
+        });
+
         // Send Bid Accepted HTML Email to Freelancer (Non-blocking: Bid acceptance succeeds even if SMTP fails)
         try {
             const freelancerEmail = bid.freelancer?.email;
@@ -413,6 +441,23 @@ export const completeProject = async (req, res) => {
             console.warn('Notification failed:', notifyErr.message);
         }
 
+        // Log PAYMENT_RELEASED and PROJECT_COMPLETED Activity Events
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'PAYMENT_RELEASED',
+            description: `Released escrow payment of ₹${freelancerAmount.toFixed(2)} to freelancer`,
+            metadata: { freelancerAmount, platformCommission }
+        });
+
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'PROJECT_COMPLETED',
+            description: `Marked project as completed`,
+            metadata: { completedAt: project.completedAt }
+        });
+
         return res.json({
             success: true,
             message: 'Payment released successfully.',
@@ -460,6 +505,15 @@ export const submitDeliverable = async (req, res) => {
             `New deliverable submitted for "${project.title}" by ${req.user.username}`,
             { project: project._id, relatedUser: req.user._id }
         );
+
+        // Log DELIVERABLE_SUBMITTED Activity Event
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'DELIVERABLE_SUBMITTED',
+            description: `Submitted deliverable: "${title || 'Work submission'}"`,
+            metadata: { title, filesCount: files?.length || 0 }
+        });
 
         res.status(201).json({ message: 'Deliverable submitted successfully', project });
     } catch (error) {
@@ -565,5 +619,35 @@ export const raiseDispute = async (req, res) => {
         res.json({ message: 'Dispute raised successfully. Status set to disputed.', project });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get project activity timeline
+// @route   GET /api/projects/:id/timeline
+// @access  Private (Student, Freelancer, Admin)
+export const getProjectTimeline = async (req, res) => {
+    try {
+        const project = await Project.findById(req.params.id);
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        // Step 7 Validation: Only users involved in the project (Client, Freelancer, Admin) can view timeline
+        const isClient = project.client.toString() === req.user._id.toString();
+        const isFreelancer = project.freelancer && project.freelancer.toString() === req.user._id.toString();
+        const isAdmin = req.user.role === 'admin';
+
+        if (!isClient && !isFreelancer && !isAdmin) {
+            return res.status(403).json({ message: 'Not authorized to view project timeline' });
+        }
+
+        const activities = await Activity.find({ project: req.params.id })
+            .populate('user', 'username profile.fullName profile.avatar')
+            .sort({ createdAt: -1 });
+
+        return res.json(activities);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
 };
