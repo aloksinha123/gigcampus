@@ -20,9 +20,12 @@ import userRoutes from './routes/users.js';
 import walletRoutes from './routes/wallet.js';
 import notificationRoutes from './routes/notifications.js';
 import adminRoutes from './routes/adminRoutes.js';
+import emailRoutes from './routes/emailRoutes.js';
+import { verifyEmailConnection } from './config/mail.js';
 
-// Connect to database
+// Connect to database & verify email service
 connectDB();
+verifyEmailConnection();
 
 const app = express();
 const httpServer = createServer(app);
@@ -58,6 +61,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/email', emailRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
