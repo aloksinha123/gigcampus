@@ -45,7 +45,19 @@ Strict Rules:
                 responseMimeType: 'application/json'
             }
         });
-        responseText = response.text || '';
+        console.log("===== FULL GEMINI RESPONSE =====");
+        console.dir(response, { depth: null });
+
+        console.log("typeof response.text:", typeof response.text);
+        console.log("response.text:", response.text);
+
+        responseText =
+            typeof response.text === "function"
+                ? response.text()
+                : response.text || "";
+
+        console.log("===== RESPONSE TEXT =====");
+        console.log(responseText);
     } catch (modelErr) {
         console.error("Gemini Error:");
         console.error(modelErr);
