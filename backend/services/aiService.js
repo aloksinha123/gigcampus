@@ -193,6 +193,129 @@ Strict Rules:
 };
 
 /**
+ * Deterministic Fallback Recommendation Engine when AI models are unavailable/rate-limited
+ */
+export const calculateFallbackRecommendations = ({ projectDescription, requiredSkills = [], budget, deliveryDays, bids = [] }) => {
+    console.log("===== USING FALLBACK RECOMMENDATION ENGINE =====");
+
+    const recommendations = bids.map((bid) => {
+        const freelancerId = (bid.freelancerId || bid._id || bid.id || '').toString();
+        const username = bid.username || 'Freelancer';
+        const bidSkills = Array.isArray(bid.skills) ? bid.skills.map(s => s.toLowerCase().trim()) : [];
+        const reqSkills = Array.isArray(requiredSkills) ? requiredSkills.map(s => s.toLowerCase().trim()) : [];
+
+        // 1. Skill Match Score (50%)
+        let matchedSkillsCount = 0;
+        const missingSkillsList = [];
+        if (reqSkills.length > 0) {
+            reqSkills.forEach(reqSkill => {
+                if (bidSkills.some(bs => bs.includes(reqSkill) || reqSkill.includes(bs))) {
+                    matchedSkillsCount++;
+                } else {
+                    missingSkillsList.push(reqSkill);
+                }
+            });
+        }
+        const skillScore = reqSkills.length > 0
+            ? (matchedSkillsCount / reqSkills.length) * 50
+            : 50;
+
+        // 2. Average Rating Score (20%)
+        const avgRating = Number(bid.averageRating) || 0;
+        const ratingScore = Math.min(20, (avgRating / 5) * 20);
+
+        // 3. Completed Projects Score (15%)
+        const completedProjects = Number(bid.completedProjects) || 0;
+        const projectsScore = Math.min(15, (completedProjects / 10) * 15);
+
+        // 4. Budget Competitiveness Score (10%)
+        const bidAmount = Number(bid.bidAmount || bid.price) || 0;
+        const targetBudget = Number(budget) || 0;
+        let budgetScore = 10;
+        if (targetBudget > 0 && bidAmount > targetBudget) {
+            budgetScore = Math.max(0, 10 - (((bidAmount - targetBudget) / targetBudget) * 10));
+        }
+
+        // 5. Delivery Time Score (5%)
+        const bidDays = Number(bid.deliveryDays || bid.timeline) || 0;
+        const targetDays = Number(deliveryDays) || 0;
+        let deliveryScore = 5;
+        if (targetDays > 0 && bidDays > targetDays) {
+            deliveryScore = Math.max(0, 5 - (((bidDays - targetDays) / targetDays) * 5));
+        }
+
+        // Total Score (0 - 100)
+        const totalScore = Math.min(100, Math.max(0, Math.round(skillScore + ratingScore + projectsScore + budgetScore + deliveryScore)));
+
+        // Strengths Generator
+        const strengths = [];
+        if (reqSkills.length > 0 && matchedSkillsCount === reqSkills.length) {
+            strengths.push(`Perfect skill match (${matchedSkillsCount}/${reqSkills.length} required skills matched)`);
+        } else if (matchedSkillsCount > 0) {
+            strengths.push(`Strong skill alignment (${matchedSkillsCount}/${reqSkills.length} required skills matched)`);
+        }
+        if (avgRating >= 4.5) {
+            strengths.push(`High user rating (${avgRating.toFixed(1)}/5.0)`);
+        }
+        if (completedProjects >= 5) {
+            strengths.push(`Extensive portfolio with ${completedProjects} completed projects`);
+        }
+        if (targetBudget > 0 && bidAmount <= targetBudget) {
+            strengths.push(`Competitive budget proposal (₹${bidAmount})`);
+        }
+        if (targetDays > 0 && bidDays <= targetDays) {
+            strengths.push(`Fast delivery timeline (${bidDays} days)`);
+        }
+        if (strengths.length === 0) {
+            strengths.push("Submitted valid proposal for project");
+        }
+
+        // Concerns Generator
+        const concerns = [];
+        if (missingSkillsList.length > 0) {
+            concerns.push(`Missing skills: ${missingSkillsList.slice(0, 3).join(', ')}`);
+        }
+        if (avgRating > 0 && avgRating < 4.0) {
+            concerns.push(`User rating is ${avgRating.toFixed(1)}/5.0`);
+        }
+        if (completedProjects < 3) {
+            concerns.push(`Limited completed projects on platform (${completedProjects})`);
+        }
+        if (targetBudget > 0 && bidAmount > targetBudget) {
+            concerns.push(`Proposed price (₹${bidAmount}) exceeds target budget (₹${targetBudget})`);
+        }
+        if (targetDays > 0 && bidDays > targetDays) {
+            concerns.push(`Proposed timeline (${bidDays} days) exceeds target (${targetDays} days)`);
+        }
+
+        // Concise Reason
+        const reason = `${username} scored ${totalScore}/100 based on ${matchedSkillsCount}/${reqSkills.length || 0} skills matched and a ${avgRating ? avgRating.toFixed(1) : 'N/A'} star rating.`;
+
+        return {
+            freelancerId,
+            score: totalScore,
+            rank: 1,
+            strengths,
+            concerns,
+            reason
+        };
+    });
+
+    // Sort descending by score
+    recommendations.sort((a, b) => b.score - a.score);
+    recommendations.forEach((item, index) => {
+        item.rank = index + 1;
+    });
+
+    console.log("===== PARSED RECOMMENDATIONS ARRAY (FALLBACK) =====");
+    console.dir(recommendations, { depth: null });
+
+    return {
+        recommendations
+    };
+};
+
+/**
  * Ranks and recommends freelancers for a project based on their bids, skills, and past performance using Google Gemini AI
  * @param {Object} params - Contains projectDescription, requiredSkills, budget, deliveryDays, bids
  * @returns {Object} JSON object containing recommendations array sorted by rank/score
@@ -200,13 +323,10 @@ Strict Rules:
 export const recommendFreelancers = async ({ projectDescription, requiredSkills = [], budget, deliveryDays, bids = [] }) => {
     const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-        throw new Error('GEMINI_API_KEY is not configured in backend/.env.');
-    }
+    if (apiKey) {
+        const ai = new GoogleGenAI({ apiKey });
 
-    const ai = new GoogleGenAI({ apiKey });
-
-    const prompt = `You are an expert AI talent acquisition specialist and freelancer auditor for a campus marketplace.
+        const prompt = `You are an expert AI talent acquisition specialist and freelancer auditor for a campus marketplace.
 Evaluate the following project requirements and candidate freelancer bids.
 
 Project Details:
@@ -251,89 +371,88 @@ Strict Rules:
 6. "strengths" and "concerns" MUST be arrays of strings.
 7. Do NOT use markdown code blocks or any commentary outside the JSON.`;
 
-    let responseText = '';
-    const modelsToTry = ['gemini-3.5-flash', 'gemini-2.0-flash'];
-    let lastError = null;
+        let responseText = '';
+        const modelsToTry = ['gemini-3.5-flash', 'gemini-2.0-flash'];
 
-    for (const modelName of modelsToTry) {
-        try {
-            console.log(`🤖 Trying model: ${modelName}...`);
-            const response = await ai.models.generateContent({
-                model: modelName,
-                contents: prompt,
-                config: {
-                    responseMimeType: 'application/json'
+        for (const modelName of modelsToTry) {
+            try {
+                console.log(`🤖 Trying model: ${modelName}...`);
+                const response = await ai.models.generateContent({
+                    model: modelName,
+                    contents: prompt,
+                    config: {
+                        responseMimeType: 'application/json'
+                    }
+                });
+
+                responseText = typeof response.text === 'function' ? response.text() : (response.text || '');
+                if (responseText && responseText.trim()) {
+                    console.log(`✨ AI Freelancer Recommendation Engine completed using model [${modelName}]`);
+                    break;
                 }
-            });
-
-            responseText = typeof response.text === 'function' ? response.text() : (response.text || '');
-            if (responseText && responseText.trim()) {
-                console.log(`✨ AI Freelancer Recommendation Engine completed using model [${modelName}]`);
-                break;
+            } catch (err) {
+                console.warn(`⚠️ Freelancer Recommendation Engine model [${modelName}] failed:`, err.message);
             }
-        } catch (err) {
-            console.warn(`⚠️ Freelancer Recommendation Engine model [${modelName}] failed:`, err.message);
-            lastError = err;
+        }
+
+        if (responseText && responseText.trim()) {
+            console.log("===== RAW GEMINI RECOMMENDATIONS RESPONSE =====");
+            console.log(responseText);
+
+            let cleanedText = responseText
+                .replace(/```json/gi, '')
+                .replace(/```/g, '')
+                .trim();
+
+            const firstBrace = cleanedText.indexOf('{');
+            const lastBrace = cleanedText.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                cleanedText = cleanedText.substring(firstBrace, lastBrace + 1);
+            }
+
+            try {
+                const parsedJSON = JSON.parse(cleanedText);
+                const recommendations = parsedJSON.recommendations || [];
+
+                if (Array.isArray(recommendations) && recommendations.length > 0) {
+                    console.log("===== USING AI RECOMMENDATION =====");
+
+                    const inputIds = bids.map(b => (b.freelancerId || b._id || b.id || '').toString());
+                    const returnedIds = recommendations.map(r => (r.freelancerId || r.id || '').toString());
+
+                    console.log("===== PARSED RECOMMENDATIONS ARRAY =====");
+                    console.dir(recommendations, { depth: null });
+
+                    console.log("Input Bids Length:", bids.length);
+                    console.log("Output Recommendations Length:", recommendations.length);
+                    console.log("Input Freelancer IDs:", inputIds);
+                    console.log("Returned Freelancer IDs:", returnedIds);
+
+                    if (recommendations.length < bids.length) {
+                        const missingIds = inputIds.filter(id => !returnedIds.includes(id));
+                        console.warn("⚠️ MISSING FREELANCER IDs IN AI RESPONSE:", missingIds);
+                    }
+
+                    parsedJSON.recommendations.sort((a, b) => (b.score || 0) - (a.score || 0));
+                    parsedJSON.recommendations.forEach((item, index) => {
+                        item.rank = index + 1;
+                    });
+
+                    return parsedJSON;
+                }
+            } catch (parseErr) {
+                console.warn('⚠️ Failed to parse AI response as JSON, falling back to deterministic engine:', parseErr.message);
+            }
         }
     }
 
-    if (!responseText || !responseText.trim()) {
-        throw lastError || new Error('Failed to generate response from Gemini AI models.');
-    }
-
-    console.log("===== RAW GEMINI RECOMMENDATIONS RESPONSE =====");
-    console.log(responseText);
-
-    // Extract JSON substring between first '{' and last '}'
-    let cleanedText = responseText
-        .replace(/```json/gi, '')
-        .replace(/```/g, '')
-        .trim();
-
-    const firstBrace = cleanedText.indexOf('{');
-    const lastBrace = cleanedText.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace !== -1) {
-        cleanedText = cleanedText.substring(firstBrace, lastBrace + 1);
-    }
-
-    try {
-        const parsedJSON = JSON.parse(cleanedText);
-        const recommendations = parsedJSON.recommendations || [];
-
-        const inputIds = bids.map(b => (b.freelancerId || b._id || b.id || '').toString());
-        const returnedIds = recommendations.map(r => (r.freelancerId || r.id || '').toString());
-
-        console.log("===== PARSED RECOMMENDATIONS ARRAY =====");
-        console.dir(recommendations, { depth: null });
-
-        console.log("Input Bids Length:", bids.length);
-        console.log("Output Recommendations Length:", recommendations.length);
-        console.log("Input Freelancer IDs:", inputIds);
-        console.log("Returned Freelancer IDs:", returnedIds);
-
-        if (recommendations.length < bids.length) {
-            const missingIds = inputIds.filter(id => !returnedIds.includes(id));
-            console.warn("⚠️ MISSING FREELANCER IDs IN AI RESPONSE:", missingIds);
-        }
-
-        if (parsedJSON && Array.isArray(parsedJSON.recommendations)) {
-            // Sort descending by score
-            parsedJSON.recommendations.sort((a, b) => (b.score || 0) - (a.score || 0));
-            parsedJSON.recommendations.forEach((item, index) => {
-                item.rank = index + 1;
-            });
-        }
-
-        return parsedJSON;
-    } catch (parseError) {
-        console.error('⚠️ Freelancer Recommendation JSON parse error:', parseError.message);
-        console.error('⚠️ Cleaned text attempted:', cleanedText);
-        throw new Error('Invalid JSON format received from AI model.');
-    }
+    // Trigger Fallback Engine if AI models are unavailable, rate-limited, or failed
+    return calculateFallbackRecommendations({ projectDescription, requiredSkills, budget, deliveryDays, bids });
 };
 
 export default {
     improveProjectDescription,
     analyzeBidProposal,
+    calculateFallbackRecommendations,
     recommendFreelancers
 };
