@@ -189,8 +189,9 @@ export const login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        // Check if email is verified
-        if (user.isEmailVerified === false) {
+        // Check if email is verified (only when ENABLE_EMAIL_VERIFICATION=true)
+        const isEmailVerificationRequired = process.env.ENABLE_EMAIL_VERIFICATION === 'true';
+        if (isEmailVerificationRequired && user.isEmailVerified === false) {
             logSecurityAudit({ user, userEmail: user.email, action: 'LOGIN_FAILURE', status: 'BLOCKED', req, metadata: { reason: 'Email unverified' } });
             return res.status(403).json({
                 message: 'Email verification required. Please check your inbox or resend verification link.',
