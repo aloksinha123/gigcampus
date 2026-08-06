@@ -1,4 +1,8 @@
 import 'dotenv/config';
+
+console.log("TEST =", process.env.TEST);
+console.log("ENABLE_LOGIN_RATE_LIMIT =", process.env.ENABLE_LOGIN_RATE_LIMIT);
+
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
