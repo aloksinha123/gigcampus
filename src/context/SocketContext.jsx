@@ -124,16 +124,24 @@ export const SocketProvider = ({ children }) => {
         }
     };
 
-    const emitTyping = (projectId, username) => {
+    const emitTypingStart = (conversationId, username) => {
         if (socket) {
-            socket.emit('typing', { projectId, username });
+            socket.emit('typing-start', { conversationId, projectId: conversationId, username });
         }
     };
 
-    const emitStopTyping = (projectId) => {
+    const emitTypingStop = (conversationId) => {
         if (socket) {
-            socket.emit('stopTyping', { projectId });
+            socket.emit('typing-stop', { conversationId, projectId: conversationId });
         }
+    };
+
+    const emitTyping = (projectId, username) => {
+        emitTypingStart(projectId, username);
+    };
+
+    const emitStopTyping = (projectId) => {
+        emitTypingStop(projectId);
     };
 
     const markDelivered = (messageId, projectId) => {
@@ -172,6 +180,8 @@ export const SocketProvider = ({ children }) => {
         onBidReceived,
         emitTyping,
         emitStopTyping,
+        emitTypingStart,
+        emitTypingStop,
         markDelivered,
         markRead,
         onMessageDelivered,

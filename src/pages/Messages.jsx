@@ -19,15 +19,31 @@ const Messages = () => {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
-    const [typing, setTyping] = useState(false);
+    const [typingUser, setTypingUser] = useState(null);
 
     const messagesEndRef = useRef(null);
-    const typingTimeoutRef = useRef(null);
+    const isTypingRef = useRef(false);
+    const typingTimerRef = useRef(null);
     const selectedConversationRef = useRef(selectedConversation);
 
     useEffect(() => {
         selectedConversationRef.current = selectedConversation;
+        setTypingUser(null);
     }, [selectedConversation]);
+
+    const stopTypingImmediate = () => {
+        if (typingTimerRef.current) {
+            clearTimeout(typingTimerRef.current);
+            typingTimerRef.current = null;
+        }
+        if (isTypingRef.current && selectedConversationRef.current) {
+            isTypingRef.current = false;
+            socket?.emit('typing-stop', {
+                conversationId: selectedConversationRef.current.projectId,
+                projectId: selectedConversationRef.current.projectId
+            });
+        }
+    };
 
     useEffect(() => {
         if (!socket) return;
@@ -50,8 +66,17 @@ const Messages = () => {
             scrollToBottom();
         };
 
-        const handleUserTyping = () => setTyping(true);
-        const handleUserStoppedTyping = () => setTyping(false);
+        const handleTypingStart = ({ conversationId, username }) => {
+            if (selectedConversationRef.current?.projectId === conversationId) {
+                setTypingUser(username || 'Someone');
+            }
+        };
+
+        const handleTypingStop = ({ conversationId }) => {
+            if (selectedConversationRef.current?.projectId === conversationId) {
+                setTypingUser(null);
+            }
+        };
 
         const handleMessageDelivered = ({ messageId }) => {
             setMessages(prev =>
@@ -70,15 +95,19 @@ const Messages = () => {
         };
 
         socket.on('newMessage', handleNewMessage);
-        socket.on('userTyping', handleUserTyping);
-        socket.on('userStoppedTyping', handleUserStoppedTyping);
+        socket.on('typing-start', handleTypingStart);
+        socket.on('typing-stop', handleTypingStop);
+        socket.on('userTyping', handleTypingStart);
+        socket.on('userStoppedTyping', handleTypingStop);
         socket.on('message-delivered', handleMessageDelivered);
         socket.on('message-read', handleMessageRead);
 
         return () => {
             socket.off('newMessage', handleNewMessage);
-            socket.off('userTyping', handleUserTyping);
-            socket.off('userStoppedTyping', handleUserStoppedTyping);
+            socket.off('typing-start', handleTypingStart);
+            socket.off('typing-stop', handleTypingStop);
+            socket.off('userTyping', handleTypingStart);
+            socket.off('userStoppedTyping', handleTypingStop);
             socket.off('message-delivered', handleMessageDelivered);
             socket.off('message-read', handleMessageRead);
         };
@@ -140,6 +169,8 @@ const Messages = () => {
         e.preventDefault();
         if (!newMessage.trim() || !selectedConversation) return;
 
+        stopTypingImmediate();
+
         try {
             setSending(true);
             const messageData = {
@@ -157,11 +188,6 @@ const Messages = () => {
                 return [...prev, sentMessage];
             });
 
-            // Emit socket event - REMOVED because backend controller emits it
-            if (socket) {
-                socket.emit('stopTyping', { projectId: selectedConversation.projectId });
-            }
-
             setNewMessage('');
             scrollToBottom();
         } catch (err) {
@@ -172,22 +198,37 @@ const Messages = () => {
         }
     };
 
-    const handleTyping = () => {
-        if (socket && selectedConversation) {
-            socket.emit('typing', {
-                projectId: selectedConversation.projectId,
-                username: user.username
-            });
+    const handleInputChange = (e) => {
+        const val = e.target.value;
+        setNewMessage(val);
 
-            // Clear existing timeout
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
+        if (!selectedConversation || !socket) return;
+
+        const convId = selectedConversation.projectId;
+
+        if (val.trim().length > 0) {
+            if (!isTypingRef.current) {
+                isTypingRef.current = true;
+                socket.emit('typing-start', {
+                    conversationId: convId,
+                    projectId: convId,
+                    username: user?.username
+                });
             }
 
-            // Set new timeout to stop typing indicator
-            typingTimeoutRef.current = setTimeout(() => {
-                socket.emit('stopTyping', { projectId: selectedConversation.projectId });
-            }, 1000);
+            if (typingTimerRef.current) {
+                clearTimeout(typingTimerRef.current);
+            }
+
+            typingTimerRef.current = setTimeout(() => {
+                isTypingRef.current = false;
+                socket.emit('typing-stop', {
+                    conversationId: convId,
+                    projectId: convId
+                });
+            }, 1500);
+        } else {
+            stopTypingImmediate();
         }
     };
 
@@ -390,13 +431,14 @@ const Messages = () => {
                                                         </div>
                                                     );
                                                 })}
-                                                {typing && (
-                                                    <div className="flex justify-start">
-                                                        <div className="bg-white rounded-2xl px-4 py-3 shadow-sm">
-                                                            <div className="flex gap-1">
-                                                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                                {typingUser && (
+                                                    <div className="flex justify-start my-2 animate-in fade-in duration-200">
+                                                        <div className="bg-white rounded-2xl px-4 py-2.5 shadow-sm border border-gray-100 flex items-center gap-2 text-xs italic text-gray-500">
+                                                            <span className="font-semibold text-gray-700 not-italic">{typingUser}</span> is typing
+                                                            <div className="flex gap-1 items-center ml-1">
+                                                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -412,10 +454,7 @@ const Messages = () => {
                                             <input
                                                 type="text"
                                                 value={newMessage}
-                                                onChange={(e) => {
-                                                    setNewMessage(e.target.value);
-                                                    handleTyping();
-                                                }}
+                                                onChange={handleInputChange}
                                                 placeholder="Type a message..."
                                                 className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                 disabled={sending}

@@ -150,15 +150,47 @@ io.on('connection', async (socket) => {
     socket.to(`project_${projectId}`).emit('newMessage', message);
   });
 
-  // Typing indicator
+  // Typing indicator - start (room scoped)
+  socket.on('typing-start', (data) => {
+    const { conversationId, projectId, senderId, username } = data;
+    const targetRoom = projectId || conversationId;
+    if (targetRoom) {
+      socket.to(`project_${targetRoom}`).emit('typing-start', {
+        conversationId: targetRoom,
+        senderId: senderId || socket.userId,
+        username: username || 'Someone'
+      });
+    }
+  });
+
+  // Typing indicator - stop (room scoped)
+  socket.on('typing-stop', (data) => {
+    const { conversationId, projectId, senderId } = data;
+    const targetRoom = projectId || conversationId;
+    if (targetRoom) {
+      socket.to(`project_${targetRoom}`).emit('typing-stop', {
+        conversationId: targetRoom,
+        senderId: senderId || socket.userId
+      });
+    }
+  });
+
+  // Backwards compatibility aliases
   socket.on('typing', (data) => {
     const { projectId, username } = data;
-    socket.to(`project_${projectId}`).emit('userTyping', { username });
+    socket.to(`project_${projectId}`).emit('typing-start', {
+      conversationId: projectId,
+      senderId: socket.userId,
+      username
+    });
   });
 
   socket.on('stopTyping', (data) => {
     const { projectId } = data;
-    socket.to(`project_${projectId}`).emit('userStoppedTyping');
+    socket.to(`project_${projectId}`).emit('typing-stop', {
+      conversationId: projectId,
+      senderId: socket.userId
+    });
   });
 
   // Join personal room for notifications
