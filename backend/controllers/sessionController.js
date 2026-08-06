@@ -1,12 +1,38 @@
 import Session from '../models/Session.js';
+import crypto from 'crypto';
+import { parseUserAgent } from '../utils/uaParser.js';
 
 // @desc    Get all active sessions for current user
 // @route   GET /api/auth/sessions
 // @access  Private
 export const getSessions = async (req, res) => {
     try {
-        const sessions = await Session.find({ user: req.user._id, isActive: true })
+        let sessions = await Session.find({ user: req.user._id, isActive: true })
             .sort({ lastActivity: -1 });
+
+        // Auto-provision session for legacy active tokens if no active session exists
+        if (sessions.length === 0) {
+            const tokenId = req.session?.tokenId || crypto.randomUUID();
+            const userAgentStr = req.headers['user-agent'] || '';
+            const { browser, operatingSystem, deviceName } = parseUserAgent(userAgentStr);
+            const rawIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress || '127.0.0.1';
+            const ipAddress = rawIp === '::1' ? '127.0.0.1' : rawIp;
+
+            const newSession = await Session.create({
+                user: req.user._id,
+                tokenId,
+                deviceName,
+                browser,
+                operatingSystem,
+                ipAddress,
+                userAgent: userAgentStr,
+                isActive: true,
+                lastActivity: new Date()
+            });
+
+            sessions = [newSession];
+            req.session = newSession;
+        }
 
         const currentTokenId = req.session?.tokenId;
 
@@ -23,7 +49,7 @@ export const getSessions = async (req, res) => {
             isActive: session.isActive,
             lastActivity: session.lastActivity,
             createdAt: session.createdAt,
-            isCurrentSession: session.tokenId === currentTokenId
+            isCurrentSession: currentTokenId ? session.tokenId === currentTokenId : true
         }));
 
         res.json(formattedSessions);
