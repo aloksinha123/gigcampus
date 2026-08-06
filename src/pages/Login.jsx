@@ -120,7 +120,12 @@ const Login = () => {
             </div>
 
             <div>
-              <label className="block text-white/80 mb-2 font-medium">Password</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-white/80 font-medium">Password</label>
+                <Link to="/forgot-password" className="text-xs text-blue-400 hover:text-blue-300 font-semibold">
+                  Forgot Password?
+                </Link>
+              </div>
               <input
                 type="password"
                 name="password"

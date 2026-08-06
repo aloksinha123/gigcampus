@@ -1,8 +1,36 @@
 import transporter from '../config/mail.js';
 import { generateWelcomeEmail } from '../templates/welcomeEmail.js';
 import { generateVerificationEmail } from '../templates/verificationEmail.js';
+import { generateResetPasswordEmail } from '../templates/resetPasswordEmail.js';
 import { generateBidAcceptedEmail } from '../templates/bidAcceptedEmail.js';
 import { generateNewBidReceivedEmail } from '../templates/newBidReceivedEmail.js';
+
+/**
+ * Sends Password Reset Link to user
+ */
+export const sendPasswordResetEmail = async (email, name, resetUrl) => {
+    const template = generateResetPasswordEmail(name, resetUrl);
+    const fromName = process.env.EMAIL_FROM_NAME || 'GigCampus';
+    const fromAddress = process.env.EMAIL_USER || process.env.EMAIL_FROM_ADDRESS || 'no-reply@gigcampus.com';
+
+    const mailOptions = {
+        from: `"${fromName}" <${fromAddress}>`,
+        to: email,
+        subject: template.subject,
+        text: template.text,
+        html: template.html
+    };
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'yourgmail@gmail.com' || process.env.EMAIL_PASS === 'your_app_password') {
+        console.log('✉️ [SIMULATED EMAIL] Password Reset email for:', email);
+        console.log('🔗 Reset URL:', resetUrl);
+        return { messageId: `simulated-reset-${Date.now()}` };
+    }
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✉️ Password Reset email delivered to %s (Message ID: %s)', email, info.messageId);
+    return info;
+};
 
 /**
  * Sends Email Verification Link to newly registered or unverified user
@@ -170,6 +198,7 @@ export const sendProjectCompletedEmail = async (email, details) => {
 };
 
 export default {
+    sendPasswordResetEmail,
     sendVerificationEmail,
     sendWelcomeEmail,
     sendBidAcceptedEmail,
