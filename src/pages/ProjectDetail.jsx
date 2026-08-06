@@ -419,9 +419,10 @@ const ProjectDetail = () => {
     const canEdit = isOwner && project.status === 'open';
     const canDelete = isOwner && project.status === 'open';
     const canBid = user?.role === 'freelancer' && project.status === 'open' && !bids.some(b => b.freelancer._id === user._id);
-    const isAssignedFreelancer = user?.role === 'freelancer' && (user._id === project.freelancer?._id || user._id === project.freelancer);
+    const isAssignedFreelancer = user?.role === 'freelancer' && (String(user._id) === String(project.freelancer?._id || project.freelancer));
+    const isFreelancer = Boolean(isAssignedFreelancer || (user?.role === 'freelancer' && String(user?._id) === String(project.freelancer?._id || project.freelancer)));
     const canSubmitWork = isAssignedFreelancer && project.status === 'in_progress';
-    const canReview = project.status === 'completed' && (isOwner || (user?._id === project.freelancer?._id || user?._id === project.freelancer));
+    const canReview = project.status === 'completed' && (isOwner || (String(user?._id) === String(project.freelancer?._id || project.freelancer)));
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
