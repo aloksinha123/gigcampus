@@ -7,6 +7,7 @@ import MockCheckout from '../components/MockCheckout';
 import Navbar from '../components/Navbar';
 import ProjectTimeline from '../components/ProjectTimeline';
 import SmartBidAnalysisModal from '../components/SmartBidAnalysisModal';
+import RecommendationResultsModal from '../components/RecommendationResultsModal';
 
 const ProjectDetail = () => {
     const { id } = useParams();
@@ -102,6 +103,80 @@ const ProjectDetail = () => {
         setBidData(prev => ({ ...prev, proposal: improvedBidText }));
         setShowBidAnalysisModal(false);
         success('✨ Improved bid proposal applied to your bid form!');
+    };
+
+    // AI Freelancer Recommendation Engine State
+    const [recommendLoading, setRecommendLoading] = useState(false);
+    const [recommendationResults, setRecommendationResults] = useState(null);
+    const [showRecommendationModal, setShowRecommendationModal] = useState(false);
+
+    const handleRecommendFreelancers = async () => {
+        if (!bids || bids.length === 0) {
+            error('No freelancer proposals available.');
+            return;
+        }
+
+        try {
+            setRecommendLoading(true);
+
+            // Format candidate bids array
+            const candidateBids = bids.map((b) => ({
+                freelancerId: (b.freelancer?._id || b.freelancer?.id || b.freelancer || '').toString(),
+                username: b.freelancer?.username || b.freelancer?.name || 'Freelancer',
+                bidText: b.proposal || b.bidText || '',
+                bidAmount: Number(b.price || b.bidAmount || 0),
+                deliveryDays: parseInt((b.timeline || '7').toString().replace(/\D/g, ''), 10) || 7,
+                skills: Array.isArray(b.freelancer?.skills) ? b.freelancer.skills : [],
+                portfolioSummary: b.freelancer?.bio || '',
+                averageRating: Number(b.freelancer?.reputation?.rating) || Number(b.freelancer?.rating) || 4.5,
+                completedProjects: Number(b.freelancer?.reputation?.completedProjects) || Number(b.freelancer?.completedProjects) || 0
+            }));
+
+            // Parse project delivery days
+            let projectDays = 7;
+            if (project.timeline) {
+                const parsed = parseInt(project.timeline.toString().replace(/\D/g, ''), 10);
+                if (!isNaN(parsed) && parsed > 0) projectDays = parsed;
+            }
+
+            const response = await api.post('/ai/recommend-freelancers', {
+                projectDescription: project.description || project.title || '',
+                requiredSkills: Array.isArray(project.skills) ? project.skills : Array.isArray(project.requiredSkills) ? project.requiredSkills : [],
+                budget: Number(project.budget) || 1000,
+                deliveryDays: projectDays,
+                bids: candidateBids
+            });
+
+            if (response.data?.success && Array.isArray(response.data.recommendations)) {
+                // Enrich recommendation cards with freelancer usernames and ratings
+                const enrichedRecs = response.data.recommendations.map(rec => {
+                    const matchingBid = candidateBids.find(c => c.freelancerId === rec.freelancerId);
+                    return {
+                        ...rec,
+                        username: rec.username || matchingBid?.username || 'Freelancer',
+                        averageRating: rec.averageRating || matchingBid?.averageRating || 4.5,
+                        completedProjects: rec.completedProjects || matchingBid?.completedProjects || 0
+                    };
+                });
+
+                setRecommendationResults(enrichedRecs);
+                setShowRecommendationModal(true);
+                success('✨ AI Freelancer Recommendation audit complete!');
+            } else {
+                error('Unable to generate recommendations.');
+            }
+        } catch (err) {
+            console.error('Recommend Freelancers Error:', err);
+            if (err.response?.status === 401) {
+                error('Session expired. Please login again.');
+            } else if (err.response?.status === 400) {
+                error(err.response?.data?.message || 'Invalid request fields.');
+            } else {
+                error('Unable to generate recommendations.');
+            }
+        } finally {
+            setRecommendLoading(false);
+        }
     };
 
     // Review Modal State - Already declared above
@@ -553,7 +628,29 @@ const ProjectDetail = () => {
 
                     {activeTab === 'bids' && (
                         <div className="max-w-4xl mx-auto">
-                            <h3 className="text-3xl font-black text-gray-900 mb-10 italic uppercase tracking-tighter"><span className="text-blue-600">Qualified</span> Proposals</h3>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+                                <h3 className="text-3xl font-black text-gray-900 italic uppercase tracking-tighter"><span className="text-blue-600">Qualified</span> Proposals</h3>
+                                {isOwner && (
+                                    <button
+                                        onClick={handleRecommendFreelancers}
+                                        disabled={recommendLoading || bids.length === 0}
+                                        title={bids.length === 0 ? "No freelancer proposals available." : ""}
+                                        className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-purple-100 hover:shadow-purple-300 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+                                    >
+                                        {recommendLoading ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                <span>Analyzing Freelancers...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>✨</span>
+                                                <span>Recommend Best Freelancer</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
                             {bids.length === 0 ? (
                                 <div className="text-center py-20 bg-gray-50/50 rounded-[3rem] border-2 border-dashed border-gray-200">
                                     <div className="text-7xl mb-6 grayscale opacity-20">📂</div>
@@ -944,6 +1041,15 @@ const ProjectDetail = () => {
                     onClose={() => setShowBidAnalysisModal(false)}
                     onApplyImprovedBid={handleApplyImprovedBid}
                     toastSuccess={success}
+                />
+            )}
+
+            {/* AI Freelancer Recommendation Modal */}
+            {showRecommendationModal && (
+                <RecommendationResultsModal
+                    recommendations={recommendationResults}
+                    onClose={() => setShowRecommendationModal(false)}
+                    projectTitle={project?.title}
                 />
             )}
             {/* Review Modal */}
