@@ -12,6 +12,7 @@ import './index.css';
 const Home = lazy(() => import('./pages/Home'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 const ProjectMarketplace = lazy(() => import('./pages/ProjectMarketplace'));
 const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
 const MyProjects = lazy(() => import('./pages/MyProjects'));
@@ -64,6 +65,7 @@ function AppRoutes() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
           {/* Marketplace (Public) */}
           <Route path="/projects" element={<ProjectMarketplace />} />

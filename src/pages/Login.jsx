@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 
+import api from '../services/api';
+
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,14 +16,20 @@ const Login = () => {
     password: ''
   });
   const [loading, setLoading] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMsg, setResendMsg] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setUnverifiedEmail('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setUnverifiedEmail('');
+    setResendMsg('');
 
     const result = await login(formData.email, formData.password);
 
@@ -30,10 +38,27 @@ const Login = () => {
       const from = location.state?.from || '/';
       navigate(from);
     } else {
+      if (result.isEmailVerified === false || result.error?.includes('verification required')) {
+        setUnverifiedEmail(formData.email);
+      }
       error(result.error);
     }
 
     setLoading(false);
+  };
+
+  const handleResend = async () => {
+    try {
+      setResendLoading(true);
+      setResendMsg('');
+      const res = await api.auth.resendVerification({ email: unverifiedEmail || formData.email });
+      setResendMsg(res.data.message || 'Verification link sent to your email.');
+      success('Verification email sent!');
+    } catch (err) {
+      error(err.response?.data?.message || 'Failed to resend verification email.');
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   return (
@@ -54,6 +79,31 @@ const Login = () => {
             <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
             <p className="text-white/70">Login to your account</p>
           </div>
+
+          {unverifiedEmail && (
+            <div className="mb-6 p-4 bg-amber-500/20 border border-amber-400/40 rounded-2xl text-amber-100 text-xs animate-in fade-in duration-200">
+              <div className="flex items-center gap-2 font-bold text-amber-300 mb-1 text-sm">
+                <span>⚠️</span> Email Not Verified
+              </div>
+              <p className="mb-3 leading-relaxed text-white/80">
+                Please verify your email address to access GigCampus.
+              </p>
+              {resendMsg ? (
+                <p className="text-emerald-300 font-semibold bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/30">
+                  ✓ {resendMsg}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resendLoading}
+                  className="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 font-bold rounded-xl transition cursor-pointer"
+                >
+                  {resendLoading ? 'Sending link...' : '📨 Resend Verification Link'}
+                </button>
+              )}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

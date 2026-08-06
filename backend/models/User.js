@@ -65,6 +65,12 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: String,
+    emailVerificationExpires: Date,
     isActive: {
         type: Boolean,
         default: true
@@ -106,6 +112,7 @@ userSchema.methods.getPublicProfile = function () {
         profile: this.profile,
         reputation: this.reputation,
         verified: this.verified,
+        isEmailVerified: this.isEmailVerified,
         isOnline: this.isOnline,
         lastSeen: this.lastSeen,
         createdAt: this.createdAt

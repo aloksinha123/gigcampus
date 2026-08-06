@@ -38,6 +38,8 @@ export default api;
 export const authAPI = {
     register: (data) => api.post('/auth/register', data),
     login: (data) => api.post('/auth/login', data),
+    verifyEmail: (token) => api.get(`/auth/verify-email/${token}`),
+    resendVerification: (data) => api.post('/auth/resend-verification', data),
     getMe: () => api.get('/auth/me'),
     updateProfile: (data) => api.put('/auth/profile', data)
 };

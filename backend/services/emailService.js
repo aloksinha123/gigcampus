@@ -1,7 +1,35 @@
 import transporter from '../config/mail.js';
 import { generateWelcomeEmail } from '../templates/welcomeEmail.js';
+import { generateVerificationEmail } from '../templates/verificationEmail.js';
 import { generateBidAcceptedEmail } from '../templates/bidAcceptedEmail.js';
 import { generateNewBidReceivedEmail } from '../templates/newBidReceivedEmail.js';
+
+/**
+ * Sends Email Verification Link to newly registered or unverified user
+ */
+export const sendVerificationEmail = async (email, name, verificationUrl) => {
+    const template = generateVerificationEmail(name, verificationUrl);
+    const fromName = process.env.EMAIL_FROM_NAME || 'GigCampus';
+    const fromAddress = process.env.EMAIL_USER || process.env.EMAIL_FROM_ADDRESS || 'no-reply@gigcampus.com';
+
+    const mailOptions = {
+        from: `"${fromName}" <${fromAddress}>`,
+        to: email,
+        subject: template.subject,
+        text: template.text,
+        html: template.html
+    };
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'yourgmail@gmail.com' || process.env.EMAIL_PASS === 'your_app_password') {
+        console.log('✉️ [SIMULATED EMAIL] Verification email for:', email);
+        console.log('🔗 Verification URL:', verificationUrl);
+        return { messageId: `simulated-verify-${Date.now()}` };
+    }
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✉️ Verification email delivered to %s (Message ID: %s)', email, info.messageId);
+    return info;
+};
 
 /**
  * Sends a REAL welcome email to a new user using Nodemailer SMTP
@@ -142,6 +170,7 @@ export const sendProjectCompletedEmail = async (email, details) => {
 };
 
 export default {
+    sendVerificationEmail,
     sendWelcomeEmail,
     sendBidAcceptedEmail,
     sendNewBidReceivedEmail,
