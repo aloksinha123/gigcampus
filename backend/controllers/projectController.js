@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Payment from '../models/Payment.js';
 import Transaction from '../models/Transaction.js';
 import { createNotification } from './notificationController.js';
+import { sendBidAcceptedEmail } from '../services/emailService.js';
 
 // @desc    Create new project
 // @route   POST /api/projects
@@ -274,6 +275,26 @@ export const acceptBid = async (req, res) => {
                 bidId: bid._id
             }
         );
+
+        // Send Bid Accepted HTML Email to Freelancer (Non-blocking: Bid acceptance succeeds even if SMTP fails)
+        try {
+            const freelancerEmail = bid.freelancer?.email;
+            const freelancerName = bid.freelancer?.username || bid.freelancer?.profile?.name || 'Freelancer';
+            const studentName = req.user?.username || req.user?.profile?.name || 'Student';
+
+            if (freelancerEmail) {
+                await sendBidAcceptedEmail({
+                    freelancerEmail,
+                    freelancerName,
+                    projectTitle: project.title,
+                    bidAmount,
+                    studentName,
+                    projectId: project._id
+                });
+            }
+        } catch (emailErr) {
+            console.error('⚠️ Bid accepted email dispatch failed:', emailErr.message);
+        }
 
         return res.json({
             success: true,
