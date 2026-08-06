@@ -1,11 +1,14 @@
 import User from '../models/User.js';
+import Session from '../models/Session.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '../services/emailService.js';
+import { parseUserAgent } from '../utils/uaParser.js';
 
 // Generate JWT Token
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
+const generateToken = (id, tokenId) => {
+    const payload = tokenId ? { id, tokenId } : { id };
+    return jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: '30d',
     });
 };
@@ -142,6 +145,25 @@ export const login = async (req, res) => {
             });
         }
 
+        // Generate unique tokenId for session management
+        const tokenId = crypto.randomUUID();
+        const userAgentStr = req.headers['user-agent'] || '';
+        const { browser, operatingSystem, deviceName } = parseUserAgent(userAgentStr);
+        const rawIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress || '127.0.0.1';
+        const ipAddress = rawIp === '::1' ? '127.0.0.1' : rawIp;
+
+        await Session.create({
+            user: user._id,
+            tokenId,
+            deviceName,
+            browser,
+            operatingSystem,
+            ipAddress,
+            userAgent: userAgentStr,
+            isActive: true,
+            lastActivity: new Date()
+        });
+
         res.json({
             _id: user._id,
             username: user.username,
@@ -150,7 +172,7 @@ export const login = async (req, res) => {
             profile: user.profile,
             reputation: user.reputation,
             isEmailVerified: user.isEmailVerified,
-            token: generateToken(user._id),
+            token: generateToken(user._id, tokenId),
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

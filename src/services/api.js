@@ -42,6 +42,9 @@ export const authAPI = {
     resendVerification: (data) => api.post('/auth/resend-verification', data),
     forgotPassword: (data) => api.post('/auth/forgot-password', data),
     resetPassword: (token, data) => api.put(`/auth/reset-password/${token}`, data),
+    getSessions: () => api.get('/auth/sessions'),
+    terminateSession: (sessionId) => api.delete(`/auth/sessions/${sessionId}`),
+    terminateOtherSessions: () => api.delete('/auth/sessions'),
     getMe: () => api.get('/auth/me'),
     updateProfile: (data) => api.put('/auth/profile', data)
 };

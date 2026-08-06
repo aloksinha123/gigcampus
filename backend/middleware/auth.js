@@ -1,19 +1,14 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import Session from '../models/Session.js';
 
 export const protect = async (req, res, next) => {
     let token;
-
-    console.log("Authorization Header:");
-    console.log(req.headers.authorization);
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             // Get token from header
             token = req.headers.authorization.split(' ')[1];
-
-            console.log("Extracted Token:");
-            console.log(token);
 
             if (!token || token === 'undefined' || token === 'null' || !token.trim()) {
                 return res.status(401).json({ message: 'Not authorized, token is missing or empty' });
@@ -33,9 +28,23 @@ export const protect = async (req, res, next) => {
                 return res.status(401).json({ message: 'Account is deactivated' });
             }
 
+            // Multi-device Session Check
+            if (decoded.tokenId) {
+                const session = await Session.findOne({ tokenId: decoded.tokenId, isActive: true });
+
+                if (!session) {
+                    return res.status(401).json({ message: 'Session expired or terminated. Please log in again.' });
+                }
+
+                // Update lastActivity timestamp asynchronously (non-blocking)
+                Session.updateOne({ _id: session._id }, { lastActivity: new Date() }).exec().catch(() => {});
+
+                req.session = session;
+            }
+
             return next();
         } catch (error) {
-            console.error('JWT Error in protect middleware:', error);
+            console.error('JWT Error in protect middleware:', error.message);
             return res.status(401).json({ message: 'Not authorized, token failed' });
         }
     }
