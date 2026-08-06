@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 /**
  * Format bytes to readable size
@@ -42,6 +42,8 @@ export const getFileDetails = (mimeType = '', fileName = '') => {
  * FileAttachmentPreview Component
  */
 const FileAttachmentPreview = ({ attachment }) => {
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
     if (!attachment || !attachment.url) return null;
 
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5003';
@@ -51,22 +53,71 @@ const FileAttachmentPreview = ({ attachment }) => {
 
     if (isImage) {
         return (
-            <div className="mt-2 mb-1 group relative max-w-sm rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-black/5">
-                <a href={fullUrl} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
-                    <img
-                        src={fullUrl}
-                        alt={attachment.name || 'Attachment'}
-                        className="w-full max-h-64 object-cover group-hover:scale-105 transition-transform duration-300 rounded-2xl"
-                        loading="lazy"
-                    />
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white text-xs flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="truncate font-semibold max-w-[200px]">{attachment.name}</span>
-                        <span className="bg-white/20 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
-                            🔍 View Full
-                        </span>
+            <>
+                <div className="mt-2 mb-1 group relative max-w-sm rounded-2xl overflow-hidden border border-gray-200/80 shadow-sm bg-black/5 cursor-pointer">
+                    <div onClick={() => setIsLightboxOpen(true)} className="block">
+                        <img
+                            src={fullUrl}
+                            alt={attachment.name || 'Attachment'}
+                            className="w-full max-h-64 object-cover group-hover:scale-105 transition-transform duration-300 rounded-2xl"
+                            loading="lazy"
+                        />
+                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 text-white text-xs flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="truncate font-semibold max-w-[200px]">{attachment.name}</span>
+                            <span className="bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                🔍 Preview
+                            </span>
+                        </div>
                     </div>
-                </a>
-            </div>
+                </div>
+
+                {/* Inline Image Lightbox Modal */}
+                {isLightboxOpen && (
+                    <div
+                        className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+                        onClick={() => setIsLightboxOpen(false)}
+                    >
+                        <div
+                            className="relative max-w-4xl max-h-[90vh] bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-white/10 flex flex-col"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Modal Header */}
+                            <div className="p-4 bg-slate-800/80 border-b border-white/10 flex items-center justify-between text-white">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <span className="text-xl">🖼️</span>
+                                    <span className="font-bold text-sm truncate max-w-md">{attachment.name || 'Image Preview'}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <a
+                                        href={fullUrl}
+                                        download={attachment.name || true}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 cursor-pointer"
+                                    >
+                                        📥 Download
+                                    </a>
+                                    <button
+                                        onClick={() => setIsLightboxOpen(false)}
+                                        className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition text-lg font-bold cursor-pointer"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Image Container */}
+                            <div className="p-4 flex items-center justify-center overflow-auto bg-black/40 max-h-[80vh]">
+                                <img
+                                    src={fullUrl}
+                                    alt={attachment.name || 'Full Preview'}
+                                    className="max-w-full max-h-[75vh] object-contain rounded-xl shadow-lg"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </>
         );
     }
 
