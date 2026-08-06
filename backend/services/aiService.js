@@ -39,7 +39,7 @@ Strict Rules:
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3.5-flash',
             contents: prompt,
             config: {
                 responseMimeType: 'application/json'
@@ -47,7 +47,7 @@ Strict Rules:
         });
         responseText = response.text || '';
     } catch (modelErr) {
-        console.warn('⚠️ gemini-2.5-flash model call failed, trying fallback gemini-2.0-flash model:', modelErr.message);
+        console.warn('⚠️ gemini-3.5-flash model call failed, trying fallback gemini-2.5-flash model:', modelErr.message);
         try {
             const fallbackResponse = await ai.models.generateContent({
                 model: 'gemini-2.0-flash',
