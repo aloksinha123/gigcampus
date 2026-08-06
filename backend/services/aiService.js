@@ -47,20 +47,10 @@ Strict Rules:
         });
         responseText = response.text || '';
     } catch (modelErr) {
-        console.warn('⚠️ gemini-3.5-flash model call failed, trying fallback gemini-2.5-flash model:', modelErr.message);
-        try {
-            const fallbackResponse = await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
-                contents: prompt,
-                config: {
-                    responseMimeType: 'application/json'
-                }
-            });
-            responseText = fallbackResponse.text || '';
-        } catch (fallbackErr) {
-            console.error('⚠️ Fallback model failed as well:', fallbackErr.message);
-            throw modelErr;
-        }
+        console.error("Gemini Error:");
+        console.error(modelErr);
+        console.error(modelErr.response?.data);
+        throw modelErr;
     }
 
     // Clean any markdown formatting if present

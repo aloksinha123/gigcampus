@@ -37,10 +37,13 @@ export const improveDescription = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('⚠️ AI Description Generator Error:', error.message);
+        console.error("Gemini Error:");
+        console.error(error);
+        console.error(error.response?.data);
         return res.status(500).json({
             success: false,
-            message: 'Unable to generate AI suggestions.'
+            message: error.message || 'Unable to generate AI suggestions.',
+            errorDetails: error.response?.data || error
         });
     }
 };
