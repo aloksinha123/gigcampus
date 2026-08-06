@@ -281,6 +281,9 @@ Strict Rules:
         throw lastError || new Error('Failed to generate response from Gemini AI models.');
     }
 
+    console.log("===== RAW GEMINI RECOMMENDATIONS RESPONSE =====");
+    console.log(responseText);
+
     // Extract JSON substring between first '{' and last '}'
     let cleanedText = responseText
         .replace(/```json/gi, '')
@@ -295,25 +298,25 @@ Strict Rules:
 
     try {
         const parsedJSON = JSON.parse(cleanedText);
+        const recommendations = parsedJSON.recommendations || [];
+
+        const inputIds = bids.map(b => (b.freelancerId || b._id || b.id || '').toString());
+        const returnedIds = recommendations.map(r => (r.freelancerId || r.id || '').toString());
+
+        console.log("===== PARSED RECOMMENDATIONS ARRAY =====");
+        console.dir(recommendations, { depth: null });
+
+        console.log("Input Bids Length:", bids.length);
+        console.log("Output Recommendations Length:", recommendations.length);
+        console.log("Input Freelancer IDs:", inputIds);
+        console.log("Returned Freelancer IDs:", returnedIds);
+
+        if (recommendations.length < bids.length) {
+            const missingIds = inputIds.filter(id => !returnedIds.includes(id));
+            console.warn("⚠️ MISSING FREELANCER IDs IN AI RESPONSE:", missingIds);
+        }
 
         if (parsedJSON && Array.isArray(parsedJSON.recommendations)) {
-            // Guarantee all input bids exist in recommendations
-            const existingIds = new Set(parsedJSON.recommendations.map(r => r.freelancerId));
-            
-            bids.forEach(bid => {
-                const idStr = bid.freelancerId || bid._id;
-                if (idStr && !existingIds.has(idStr)) {
-                    parsedJSON.recommendations.push({
-                        freelancerId: idStr,
-                        score: 50,
-                        rank: parsedJSON.recommendations.length + 1,
-                        strengths: ["Submitted bid proposal"],
-                        concerns: ["Needs further evaluation"],
-                        reason: "Candidate evaluated."
-                    });
-                }
-            });
-
             // Sort descending by score
             parsedJSON.recommendations.sort((a, b) => (b.score || 0) - (a.score || 0));
             parsedJSON.recommendations.forEach((item, index) => {
