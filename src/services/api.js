@@ -75,6 +75,9 @@ export const bidsAPI = {
 // Messages API
 export const messagesAPI = {
     send: (data) => api.post('/messages', data),
+    upload: (formData) => api.post('/messages/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
     getConversations: () => api.get('/messages/conversations'),
     getProjectMessages: (projectId, params) => api.get(`/messages/project/${projectId}`, { params }),
     markAsRead: (projectId) => api.put(`/messages/read/${projectId}`),

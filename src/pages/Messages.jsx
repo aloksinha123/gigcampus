@@ -8,6 +8,7 @@ import Navbar from '../components/Navbar';
 import UserPresence from '../components/UserPresence';
 import ReadReceipt from '../components/ReadReceipt';
 import { triggerBrowserNotification } from '../utils/browserNotification';
+import FileAttachmentPreview, { formatFileSize } from '../components/FileAttachmentPreview';
 
 const Messages = () => {
     const { user, logout } = useAuth();
@@ -18,11 +19,13 @@ const Messages = () => {
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    const [pendingFile, setPendingFile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [typingUser, setTypingUser] = useState(null);
 
     const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
     const isTypingRef = useRef(false);
     const typingTimerRef = useRef(null);
     const selectedConversationRef = useRef(selectedConversation);
@@ -30,7 +33,32 @@ const Messages = () => {
     useEffect(() => {
         selectedConversationRef.current = selectedConversation;
         setTypingUser(null);
+        setPendingFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
     }, [selectedConversation]);
+
+    const handleFileSelect = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // 20 MB limit validation
+        if (file.size > 20 * 1024 * 1024) {
+            error('File size exceeds 20 MB limit.');
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
+        // Executable and script file blockage validation
+        const ext = file.name.split('.').pop().toLowerCase();
+        const blockedExts = ['exe', 'bat', 'cmd', 'sh', 'js', 'apk', 'vbs', 'msi', 'ps1', 'jar'];
+        if (blockedExts.includes(ext)) {
+            error('Executable and script files are strictly blocked for security.');
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
+        setPendingFile(file);
+    };
 
     const stopTypingImmediate = () => {
         if (typingTimerRef.current) {
@@ -176,16 +204,28 @@ const Messages = () => {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedConversation) return;
+        if ((!newMessage.trim() && !pendingFile) || !selectedConversation) return;
 
         stopTypingImmediate();
 
         try {
             setSending(true);
+            let attachmentData = null;
+
+            if (pendingFile) {
+                const formData = new FormData();
+                formData.append('file', pendingFile);
+                formData.append('project', selectedConversation.projectId);
+
+                const uploadRes = await api.messages.upload(formData);
+                attachmentData = uploadRes.data;
+            }
+
             const messageData = {
                 project: selectedConversation.projectId,
                 receiver: selectedConversation.otherUser._id,
-                content: newMessage.trim()
+                content: newMessage.trim(),
+                attachment: attachmentData
             };
 
             const response = await api.messages.send(messageData);
@@ -198,9 +238,11 @@ const Messages = () => {
             });
 
             setNewMessage('');
+            setPendingFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
             scrollToBottom();
         } catch (err) {
-            error('Failed to send message');
+            error(err.response?.data?.message || 'Failed to send message/file');
             console.error(err);
         } finally {
             setSending(false);
@@ -426,7 +468,8 @@ const Messages = () => {
                                                                         ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
                                                                         : 'bg-white text-gray-800 shadow-sm'
                                                                         }`}>
-                                                                        <p className="text-sm break-words">{message.content}</p>
+                                                                        {message.content && <p className="text-sm break-words">{message.content}</p>}
+                                                                        <FileAttachmentPreview attachment={message.attachment} />
                                                                     </div>
                                                                     <p className={`text-xs text-gray-500 mt-1 flex items-center gap-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
                                                                         <span>{formatTime(message.createdAt)}</span>
@@ -459,7 +502,49 @@ const Messages = () => {
 
                                     {/* Message Input */}
                                     <div className="p-4 border-t border-gray-200 bg-white">
-                                        <form onSubmit={handleSendMessage} className="flex gap-2">
+                                        {/* Staging File Preview */}
+                                        {pendingFile && (
+                                            <div className="mb-3 p-3 bg-blue-50/80 border border-blue-200 rounded-2xl flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <span className="text-2xl">📎</span>
+                                                    <div className="min-w-0">
+                                                        <p className="font-bold text-xs text-blue-900 truncate">{pendingFile.name}</p>
+                                                        <p className="text-[10px] font-semibold text-blue-700">{formatFileSize(pendingFile.size)}</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setPendingFile(null);
+                                                        if (fileInputRef.current) fileInputRef.current.value = '';
+                                                    }}
+                                                    className="p-1 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-black cursor-pointer"
+                                                    title="Remove attachment"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
+                                            {/* File Picker Trigger */}
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                onChange={handleFileSelect}
+                                                className="hidden"
+                                                accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.rar"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={sending}
+                                                className="p-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition cursor-pointer flex-shrink-0"
+                                                title="Attach File (Images, Documents, PDFs up to 20MB)"
+                                            >
+                                                <span className="text-xl">📎</span>
+                                            </button>
+
                                             <input
                                                 type="text"
                                                 value={newMessage}
@@ -470,8 +555,8 @@ const Messages = () => {
                                             />
                                             <button
                                                 type="submit"
-                                                disabled={!newMessage.trim() || sending}
-                                                className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-full hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
+                                                disabled={(!newMessage.trim() && !pendingFile) || sending}
+                                                className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-full hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold flex-shrink-0"
                                             >
                                                 {sending ? '...' : '📤 Send'}
                                             </button>

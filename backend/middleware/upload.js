@@ -1,47 +1,63 @@
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const uploadDir = path.join(__dirname, '../../public/uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 // Configure storage
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '../../public/uploads'));
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        cb(null, 'attachment-' + uniqueSuffix + path.extname(file.originalname).toLowerCase());
     }
 });
 
-// File filter
-const fileFilter = (req, file, cb) => {
-    // Allowed file types
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|txt|zip|rar/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+// Strict file type & extension filter
+const chatFileFilter = (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
 
-    if (extname && mimetype) {
-        return cb(null, true);
-    } else {
-        cb(new Error('Invalid file type. Only images, PDFs, and documents are allowed.'));
+    // Strictly blocked executables and scripts
+    const blockedExts = ['exe', 'bat', 'cmd', 'sh', 'js', 'apk', 'vbs', 'msi', 'ps1', 'jar'];
+    if (blockedExts.includes(ext)) {
+        const err = new Error('File type not allowed. Executable and script files are strictly blocked for security.');
+        err.status = 400;
+        return cb(err, false);
     }
+
+    // Allowed extensions
+    const allowedExts = [
+        'jpg', 'jpeg', 'png', 'webp',
+        'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'zip', 'rar'
+    ];
+
+    if (!allowedExts.includes(ext)) {
+        const err = new Error('File type not supported. Allowed formats: images (JPG, PNG, WEBP) and documents (PDF, DOCX, PPTX, XLSX, TXT, ZIP, RAR).');
+        err.status = 400;
+        return cb(err, false);
+    }
+
+    cb(null, true);
 };
 
-// Create multer upload instance
+// Create multer instances
 export const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB limit
+        fileSize: 20 * 1024 * 1024 // 20 MB limit
     },
-    fileFilter: fileFilter
+    fileFilter: chatFileFilter
 });
 
-// Middleware for single file upload
 export const uploadSingle = upload.single('file');
-
-// Middleware for multiple files upload
 export const uploadMultiple = upload.array('files', 5);
