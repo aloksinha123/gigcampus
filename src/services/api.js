@@ -151,6 +151,17 @@ export const adminAPI = {
     getBids: (params) => api.get('/admin/bids', { params })
 };
 
+// Milestones API
+export const milestoneAPI = {
+    getProjectMilestones: (projectId) => api.get(`/milestones/project/${projectId}`),
+    create: (data) => api.post('/milestones', data),
+    update: (id, data) => api.put(`/milestones/${id}`, data),
+    delete: (id) => api.delete(`/milestones/${id}`),
+    submit: (id, data) => api.put(`/milestones/${id}/submit`, data),
+    approve: (id) => api.put(`/milestones/${id}/approve`),
+    reject: (id, data) => api.put(`/milestones/${id}/reject`, data)
+};
+
 // Add shortcuts to default api export
 api.auth = authAPI;
 api.projects = projectsAPI;
@@ -163,4 +174,4 @@ api.users = usersAPI;
 api.notifications = notificationsAPI;
 api.wallet = walletAPI;
 api.admin = adminAPI;
-
+api.milestones = milestoneAPI;

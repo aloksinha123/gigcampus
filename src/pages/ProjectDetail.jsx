@@ -8,6 +8,7 @@ import Navbar from '../components/Navbar';
 import ProjectTimeline from '../components/ProjectTimeline';
 import SmartBidAnalysisModal from '../components/SmartBidAnalysisModal';
 import RecommendationResultsModal from '../components/RecommendationResultsModal';
+import MilestoneList from '../components/MilestoneList';
 
 const ProjectDetail = () => {
     const { id } = useParams();
@@ -796,55 +797,13 @@ const ProjectDetail = () => {
                     )}
 
                     {activeTab === 'milestones' && (
-                        <div className="max-w-4xl mx-auto">
-                            <div className="flex justify-between items-end mb-16 px-4">
-                                <div>
-                                    <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase"><span className="text-blue-600">Smart</span> Escrow</h3>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Automated Milestone Release Protocol</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Total Gig Valuation</p>
-                                    <p className="text-5xl font-black text-gray-900 tracking-tighter">₹{project.selectedBid?.price || project.budget.max}</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-16 relative">
-                                <div className="absolute left-[23px] top-4 bottom-4 w-1 bg-gray-100/50 rounded-full"></div>
-
-                                {(project.milestones?.length > 0 ? project.milestones : [
-                                    { title: 'Project Initialization & Discovery', status: 'released', amount: (project.selectedBid?.price || project.budget.max) * 0.2, dueDate: project.createdAt },
-                                    { title: 'Alpha Milestone - Core Delivery', status: 'escrowed', amount: (project.selectedBid?.price || project.budget.max) * 0.4, dueDate: new Date() },
-                                    { title: 'Beta Testing & Final Handover', status: 'escrowed', amount: (project.selectedBid?.price || project.budget.max) * 0.4, dueDate: project.deadline }
-                                ]).map((ms, idx) => (
-                                    <div key={idx} className="relative flex gap-12 group">
-                                        <div className={`w-12 h-12 rounded-[1.25rem] flex items-center justify-center shrink-0 z-10 shadow-lg border-4 border-white transition-all duration-500 scale-110 ${ms.status === 'released' ? 'bg-green-500 text-white shadow-green-100 rotate-12' : 'bg-white text-blue-600 shadow-blue-50 group-hover:bg-blue-600 group-hover:text-white'
-                                            }`}>
-                                            {ms.status === 'released' ? <span className="text-xl">✓</span> : <span className="font-black text-lg italic">{idx + 1}</span>}
-                                        </div>
-
-                                        <div className="flex-1 bg-white border-2 border-transparent hover:border-blue-50 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl transition-all">
-                                            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                                                <div>
-                                                    <h4 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{ms.title}</h4>
-                                                    <p className="text-[10px] font-black text-gray-400 mt-2 uppercase tracking-widest flex items-center gap-2">
-                                                        <span>📅 TARGET: {new Date(ms.dueDate).toLocaleDateString()}</span>
-                                                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                                        <span>SECURED IN ESCROW</span>
-                                                    </p>
-                                                </div>
-                                                <div className="text-right sm:text-right w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-50">
-                                                    <p className="text-3xl font-black text-blue-600 tracking-tighter">₹{ms.amount.toFixed(0)}</p>
-                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg mt-3 inline-block shadow-sm ${ms.status === 'released' ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'
-                                                        }`}>
-                                                        {ms.status === 'released' ? 'RELEASED' : 'LOCKED'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <MilestoneList
+                            project={project}
+                            isOwner={isOwner}
+                            isFreelancer={isFreelancer}
+                            toastError={error}
+                            toastSuccess={success}
+                        />
                     )}
 
                     {activeTab === 'timeline' && (
