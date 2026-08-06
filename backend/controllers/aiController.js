@@ -1,4 +1,4 @@
-import { improveProjectDescription, analyzeBidProposal } from '../services/aiService.js';
+import { improveProjectDescription, analyzeBidProposal, recommendFreelancers } from '../services/aiService.js';
 
 // @desc    Improve project description using Google Gemini AI
 // @route   POST /api/ai/improve-description
@@ -132,7 +132,71 @@ export const analyzeBid = async (req, res) => {
     }
 };
 
+// @desc    Rank and recommend freelancers for a project using Google Gemini AI
+// @route   POST /api/ai/recommend-freelancers
+// @access  Private (Project Owner / Authenticated Users)
+export const recommendFreelancersController = async (req, res) => {
+    try {
+        let { projectDescription, requiredSkills, budget, deliveryDays, bids } = req.body;
+
+        if (!projectDescription || typeof projectDescription !== 'string' || !projectDescription.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'projectDescription is required and must be a valid string.'
+            });
+        }
+
+        if (!Array.isArray(bids) || bids.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'bids must be a non-empty array of candidate bids.'
+            });
+        }
+
+        if (budget === undefined || budget === null || isNaN(Number(budget)) || Number(budget) <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'budget is required and must be a positive number greater than 0.'
+            });
+        }
+
+        if (deliveryDays === undefined || deliveryDays === null || isNaN(Number(deliveryDays)) || Number(deliveryDays) <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'deliveryDays is required and must be a positive number greater than 0.'
+            });
+        }
+
+        const result = await recommendFreelancers({
+            projectDescription: projectDescription.trim(),
+            requiredSkills: Array.isArray(requiredSkills) ? requiredSkills : [],
+            budget: Number(budget),
+            deliveryDays: Number(deliveryDays),
+            bids
+        });
+
+        if (!result || !Array.isArray(result.recommendations)) {
+            return res.status(500).json({
+                success: false,
+                message: 'Unable to generate freelancer recommendations.'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            recommendations: result.recommendations
+        });
+    } catch (error) {
+        console.error('⚠️ Recommend Freelancers Controller Error:', error.message);
+        return res.status(500).json({
+            success: false,
+            message: 'Unable to generate freelancer recommendations.'
+        });
+    }
+};
+
 export default {
     improveDescription,
-    analyzeBid
+    analyzeBid,
+    recommendFreelancersController
 };

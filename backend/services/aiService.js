@@ -193,7 +193,122 @@ Strict Rules:
     }
 };
 
+/**
+ * Ranks and recommends freelancers for a project based on their bids, skills, and past performance using Google Gemini AI
+ * @param {Object} params - Contains projectDescription, requiredSkills, budget, deliveryDays, bids
+ * @returns {Object} JSON object containing recommendations array sorted by rank/score
+ */
+export const recommendFreelancers = async ({ projectDescription, requiredSkills = [], budget, deliveryDays, bids = [] }) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+        throw new Error('GEMINI_API_KEY is not configured in backend/.env.');
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+
+    const prompt = `You are an expert AI talent acquisition specialist and freelancer auditor for a campus marketplace.
+Evaluate the following project requirements and candidate freelancer bids.
+
+Project Details:
+- Description: "${projectDescription}"
+- Required Skills: ${Array.isArray(requiredSkills) ? requiredSkills.join(', ') : 'Not specified'}
+- Project Budget: ₹${budget}
+- Max Delivery Days: ${deliveryDays}
+
+Candidate Freelancer Bids:
+${JSON.stringify(bids, null, 2)}
+
+Perform a comprehensive evaluation and rank EVERY freelancer in the bids list.
+Return ONLY valid JSON matching this exact structure:
+{
+  "recommendations": [
+    {
+      "freelancerId": "exact_freelancerId_from_bid_input",
+      "score": 95,
+      "rank": 1,
+      "strengths": [
+        "Strong skill match",
+        "High rating and completed projects count"
+      ],
+      "concerns": [
+        "Delivery timeframe is tight"
+      ],
+      "reason": "Detailed summary explaining why this freelancer is recommended for the project."
+    }
+  ]
+}
+
+Strict Rules:
+1. Output MUST be 100% valid raw JSON only.
+2. Include EVERY freelancer from the bids list in the recommendations array.
+3. Sort the "recommendations" array in descending order by "score" (highest score first, rank 1 = highest score).
+4. "score" MUST be an integer between 0 and 100.
+5. "rank" MUST be an integer starting from 1 for top candidate.
+6. "strengths" and "concerns" MUST be arrays of strings.
+7. Do NOT use markdown code blocks or any commentary outside the JSON.`;
+
+    let responseText = '';
+    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.5-flash'];
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+        try {
+            const response = await ai.models.generateContent({
+                model: modelName,
+                contents: prompt,
+                config: {
+                    responseMimeType: 'application/json'
+                }
+            });
+
+            responseText = typeof response.text === 'function' ? response.text() : (response.text || '');
+            if (responseText && responseText.trim()) {
+                console.log(`✨ AI Freelancer Recommendation Engine completed using model [${modelName}]`);
+                break;
+            }
+        } catch (err) {
+            console.warn(`⚠️ Freelancer Recommendation Engine model [${modelName}] failed:`, err.message);
+            lastError = err;
+        }
+    }
+
+    if (!responseText || !responseText.trim()) {
+        throw lastError || new Error('Failed to generate response from Gemini AI models.');
+    }
+
+    // Extract JSON substring between first '{' and last '}'
+    let cleanedText = responseText
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
+
+    const firstBrace = cleanedText.indexOf('{');
+    const lastBrace = cleanedText.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1) {
+        cleanedText = cleanedText.substring(firstBrace, lastBrace + 1);
+    }
+
+    try {
+        const parsedJSON = JSON.parse(cleanedText);
+
+        if (parsedJSON && Array.isArray(parsedJSON.recommendations)) {
+            parsedJSON.recommendations.sort((a, b) => (b.score || 0) - (a.score || 0));
+            parsedJSON.recommendations.forEach((item, index) => {
+                item.rank = index + 1;
+            });
+        }
+
+        return parsedJSON;
+    } catch (parseError) {
+        console.error('⚠️ Freelancer Recommendation JSON parse error:', parseError.message);
+        console.error('⚠️ Cleaned text attempted:', cleanedText);
+        throw new Error('Invalid JSON format received from AI model.');
+    }
+};
+
 export default {
     improveProjectDescription,
-    analyzeBidProposal
+    analyzeBidProposal,
+    recommendFreelancers
 };
