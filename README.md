@@ -135,6 +135,12 @@ gigcampus/
     JWT_SECRET=your_secret_key
     NODE_ENV=development
     CLIENT_URL=http://localhost:5173
+
+    # Feature Flags & Security Bypasses (Development Only)
+    ENABLE_LOGIN_RATE_LIMIT=true   # Set to false to temporarily disable authLimiter in dev/testing (defaults to true)
+    ENABLE_ACCOUNT_LOCK=true       # Set to false to bypass 5-failed-attempts account lockout in dev
+    ENABLE_EMAIL_VERIFICATION=true # Set to false to allow unverified logins in dev
+    ENABLE_ROLE_SELECTION=true     # Set to false to bypass role selection landing in dev
     ```
 
     **Frontend `.env`**

@@ -75,9 +75,17 @@ app.use('/uploads', express.static(uploadDir));
 app.use('/api', generalLimiter);
 
 // Specific Auth Endpoint Rate Limiting (5 requests / 15 min per IP)
-app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/register', authLimiter);
-app.use('/api/auth/forgot-password', authLimiter);
+// Feature Flag: ENABLE_LOGIN_RATE_LIMIT (defaults to true for production security)
+// Set ENABLE_LOGIN_RATE_LIMIT=false in .env during dev/testing to temporarily disable login 429 limits without removing security code
+const isLoginRateLimitEnabled = process.env.ENABLE_LOGIN_RATE_LIMIT !== 'false';
+
+if (isLoginRateLimitEnabled) {
+  app.use('/api/auth/login', authLimiter);
+  app.use('/api/auth/register', authLimiter);
+  app.use('/api/auth/forgot-password', authLimiter);
+} else {
+  console.log('⚠️ [DEV NOTICE] Login Rate Limiter (authLimiter) is temporarily DISABLED via ENABLE_LOGIN_RATE_LIMIT=false');
+}
 
 // API Routes
 app.use('/api/auth', authRoutes);
