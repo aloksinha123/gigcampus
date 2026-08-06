@@ -106,19 +106,37 @@ export const getProjectMessages = async (req, res) => {
 // @access  Private
 export const markAsRead = async (req, res) => {
     try {
-        await Message.updateMany(
-            {
-                project: req.params.projectId,
-                receiver: req.user._id,
-                read: false
-            },
-            {
-                read: true,
-                readAt: new Date()
-            }
-        );
+        const { projectId } = req.params;
+        const unreadMessages = await Message.find({
+            project: projectId,
+            receiver: req.user._id,
+            status: { $ne: 'read' }
+        }, '_id');
 
-        res.json({ message: 'Messages marked as read' });
+        const messageIds = unreadMessages.map(m => m._id.toString());
+        const readAt = new Date();
+
+        if (messageIds.length > 0) {
+            await Message.updateMany(
+                { _id: { $in: messageIds } },
+                {
+                    status: 'read',
+                    read: true,
+                    readAt
+                }
+            );
+
+            const io = global.io;
+            if (io) {
+                io.to(`project_${projectId}`).emit('message-read', {
+                    projectId,
+                    messageIds,
+                    readAt
+                });
+            }
+        }
+
+        res.json({ message: 'Messages marked as read', count: messageIds.length });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

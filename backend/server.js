@@ -27,6 +27,7 @@ import { createRateLimiter } from './middleware/rateLimiter.js';
 import { verifyEmailConnection } from './config/mail.js';
 import jwt from 'jsonwebtoken';
 import User from './models/User.js';
+import Message from './models/Message.js';
 
 // Connect to database & verify email service
 connectDB();
@@ -170,6 +171,63 @@ io.on('connection', async (socket) => {
   socket.on('newBid', (data) => {
     const { projectId, bid } = data;
     socket.to(`project_${projectId}`).emit('bidReceived', bid);
+  });
+
+  // Mark message delivered (Security check: only receiver can mark delivered)
+  socket.on('markDelivered', async ({ messageId, projectId }) => {
+    try {
+      if (!userId || !messageId) return;
+      const msg = await Message.findById(messageId);
+      if (msg && msg.receiver.toString() === userId && msg.status === 'sent') {
+        const deliveredAt = new Date();
+        msg.status = 'delivered';
+        msg.deliveredAt = deliveredAt;
+        await msg.save();
+
+        io.to(`project_${projectId || msg.project}`).emit('message-delivered', {
+          messageId,
+          deliveredAt,
+          status: 'delivered'
+        });
+      }
+    } catch (err) {
+      console.error('Error marking message delivered:', err.message);
+    }
+  });
+
+  // Mark messages read (Security check: only receiver can mark read)
+  socket.on('markRead', async ({ projectId }) => {
+    try {
+      if (!userId || !projectId) return;
+      const unreadMessages = await Message.find({
+        project: projectId,
+        receiver: userId,
+        status: { $ne: 'read' }
+      }, '_id');
+
+      const messageIds = unreadMessages.map(m => m._id.toString());
+      const readAt = new Date();
+
+      if (messageIds.length > 0) {
+        await Message.updateMany(
+          { _id: { $in: messageIds } },
+          {
+            status: 'read',
+            read: true,
+            readAt
+          }
+        );
+
+        io.to(`project_${projectId}`).emit('message-read', {
+          projectId,
+          messageIds,
+          readAt,
+          status: 'read'
+        });
+      }
+    } catch (err) {
+      console.error('Error marking messages read:', err.message);
+    }
   });
 
   // Disconnect

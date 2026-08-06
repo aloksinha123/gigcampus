@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
-import io from 'socket.io-client';
 import Navbar from '../components/Navbar';
 import UserPresence from '../components/UserPresence';
+import ReadReceipt from '../components/ReadReceipt';
 
 const Messages = () => {
     const { user, logout } = useAuth();
+    const { socket, joinProject, leaveProject, sendMessage: socketSendMessage, emitTyping, emitStopTyping } = useSocket();
     const { error } = useNotification();
 
     const [conversations, setConversations] = useState([]);
@@ -18,45 +20,69 @@ const Messages = () => {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [typing, setTyping] = useState(false);
-    const [socket, setSocket] = useState(null);
+
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
+    const selectedConversationRef = useRef(selectedConversation);
 
     useEffect(() => {
-        // Initialize socket connection
-        const socketUrl = import.meta.env.VITE_API_URL || 'http://localhost:5003';
-        const newSocket = io(socketUrl, {
-            transports: ['websocket'],
-            reconnection: true
-        });
+        selectedConversationRef.current = selectedConversation;
+    }, [selectedConversation]);
 
-        newSocket.on('connect', () => {
-            console.log('Socket connected:', newSocket.id);
-        });
+    useEffect(() => {
+        if (!socket) return;
 
-        newSocket.on('newMessage', (message) => {
+        const handleNewMessage = (message) => {
+            const receiverId = message.receiver?._id || message.receiver;
+            if (receiverId === user?._id) {
+                socket.emit('markDelivered', { messageId: message._id, projectId: message.project });
+
+                if (selectedConversationRef.current?.projectId === message.project) {
+                    socket.emit('markRead', { projectId: message.project });
+                    api.messages.markAsRead(message.project);
+                }
+            }
+
             setMessages(prev => {
-                // Prevent duplicate messages
                 if (prev.some(m => m._id === message._id)) return prev;
                 return [...prev, message];
             });
             scrollToBottom();
-        });
+        };
 
-        newSocket.on('userTyping', ({ username }) => {
-            setTyping(true);
-        });
+        const handleUserTyping = () => setTyping(true);
+        const handleUserStoppedTyping = () => setTyping(false);
 
-        newSocket.on('userStoppedTyping', () => {
-            setTyping(false);
-        });
+        const handleMessageDelivered = ({ messageId }) => {
+            setMessages(prev =>
+                prev.map(m => (m._id === messageId ? { ...m, status: 'delivered' } : m))
+            );
+        };
 
-        setSocket(newSocket);
+        const handleMessageRead = ({ projectId, messageIds }) => {
+            setMessages(prev =>
+                prev.map(m =>
+                    (messageIds?.includes(m._id) || m.project === projectId)
+                        ? { ...m, status: 'read', read: true }
+                        : m
+                )
+            );
+        };
+
+        socket.on('newMessage', handleNewMessage);
+        socket.on('userTyping', handleUserTyping);
+        socket.on('userStoppedTyping', handleUserStoppedTyping);
+        socket.on('message-delivered', handleMessageDelivered);
+        socket.on('message-read', handleMessageRead);
 
         return () => {
-            newSocket.disconnect();
+            socket.off('newMessage', handleNewMessage);
+            socket.off('userTyping', handleUserTyping);
+            socket.off('userStoppedTyping', handleUserStoppedTyping);
+            socket.off('message-delivered', handleMessageDelivered);
+            socket.off('message-read', handleMessageRead);
         };
-    }, []);
+    }, [socket, user]);
 
     useEffect(() => {
         fetchConversations();
@@ -65,13 +91,14 @@ const Messages = () => {
     useEffect(() => {
         if (selectedConversation) {
             fetchMessages(selectedConversation.projectId);
+            joinProject(selectedConversation.projectId);
             if (socket) {
-                socket.emit('joinProject', selectedConversation.projectId);
+                socket.emit('markRead', { projectId: selectedConversation.projectId });
             }
         }
         return () => {
-            if (selectedConversation && socket) {
-                socket.emit('leaveProject', selectedConversation.projectId);
+            if (selectedConversation) {
+                leaveProject(selectedConversation.projectId);
             }
         };
     }, [selectedConversation, socket]);
@@ -351,8 +378,12 @@ const Messages = () => {
                                                                         }`}>
                                                                         <p className="text-sm break-words">{message.content}</p>
                                                                     </div>
-                                                                    <p className={`text-xs text-gray-500 mt-1 ${isOwn ? 'text-right' : 'text-left'}`}>
-                                                                        {formatTime(message.createdAt)}
+                                                                    <p className={`text-xs text-gray-500 mt-1 flex items-center gap-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                                                                        <span>{formatTime(message.createdAt)}</span>
+                                                                        <ReadReceipt
+                                                                            status={message.status || (message.read ? 'read' : 'sent')}
+                                                                            isSender={isOwn}
+                                                                        />
                                                                     </p>
                                                                 </div>
                                                             </div>

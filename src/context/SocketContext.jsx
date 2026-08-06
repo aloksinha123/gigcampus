@@ -136,6 +136,30 @@ export const SocketProvider = ({ children }) => {
         }
     };
 
+    const markDelivered = (messageId, projectId) => {
+        if (socket) {
+            socket.emit('markDelivered', { messageId, projectId });
+        }
+    };
+
+    const markRead = (projectId) => {
+        if (socket) {
+            socket.emit('markRead', { projectId });
+        }
+    };
+
+    const onMessageDelivered = (callback) => {
+        if (socket) {
+            socket.on('message-delivered', callback);
+        }
+    };
+
+    const onMessageRead = (callback) => {
+        if (socket) {
+            socket.on('message-read', callback);
+        }
+    };
+
     const value = {
         socket,
         connected,
@@ -147,7 +171,11 @@ export const SocketProvider = ({ children }) => {
         onNewMessage,
         onBidReceived,
         emitTyping,
-        emitStopTyping
+        emitStopTyping,
+        markDelivered,
+        markRead,
+        onMessageDelivered,
+        onMessageRead
     };
 
     return (
