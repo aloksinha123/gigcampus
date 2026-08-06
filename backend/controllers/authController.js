@@ -2,8 +2,14 @@ import User from '../models/User.js';
 import Session from '../models/Session.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '../services/emailService.js';
+import {
+    sendVerificationEmail,
+    sendWelcomeEmail,
+    sendPasswordResetEmail,
+    sendSecurityAlertEmail
+} from '../services/emailService.js';
 import { parseUserAgent } from '../utils/uaParser.js';
+import { logSecurityAudit } from '../services/auditService.js';
 
 // Generate JWT Token
 const generateToken = (id, tokenId) => {
@@ -24,10 +30,11 @@ export const register = async (req, res) => {
         const userExists = await User.findOne({ $or: [{ email }, { username }] });
 
         if (userExists) {
+            logSecurityAudit({ userEmail: email, action: 'USER_REGISTRATION', status: 'FAILURE', req, metadata: { reason: 'User already exists' } });
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        // Generate verification token (unhashed sent in email, hashed stored in DB)
+        // Generate verification token
         const unhashedToken = crypto.randomBytes(32).toString('hex');
         const hashedToken = crypto.createHash('sha256').update(unhashedToken).digest('hex');
         const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
@@ -44,7 +51,8 @@ export const register = async (req, res) => {
         });
 
         if (user) {
-            // Send Verification Email (DO NOT send Welcome Email until verified)
+            logSecurityAudit({ user, userEmail: user.email, action: 'USER_REGISTRATION', status: 'SUCCESS', req });
+
             const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
             const verificationUrl = `${clientUrl}/verify-email/${unhashedToken}`;
 
@@ -84,6 +92,7 @@ export const verifyEmail = async (req, res) => {
         const user = await User.findOne({ emailVerificationToken: hashedToken });
 
         if (!user) {
+            logSecurityAudit({ action: 'EMAIL_VERIFICATION', status: 'FAILURE', req, metadata: { reason: 'Invalid token' } });
             return res.status(400).json({ message: 'Invalid verification token' });
         }
 
@@ -91,8 +100,8 @@ export const verifyEmail = async (req, res) => {
             return res.status(403).json({ message: 'Email is already verified' });
         }
 
-        // Check expiration (24 hours)
         if (user.emailVerificationExpires && user.emailVerificationExpires.getTime() <= Date.now()) {
+            logSecurityAudit({ user, userEmail: user.email, action: 'EMAIL_VERIFICATION', status: 'FAILURE', req, metadata: { reason: 'Token expired' } });
             return res.status(410).json({
                 message: 'Verification token has expired. Please request a new verification link.',
                 expired: true,
@@ -106,7 +115,8 @@ export const verifyEmail = async (req, res) => {
         user.emailVerificationExpires = undefined;
         await user.save();
 
-        // Send Welcome Email upon successful verification
+        logSecurityAudit({ user, userEmail: user.email, action: 'EMAIL_VERIFICATION', status: 'SUCCESS', req });
+
         try {
             const displayName = user.profile?.fullName || user.username;
             await sendWelcomeEmail(user.email, displayName);
@@ -123,7 +133,7 @@ export const verifyEmail = async (req, res) => {
     }
 };
 
-// @desc    Authenticate user & get token
+// @desc    Authenticate user & get token (with 5-failed-attempts account locking & new device detection)
 // @route   POST /api/auth/login
 // @access  Public
 export const login = async (req, res) => {
@@ -132,12 +142,54 @@ export const login = async (req, res) => {
 
         const user = await User.findOne({ email });
 
-        if (!user || !(await user.matchPassword(password))) {
+        if (!user) {
+            logSecurityAudit({ userEmail: email, action: 'LOGIN_FAILURE', status: 'FAILURE', req, metadata: { reason: 'User not found' } });
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+
+        // Check if account is locked
+        if (user.lockUntil && user.lockUntil.getTime() > Date.now()) {
+            const remainingMins = Math.ceil((user.lockUntil.getTime() - Date.now()) / (60 * 1000));
+            logSecurityAudit({ user, userEmail: user.email, action: 'LOGIN_FAILURE', status: 'BLOCKED', req, metadata: { reason: 'Account locked' } });
+            return res.status(429).json({
+                message: `Account is temporarily locked due to 5 consecutive failed login attempts. Please try again after ${remainingMins} minutes or contact an admin.`,
+                isLocked: true,
+                lockUntil: user.lockUntil
+            });
+        }
+
+        // Auto unlock if lock period passed
+        if (user.lockUntil && user.lockUntil.getTime() <= Date.now()) {
+            user.failedLoginAttempts = 0;
+            user.lockUntil = undefined;
+        }
+
+        const isMatch = await user.matchPassword(password);
+
+        if (!isMatch) {
+            user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+
+            if (user.failedLoginAttempts >= 5) {
+                user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes lock
+                await user.save();
+
+                logSecurityAudit({ user, userEmail: user.email, action: 'ACCOUNT_LOCKED', status: 'WARNING', req, metadata: { failedAttempts: user.failedLoginAttempts } });
+                sendSecurityAlertEmail(user.email, user.profile?.fullName || user.username, 'ACCOUNT_LOCKED', { lockTimeMinutes: 15 });
+
+                return res.status(429).json({
+                    message: 'Account is temporarily locked due to 5 consecutive failed login attempts. Please try again after 15 minutes.',
+                    isLocked: true
+                });
+            }
+
+            await user.save();
+            logSecurityAudit({ user, userEmail: user.email, action: 'LOGIN_FAILURE', status: 'FAILURE', req, metadata: { failedAttempts: user.failedLoginAttempts } });
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
         // Check if email is verified
         if (user.isEmailVerified === false) {
+            logSecurityAudit({ user, userEmail: user.email, action: 'LOGIN_FAILURE', status: 'BLOCKED', req, metadata: { reason: 'Email unverified' } });
             return res.status(403).json({
                 message: 'Email verification required. Please check your inbox or resend verification link.',
                 isEmailVerified: false,
@@ -145,12 +197,26 @@ export const login = async (req, res) => {
             });
         }
 
-        // Generate unique tokenId for session management
-        const tokenId = crypto.randomUUID();
+        // Reset failed login count on success
+        user.failedLoginAttempts = 0;
+        user.lockUntil = undefined;
+        await user.save();
+
+        // Check for new device login
+        const existingSessions = await Session.find({ user: user._id, isActive: true });
         const userAgentStr = req.headers['user-agent'] || '';
         const { browser, operatingSystem, deviceName } = parseUserAgent(userAgentStr);
         const rawIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress || '127.0.0.1';
         const ipAddress = rawIp === '::1' ? '127.0.0.1' : rawIp;
+
+        const isKnownDevice = existingSessions.some(s => s.browser === browser && s.operatingSystem === operatingSystem);
+        if (existingSessions.length > 0 && !isKnownDevice) {
+            logSecurityAudit({ user, userEmail: user.email, action: 'NEW_DEVICE_LOGIN', status: 'WARNING', req, metadata: { browser, operatingSystem, ipAddress } });
+            sendSecurityAlertEmail(user.email, user.profile?.fullName || user.username, 'NEW_DEVICE', { browser, operatingSystem, ipAddress, date: new Date().toLocaleString() });
+        }
+
+        // Generate unique tokenId for session
+        const tokenId = crypto.randomUUID();
 
         await Session.create({
             user: user._id,
@@ -163,6 +229,12 @@ export const login = async (req, res) => {
             isActive: true,
             lastActivity: new Date()
         });
+
+        logSecurityAudit({ user, userEmail: user.email, action: 'SESSION_CREATED', status: 'SUCCESS', req, metadata: { deviceName, browser, operatingSystem } });
+        logSecurityAudit({ user, userEmail: user.email, action: 'LOGIN_SUCCESS', status: 'SUCCESS', req });
+        if (user.role === 'admin') {
+            logSecurityAudit({ user, userEmail: user.email, action: 'ADMIN_LOGIN', status: 'SUCCESS', req });
+        }
 
         res.json({
             _id: user._id,
@@ -200,7 +272,6 @@ export const resendVerification = async (req, res) => {
             return res.status(403).json({ message: 'Email is already verified' });
         }
 
-        // Generate new token & 24h expiry
         const unhashedToken = crypto.randomBytes(32).toString('hex');
         const hashedToken = crypto.createHash('sha256').update(unhashedToken).digest('hex');
         const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -235,12 +306,11 @@ export const forgotPassword = async (req, res) => {
 
         const user = await User.findOne({ email: email.toLowerCase().trim() });
 
-        // Security: Generic response whether email exists or not to prevent email enumeration
         if (!user) {
+            logSecurityAudit({ userEmail: email, action: 'PASSWORD_RESET_REQUEST', status: 'WARNING', req, metadata: { reason: 'Email not found' } });
             return res.status(200).json({ message: genericMessage });
         }
 
-        // Generate 32-byte token, hash with SHA-256, set 15-minute expiry
         const unhashedToken = crypto.randomBytes(32).toString('hex');
         const hashedToken = crypto.createHash('sha256').update(unhashedToken).digest('hex');
         const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
@@ -248,6 +318,8 @@ export const forgotPassword = async (req, res) => {
         user.passwordResetToken = hashedToken;
         user.passwordResetExpires = resetExpires;
         await user.save();
+
+        logSecurityAudit({ user, userEmail: user.email, action: 'PASSWORD_RESET_REQUEST', status: 'SUCCESS', req });
 
         const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
         const resetUrl = `${clientUrl}/reset-password/${unhashedToken}`;
@@ -294,22 +366,27 @@ export const resetPassword = async (req, res) => {
         const user = await User.findOne({ passwordResetToken: hashedToken });
 
         if (!user) {
+            logSecurityAudit({ action: 'PASSWORD_RESET_SUCCESS', status: 'FAILURE', req, metadata: { reason: 'Invalid or reused token' } });
             return res.status(400).json({ message: 'Reset token is invalid or has already been used.' });
         }
 
-        // Check 15-minute expiration
         if (user.passwordResetExpires && user.passwordResetExpires.getTime() <= Date.now()) {
+            logSecurityAudit({ user, userEmail: user.email, action: 'PASSWORD_RESET_SUCCESS', status: 'FAILURE', req, metadata: { reason: 'Expired token' } });
             return res.status(410).json({
                 message: 'Password reset link has expired. Please request a new link.',
                 expired: true
             });
         }
 
-        // Set new password (pre-save hook hashes it automatically)
         user.password = password;
         user.passwordResetToken = undefined;
         user.passwordResetExpires = undefined;
+        user.failedLoginAttempts = 0;
+        user.lockUntil = undefined;
         await user.save();
+
+        logSecurityAudit({ user, userEmail: user.email, action: 'PASSWORD_RESET_SUCCESS', status: 'SUCCESS', req });
+        sendSecurityAlertEmail(user.email, user.profile?.fullName || user.username, 'PASSWORD_CHANGED');
 
         res.status(200).json({ message: 'Password updated successfully.' });
     } catch (error) {

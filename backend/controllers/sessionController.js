@@ -1,6 +1,7 @@
 import Session from '../models/Session.js';
 import crypto from 'crypto';
 import { parseUserAgent } from '../utils/uaParser.js';
+import { logSecurityAudit } from '../services/auditService.js';
 
 // @desc    Get all active sessions for current user
 // @route   GET /api/auth/sessions
@@ -73,11 +74,14 @@ export const terminateSession = async (req, res) => {
 
         // Security check: Ensure user owns this session
         if (session.user.toString() !== req.user._id.toString()) {
+            logSecurityAudit({ user: req.user, userEmail: req.user.email, action: 'SESSION_REVOKED', status: 'WARNING', req, metadata: { reason: 'Unauthorized attempt', sessionId } });
             return res.status(403).json({ message: 'Unauthorized to terminate this session' });
         }
 
         session.isActive = false;
         await session.save();
+
+        logSecurityAudit({ user: req.user, userEmail: req.user.email, action: 'SESSION_REVOKED', status: 'SUCCESS', req, metadata: { deviceName: session.deviceName, browser: session.browser } });
 
         res.json({ message: 'Session terminated successfully.' });
     } catch (error) {
@@ -97,7 +101,9 @@ export const terminateAllOtherSessions = async (req, res) => {
             query.tokenId = { $ne: currentTokenId };
         }
 
-        await Session.updateMany(query, { isActive: false });
+        const result = await Session.updateMany(query, { isActive: false });
+
+        logSecurityAudit({ user: req.user, userEmail: req.user.email, action: 'LOGOUT_ALL_DEVICES', status: 'SUCCESS', req, metadata: { count: result.modifiedCount } });
 
         res.json({ message: 'All other active sessions logged out successfully.' });
     } catch (error) {

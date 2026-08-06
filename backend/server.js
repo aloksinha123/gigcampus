@@ -30,6 +30,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import emailRoutes from './routes/emailRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import milestoneRoutes from './routes/milestoneRoutes.js';
+import securityRoutes from './routes/securityRoutes.js';
 import {
   authLimiter,
   aiLimiter,
@@ -94,6 +95,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/ai', aiLimiter, aiRoutes);
 app.use('/api/milestones', milestoneRoutes);
+app.use('/api/security', securityRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

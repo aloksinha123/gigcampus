@@ -4,6 +4,47 @@ import { generateVerificationEmail } from '../templates/verificationEmail.js';
 import { generateResetPasswordEmail } from '../templates/resetPasswordEmail.js';
 import { generateBidAcceptedEmail } from '../templates/bidAcceptedEmail.js';
 import { generateNewBidReceivedEmail } from '../templates/newBidReceivedEmail.js';
+import {
+    generateNewDeviceEmail,
+    generateAccountLockedEmail,
+    generatePasswordChangedEmail
+} from '../templates/securityAlertEmail.js';
+
+/**
+ * Sends Security Alert email to user
+ */
+export const sendSecurityAlertEmail = async (email, name, alertType, details = {}) => {
+    let template;
+    if (alertType === 'NEW_DEVICE') {
+        template = generateNewDeviceEmail(name, details);
+    } else if (alertType === 'ACCOUNT_LOCKED') {
+        template = generateAccountLockedEmail(name, details);
+    } else if (alertType === 'PASSWORD_CHANGED') {
+        template = generatePasswordChangedEmail(name);
+    } else {
+        return;
+    }
+
+    const fromName = process.env.EMAIL_FROM_NAME || 'GigCampus';
+    const fromAddress = process.env.EMAIL_USER || process.env.EMAIL_FROM_ADDRESS || 'no-reply@gigcampus.com';
+
+    const mailOptions = {
+        from: `"${fromName}" <${fromAddress}>`,
+        to: email,
+        subject: template.subject,
+        text: template.text,
+        html: template.html
+    };
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'yourgmail@gmail.com' || process.env.EMAIL_PASS === 'your_app_password') {
+        console.log(`✉️ [SIMULATED EMAIL] Security Alert (${alertType}) for:`, email);
+        return { messageId: `simulated-security-${Date.now()}` };
+    }
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✉️ Security Alert email delivered to %s (Message ID: %s)', email, info.messageId);
+    return info;
+};
 
 /**
  * Sends Password Reset Link to user
@@ -198,6 +239,7 @@ export const sendProjectCompletedEmail = async (email, details) => {
 };
 
 export default {
+    sendSecurityAlertEmail,
     sendPasswordResetEmail,
     sendVerificationEmail,
     sendWelcomeEmail,

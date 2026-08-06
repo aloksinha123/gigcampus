@@ -49,6 +49,13 @@ export const authAPI = {
     updateProfile: (data) => api.put('/auth/profile', data)
 };
 
+// Security API
+export const securityAPI = {
+    getMyHistory: () => api.get('/security/my-history'),
+    getAdminLogs: (params) => api.get('/security/admin/logs', { params }),
+    unlockUserAccount: (userId) => api.put(`/security/admin/unlock/${userId}`)
+};
+
 // AI API
 export const aiAPI = {
     improveDescription: (description) => api.post('/ai/improve-description', { description })

@@ -6,7 +6,7 @@ export const rateLimitConfig = {
     auth: {
         windowMs: 15 * 60 * 1000, // 15 minutes
         max: 5,
-        message: 'Too many login or authentication attempts. Please try again after 15 minutes.'
+        message: 'Too many login attempts. Please try again after 15 minutes.'
     },
 
     // 2. AI Feature Rate Limiting (20 requests per hour per user)
