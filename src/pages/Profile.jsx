@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar';
 import AddMoneyModal from '../components/AddMoneyModal';
 import UserPresence from '../components/UserPresence';
 import ActiveSessions from '../components/ActiveSessions';
+import MySecurityHistory from '../components/MySecurityHistory';
 
 const Profile = () => {
     const { user, logout, refreshUser } = useAuth();
@@ -564,9 +565,10 @@ const Profile = () => {
                     </div>
                 </div>
 
-                {/* Active Sessions Section */}
-                <div className="mb-6">
+                {/* Active Sessions & Security Audit Trail Section */}
+                <div className="mb-6 space-y-6">
                     <ActiveSessions />
+                    <MySecurityHistory />
                 </div>
 
                 {/* Password Change Modal */}
