@@ -147,8 +147,10 @@ export const login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        // Check if account is locked
-        if (user.lockUntil && user.lockUntil.getTime() > Date.now()) {
+        const isLockoutEnabled = process.env.ENABLE_ACCOUNT_LOCK === 'true';
+
+        // Check if account is locked (only when ENABLE_ACCOUNT_LOCK=true)
+        if (isLockoutEnabled && user.lockUntil && user.lockUntil.getTime() > Date.now()) {
             const remainingMins = Math.ceil((user.lockUntil.getTime() - Date.now()) / (60 * 1000));
             logSecurityAudit({ user, userEmail: user.email, action: 'LOGIN_FAILURE', status: 'BLOCKED', req, metadata: { reason: 'Account locked' } });
             return res.status(429).json({
@@ -169,7 +171,7 @@ export const login = async (req, res) => {
         if (!isMatch) {
             user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
 
-            if (user.failedLoginAttempts >= 5) {
+            if (isLockoutEnabled && user.failedLoginAttempts >= 5) {
                 user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes lock
                 await user.save();
 
