@@ -6,6 +6,7 @@ import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
 import { CardSkeleton } from '../components/SkeletonLoader';
+import ErrorState from '../components/ErrorState';
 
 const ProjectMarketplace = () => {
     const { user, logout } = useAuth();
@@ -14,6 +15,7 @@ const ProjectMarketplace = () => {
 
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
     const [filters, setFilters] = useState({
         search: '',
         category: '',
@@ -41,14 +43,15 @@ const ProjectMarketplace = () => {
     const fetchProjects = async () => {
         try {
             setLoading(true);
+            setHasError(false);
             const response = await api.projects.getAll({ status: 'open' });
             // The API returns { projects: [], totalPages, currentPage, total } or directly []
             const projectsData = response.data.projects || (Array.isArray(response.data) ? response.data : []);
             setProjects(projectsData);
         } catch (err) {
-            error('Failed to load projects');
+            setHasError(true);
             console.error(err);
-            setProjects([]); // Set empty array on error
+            setProjects([]);
         } finally {
             setLoading(false);
         }
@@ -169,6 +172,8 @@ const ProjectMarketplace = () => {
                         <CardSkeleton />
                         <CardSkeleton />
                     </div>
+                ) : hasError ? (
+                    <ErrorState onRetry={fetchProjects} />
                 ) : filteredProjects.length === 0 ? (
                     <div className="bg-white p-12 rounded-xl shadow-sm text-center">
                         <p className="text-gray-500 text-lg">No projects found matching your criteria</p>
