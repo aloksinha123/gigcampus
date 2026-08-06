@@ -1,6 +1,7 @@
 import transporter from '../config/mail.js';
 import { generateWelcomeEmail } from '../templates/welcomeEmail.js';
 import { generateBidAcceptedEmail } from '../templates/bidAcceptedEmail.js';
+import { generateNewBidReceivedEmail } from '../templates/newBidReceivedEmail.js';
 
 /**
  * Sends a REAL welcome email to a new user using Nodemailer SMTP
@@ -75,6 +76,56 @@ export const sendBidAcceptedEmail = async ({
 };
 
 /**
+ * Sends New Bid Received HTML Email notification to Project Owner (Student)
+ * @param {Object} params - Object containing studentEmail, studentName, projectTitle, freelancerName, bidAmount, deliveryDays, proposalMessage, projectId
+ */
+export const sendNewBidReceivedEmail = async ({
+    studentEmail,
+    studentName,
+    projectTitle,
+    freelancerName,
+    bidAmount,
+    deliveryDays,
+    proposalMessage,
+    projectId
+}) => {
+    if (!studentEmail) {
+        throw new Error('Student email is required to send new bid notification.');
+    }
+
+    const template = generateNewBidReceivedEmail({
+        studentName,
+        projectTitle,
+        freelancerName,
+        bidAmount,
+        deliveryDays,
+        proposalMessage,
+        projectId
+    });
+
+    const fromName = process.env.EMAIL_FROM_NAME || 'GigCampus';
+    const fromAddress = process.env.EMAIL_USER || process.env.EMAIL_FROM_ADDRESS || 'no-reply@gigcampus.com';
+
+    const mailOptions = {
+        from: `"${fromName}" <${fromAddress}>`,
+        to: studentEmail,
+        subject: template.subject,
+        text: template.text,
+        html: template.html
+    };
+
+    // If credentials missing or dummy in dev environment, log simulation safely
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'yourgmail@gmail.com' || process.env.EMAIL_PASS === 'your_app_password') {
+        console.log('✉️ [SIMULATED EMAIL] New Bid Received email for:', studentEmail);
+        return { messageId: `simulated-new-bid-${Date.now()}` };
+    }
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✉️ New Bid Received email delivered to %s (Message ID: %s)', studentEmail, info.messageId);
+    return info;
+};
+
+/**
  * Placeholder for future Payment Receipt Email notification
  */
 export const sendPaymentReceipt = async (email, details) => {
@@ -93,6 +144,7 @@ export const sendProjectCompletedEmail = async (email, details) => {
 export default {
     sendWelcomeEmail,
     sendBidAcceptedEmail,
+    sendNewBidReceivedEmail,
     sendPaymentReceipt,
     sendProjectCompletedEmail
 };
