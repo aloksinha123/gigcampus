@@ -36,8 +36,7 @@ Strict Rules:
 3. Do NOT include any intro text, explanations, or commentary outside the JSON object.`;
 
     let responseText = '';
-
-    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.5-flash'];
+    const modelsToTry = ['gemini-3.5-flash', 'gemini-2.0-flash'];
     let lastError = null;
 
     for (const modelName of modelsToTry) {
@@ -143,7 +142,7 @@ Strict Rules:
 8. Do NOT use markdown code blocks or any text outside the JSON object.`;
 
     let responseText = '';
-    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.5-flash'];
+    const modelsToTry = ['gemini-3.5-flash', 'gemini-2.0-flash'];
     let lastError = null;
 
     for (const modelName of modelsToTry) {
@@ -253,7 +252,7 @@ Strict Rules:
 7. Do NOT use markdown code blocks or any commentary outside the JSON.`;
 
     let responseText = '';
-    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.5-flash'];
+    const modelsToTry = ['gemini-3.5-flash', 'gemini-2.0-flash'];
     let lastError = null;
 
     for (const modelName of modelsToTry) {

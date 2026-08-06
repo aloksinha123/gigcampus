@@ -1,5 +1,31 @@
 import { improveProjectDescription, analyzeBidProposal, recommendFreelancers } from '../services/aiService.js';
 
+// Helper for formatting clean error responses for temporary AI availability issues
+const handleAiError = (res, error, defaultMessage = 'AI service is temporarily unavailable.') => {
+    console.error('⚠️ AI Service Error:', error);
+
+    const isTemporaryFailure =
+        error?.status === 503 ||
+        error?.status === 429 ||
+        error?.message?.includes('503') ||
+        error?.message?.includes('429') ||
+        error?.message?.includes('RESOURCE_EXHAUSTED') ||
+        error?.message?.includes('UNAVAILABLE') ||
+        error?.message?.includes('Failed to generate response');
+
+    if (isTemporaryFailure) {
+        return res.status(503).json({
+            success: false,
+            message: 'AI recommendation service is temporarily unavailable. Please try again in a few moments.'
+        });
+    }
+
+    return res.status(500).json({
+        success: false,
+        message: defaultMessage
+    });
+};
+
 // @desc    Improve project description using Google Gemini AI
 // @route   POST /api/ai/improve-description
 // @access  Private (Authenticated Users)
@@ -37,14 +63,7 @@ export const improveDescription = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("Gemini Error:");
-        console.error(error);
-        console.error(error.response?.data);
-        return res.status(500).json({
-            success: false,
-            message: error.message || 'Unable to generate AI suggestions.',
-            errorDetails: error.response?.data || error
-        });
+        return handleAiError(res, error, 'Unable to generate AI suggestions.');
     }
 };
 
@@ -124,11 +143,7 @@ export const analyzeBid = async (req, res) => {
             improvedBid: analysis.improvedBid || bidText
         });
     } catch (error) {
-        console.error('⚠️ Smart Bid Analyzer Controller Error:', error.message);
-        return res.status(500).json({
-            success: false,
-            message: 'Unable to analyze bid proposal.'
-        });
+        return handleAiError(res, error, 'Unable to analyze bid proposal.');
     }
 };
 
@@ -187,11 +202,7 @@ export const recommendFreelancersController = async (req, res) => {
             recommendations: result.recommendations
         });
     } catch (error) {
-        console.error('⚠️ Recommend Freelancers Controller Error:', error.message);
-        return res.status(500).json({
-            success: false,
-            message: 'Unable to generate freelancer recommendations.'
-        });
+        return handleAiError(res, error, 'Unable to generate freelancer recommendations.');
     }
 };
 
