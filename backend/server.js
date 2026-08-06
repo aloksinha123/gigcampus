@@ -30,7 +30,12 @@ import adminRoutes from './routes/adminRoutes.js';
 import emailRoutes from './routes/emailRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import milestoneRoutes from './routes/milestoneRoutes.js';
-import { createRateLimiter } from './middleware/rateLimiter.js';
+import {
+  authLimiter,
+  aiLimiter,
+  paymentLimiter,
+  generalLimiter
+} from './middleware/rateLimiter.js';
 import { verifyEmailConnection } from './config/mail.js';
 import jwt from 'jsonwebtoken';
 import User from './models/User.js';
@@ -65,17 +70,21 @@ if (!fs.existsSync(uploadDir)) {
 }
 app.use('/uploads', express.static(uploadDir));
 
-// Rate limiters for sensitive endpoints
-const authLimiter = createRateLimiter(15 * 60 * 1000, 50, 'Too many auth requests. Please try again after 15 minutes.');
-const aiLimiter = createRateLimiter(15 * 60 * 1000, 30, 'AI generation limit reached. Please wait a few minutes before trying again.');
+// Global General Rate Limiter (300 requests / 15 min per IP baseline)
+app.use('/api', generalLimiter);
+
+// Specific Auth Endpoint Rate Limiting (5 requests / 15 min per IP)
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
 
 // API Routes
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/bids', bidRoutes);
 app.use('/api/messages', messageRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/payments', razorpayPaymentRoutes);
+app.use('/api/payments', paymentLimiter, paymentRoutes);
+app.use('/api/payments', paymentLimiter, razorpayPaymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/users', userRoutes);
