@@ -127,13 +127,35 @@ io.on('connection', (socket) => {
 // Make io accessible to routes
 app.set('io', io);
 
-// Error handling
-app.use(notFound);
-app.use(errorHandler);
+const printRegisteredRoutes = (expressApp) => {
+  console.log('\n--- Registered Express Routes ---');
+  const printStack = (stack, parentPath = '') => {
+    stack.forEach((layer) => {
+      if (layer.route) {
+        const methods = Object.keys(layer.route.methods).map(m => m.toUpperCase()).join(', ');
+        console.log(`${methods} ${parentPath}${layer.route.path}`);
+      } else if (layer.name === 'router' && layer.handle && layer.handle.stack) {
+        let path = '';
+        if (layer.regexp) {
+          const match = layer.regexp.toString().match(/^\/\^\\?(.*?)\\\/\?\(\?=\\\/\|\$\)\/i?/);
+          if (match && match[1]) {
+            path = match[1].replace(/\\/g, '');
+          }
+        }
+        printStack(layer.handle.stack, '/' + path);
+      }
+    });
+  };
+  if (expressApp._router && expressApp._router.stack) {
+    printStack(expressApp._router.stack);
+  }
+  console.log('-----------------------------------\n');
+};
 
 const PORT = process.env.PORT || 5003;
 
 httpServer.listen(PORT, () => {
   console.log(`🚀 GigCampus server running on port ${PORT}`);
   console.log(`📡 Socket.io enabled for real-time features`);
+  printRegisteredRoutes(app);
 });
