@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { authAPI } from '../services/api';
 
+import { requestNotificationPermission } from '../utils/browserNotification';
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -40,6 +42,7 @@ export const AuthProvider = ({ children }) => {
             setUser(JSON.parse(savedUser));
             setIsAuthenticated(true);
             refreshUser();
+            requestNotificationPermission();
         }
         setLoading(false);
     }, []);
@@ -54,6 +57,7 @@ export const AuthProvider = ({ children }) => {
 
             setUser(userData);
             setIsAuthenticated(true);
+            requestNotificationPermission();
 
             return { success: true, user: userData };
         } catch (error) {

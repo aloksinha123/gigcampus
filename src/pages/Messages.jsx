@@ -7,6 +7,7 @@ import api from '../services/api';
 import Navbar from '../components/Navbar';
 import UserPresence from '../components/UserPresence';
 import ReadReceipt from '../components/ReadReceipt';
+import { triggerBrowserNotification } from '../utils/browserNotification';
 
 const Messages = () => {
     const { user, logout } = useAuth();
@@ -53,9 +54,17 @@ const Messages = () => {
             if (receiverId === user?._id) {
                 socket.emit('markDelivered', { messageId: message._id, projectId: message.project });
 
-                if (selectedConversationRef.current?.projectId === message.project) {
+                if (selectedConversationRef.current?.projectId === message.project && !document.hidden) {
                     socket.emit('markRead', { projectId: message.project });
                     api.messages.markAsRead(message.project);
+                } else {
+                    const senderName = message.sender?.username || 'someone';
+                    triggerBrowserNotification({
+                        title: 'GigCampus',
+                        body: `New chat message from ${senderName}: "${message.content}"`,
+                        url: '/messages',
+                        tag: `msg-${message._id}`
+                    });
                 }
             }
 
