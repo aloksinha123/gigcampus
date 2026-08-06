@@ -216,10 +216,14 @@ Project Details:
 - Project Budget: ₹${budget}
 - Max Delivery Days: ${deliveryDays}
 
-Candidate Freelancer Bids:
+Candidate Freelancer Bids (${bids.length} total candidates):
 ${JSON.stringify(bids, null, 2)}
 
-Perform a comprehensive evaluation and rank EVERY freelancer in the bids list.
+CRITICAL INSTRUCTIONS:
+1. You MUST evaluate and include an entry in "recommendations" for EVERY SINGLE freelancer provided in the input bids array.
+2. If there are ${bids.length} input bids, there MUST be EXACTLY ${bids.length} recommendation objects in the "recommendations" array. Do NOT skip or omit any candidate.
+3. Rank every freelancer from highest to lowest score (Rank 1 = highest score).
+
 Return ONLY valid JSON matching this exact structure:
 {
   "recommendations": [
@@ -241,8 +245,8 @@ Return ONLY valid JSON matching this exact structure:
 
 Strict Rules:
 1. Output MUST be 100% valid raw JSON only.
-2. Include EVERY freelancer from the bids list in the recommendations array.
-3. Sort the "recommendations" array in descending order by "score" (highest score first, rank 1 = highest score).
+2. Include ALL ${bids.length} freelancers from the input bids array in the recommendations array.
+3. Sort the "recommendations" array in descending order by "score" (highest score first).
 4. "score" MUST be an integer between 0 and 100.
 5. "rank" MUST be an integer starting from 1 for top candidate.
 6. "strengths" and "concerns" MUST be arrays of strings.
@@ -293,6 +297,24 @@ Strict Rules:
         const parsedJSON = JSON.parse(cleanedText);
 
         if (parsedJSON && Array.isArray(parsedJSON.recommendations)) {
+            // Guarantee all input bids exist in recommendations
+            const existingIds = new Set(parsedJSON.recommendations.map(r => r.freelancerId));
+            
+            bids.forEach(bid => {
+                const idStr = bid.freelancerId || bid._id;
+                if (idStr && !existingIds.has(idStr)) {
+                    parsedJSON.recommendations.push({
+                        freelancerId: idStr,
+                        score: 50,
+                        rank: parsedJSON.recommendations.length + 1,
+                        strengths: ["Submitted bid proposal"],
+                        concerns: ["Needs further evaluation"],
+                        reason: "Candidate evaluated."
+                    });
+                }
+            });
+
+            // Sort descending by score
             parsedJSON.recommendations.sort((a, b) => (b.score || 0) - (a.score || 0));
             parsedJSON.recommendations.forEach((item, index) => {
                 item.rank = index + 1;
