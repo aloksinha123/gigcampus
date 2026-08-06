@@ -16,6 +16,8 @@ const ProjectMarketplace = () => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
     const [filters, setFilters] = useState({
         search: '',
         category: '',
@@ -59,6 +61,7 @@ const ProjectMarketplace = () => {
 
     const handleFilterChange = (e) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });
+        setCurrentPage(1);
     };
 
     const getNumericBudget = (budget) => {
@@ -91,6 +94,9 @@ const ProjectMarketplace = () => {
 
         return matchesSearch && matchesCategory && matchesMinBudget && matchesMaxBudget;
     });
+
+    const totalPages = Math.max(1, Math.ceil(filteredProjects.length / itemsPerPage));
+    const paginatedProjects = filteredProjects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const getBudgetColor = (budget) => {
         const num = getNumericBudget(budget);
@@ -179,54 +185,81 @@ const ProjectMarketplace = () => {
                         <p className="text-gray-500 text-lg">No projects found matching your criteria</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredProjects.map(project => (
-                            <div key={project._id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(project.status)}`}>
-                                        {project.status.replace('_', ' ').toUpperCase()}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                        {new Date(project.createdAt).toLocaleDateString()}
-                                    </span>
-                                </div>
-
-                                <h3 className="text-xl font-bold mb-2 line-clamp-2">{project.title}</h3>
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
-
-                                <div className="mb-4">
-                                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                                        {project.category}
-                                    </span>
-                                </div>
-
-                                <div className="flex justify-between items-center mb-4">
-                                    <div>
-                                        <p className="text-xs text-gray-500">Budget</p>
-                                        <p className={`text-2xl font-bold ${getBudgetColor(project.budget)}`}>
-                                            {renderBudget(project.budget)}
-                                        </p>
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {paginatedProjects.map(project => (
+                                <div key={project._id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(project.status)}`}>
+                                            {project.status.replace('_', ' ').toUpperCase()}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            {new Date(project.createdAt).toLocaleDateString()}
+                                        </span>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-xs text-gray-500">Bids</p>
-                                        <p className="text-2xl font-bold text-gray-700">{project.bidsCount || 0}</p>
+
+                                    <h3 className="text-xl font-bold mb-2 line-clamp-2">{project.title}</h3>
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
+
+                                    <div className="mb-4">
+                                        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                            {project.category}
+                                        </span>
                                     </div>
-                                </div>
 
-                                <div className="mb-4">
-                                    <p className="text-xs text-gray-500 mb-1">Timeline</p>
-                                    <p className="text-sm font-semibold">{project.timeline}</p>
-                                </div>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div>
+                                            <p className="text-xs text-gray-500">Budget</p>
+                                            <p className={`text-2xl font-bold ${getBudgetColor(project.budget)}`}>
+                                                {renderBudget(project.budget)}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs text-gray-500">Bids</p>
+                                            <p className="text-2xl font-bold text-gray-700">{project.bidsCount || 0}</p>
+                                        </div>
+                                    </div>
 
-                                <Link
-                                    to={`/projects/${project._id}`}
-                                    className="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition"
+                                    <div className="mb-4">
+                                        <p className="text-xs text-gray-500 mb-1">Timeline</p>
+                                        <p className="text-sm font-semibold">{project.timeline}</p>
+                                    </div>
+
+                                    <Link
+                                        to={`/projects/${project._id}`}
+                                        className="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition"
+                                    >
+                                        View Details
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="mt-12 flex justify-center items-center gap-4">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
                                 >
-                                    View Details
-                                </Link>
+                                    ← Previous
+                                </button>
+
+                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest px-3">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                >
+                                    Next →
+                                </button>
                             </div>
-                        ))}
-                    </div>
+                        )}
+                    </>
                 )}
 
                 {/* Stats */}
