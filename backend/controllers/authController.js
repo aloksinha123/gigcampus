@@ -256,15 +256,15 @@ export const resetPassword = async (req, res) => {
         }
 
         if (password !== confirmPassword) {
-            return res.status(422).json({ message: 'Passwords do not match' });
+            return res.status(422).json({ message: 'Passwords do not match.' });
         }
 
         if (password.length < 6) {
-            return res.status(422).json({ message: 'Password must be at least 6 characters long' });
+            return res.status(422).json({ message: 'Password must be at least 6 characters long.' });
         }
 
         if (!token) {
-            return res.status(400).json({ message: 'Invalid or missing reset token' });
+            return res.status(400).json({ message: 'Reset token is invalid or has already been used.' });
         }
 
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
@@ -272,7 +272,7 @@ export const resetPassword = async (req, res) => {
         const user = await User.findOne({ passwordResetToken: hashedToken });
 
         if (!user) {
-            return res.status(400).json({ message: 'Invalid or reused reset token' });
+            return res.status(400).json({ message: 'Reset token is invalid or has already been used.' });
         }
 
         // Check 15-minute expiration
@@ -289,7 +289,7 @@ export const resetPassword = async (req, res) => {
         user.passwordResetExpires = undefined;
         await user.save();
 
-        res.status(200).json({ message: 'Password updated successfully. You can now log in with your new password.' });
+        res.status(200).json({ message: 'Password updated successfully.' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
