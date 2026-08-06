@@ -4,10 +4,20 @@ import User from '../models/User.js';
 export const protect = async (req, res, next) => {
     let token;
 
+    console.log("Authorization Header:");
+    console.log(req.headers.authorization);
+
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             // Get token from header
             token = req.headers.authorization.split(' ')[1];
+
+            console.log("Extracted Token:");
+            console.log(token);
+
+            if (!token || token === 'undefined' || token === 'null' || !token.trim()) {
+                return res.status(401).json({ message: 'Not authorized, token is missing or empty' });
+            }
 
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -23,9 +33,9 @@ export const protect = async (req, res, next) => {
                 return res.status(401).json({ message: 'Account is deactivated' });
             }
 
-            next();
+            return next();
         } catch (error) {
-            console.error(error);
+            console.error('JWT Error in protect middleware:', error);
             return res.status(401).json({ message: 'Not authorized, token failed' });
         }
     }
