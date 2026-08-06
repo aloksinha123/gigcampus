@@ -65,9 +65,30 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: String,
+    emailVerificationExpires: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+    failedLoginAttempts: {
+        type: Number,
+        default: 0
+    },
+    lockUntil: Date,
     isActive: {
         type: Boolean,
         default: true
+    },
+    isOnline: {
+        type: Boolean,
+        default: false
+    },
+    lastSeen: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true
@@ -98,6 +119,9 @@ userSchema.methods.getPublicProfile = function () {
         profile: this.profile,
         reputation: this.reputation,
         verified: this.verified,
+        isEmailVerified: this.isEmailVerified,
+        isOnline: this.isOnline,
+        lastSeen: this.lastSeen,
         createdAt: this.createdAt
     };
 };

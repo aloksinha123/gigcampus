@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { authAPI } from '../services/api';
 
+import { requestNotificationPermission } from '../utils/browserNotification';
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -16,6 +18,21 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+    const refreshUser = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        try {
+            const response = await authAPI.getMe();
+            if (response.data) {
+                setUser(response.data);
+                localStorage.setItem('user', JSON.stringify(response.data));
+                return response.data;
+            }
+        } catch (error) {
+            console.error('Failed to refresh user profile from MongoDB:', error);
+        }
+    };
+
     useEffect(() => {
         // Check if user is logged in
         const token = localStorage.getItem('token');
@@ -24,6 +41,8 @@ export const AuthProvider = ({ children }) => {
         if (token && savedUser) {
             setUser(JSON.parse(savedUser));
             setIsAuthenticated(true);
+            refreshUser();
+            requestNotificationPermission();
         }
         setLoading(false);
     }, []);
@@ -38,6 +57,7 @@ export const AuthProvider = ({ children }) => {
 
             setUser(userData);
             setIsAuthenticated(true);
+            requestNotificationPermission();
 
             return { success: true, user: userData };
         } catch (error) {
@@ -88,7 +108,8 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
-        updateUser
+        updateUser,
+        refreshUser
     };
 
     return (

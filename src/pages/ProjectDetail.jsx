@@ -5,10 +5,15 @@ import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
 import MockCheckout from '../components/MockCheckout';
 import Navbar from '../components/Navbar';
+import ProjectTimeline from '../components/ProjectTimeline';
+import SmartBidAnalysisModal from '../components/SmartBidAnalysisModal';
+import RecommendationResultsModal from '../components/RecommendationResultsModal';
+import MilestoneList from '../components/MilestoneList';
+import UserPresence from '../components/UserPresence';
 
 const ProjectDetail = () => {
     const { id } = useParams();
-    const { user, logout } = useAuth();
+    const { user, logout, updateUser } = useAuth();
     const { success, error } = useNotification();
     const navigate = useNavigate();
 
@@ -47,6 +52,134 @@ const ProjectDetail = () => {
 
     // Submit Work Modal State
     const [showSubmitWorkModal, setShowSubmitWorkModal] = useState(false);
+
+    // AI Smart Bid Analyzer State
+    const [analyzingBid, setAnalyzingBid] = useState(false);
+    const [bidAnalysisResult, setBidAnalysisResult] = useState(null);
+    const [showBidAnalysisModal, setShowBidAnalysisModal] = useState(false);
+
+    const handleAnalyzeBid = async () => {
+        if (!bidData.proposal || !bidData.proposal.trim()) {
+            error('Please enter a proposal message to analyze.');
+            return;
+        }
+
+        if (!bidData.bidAmount || Number(bidData.bidAmount) <= 0) {
+            error('Please enter a valid bid amount.');
+            return;
+        }
+
+        let daysNum = 7;
+        if (bidData.deliveryTime) {
+            const parsed = parseInt(bidData.deliveryTime.replace(/\D/g, ''), 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                daysNum = parsed;
+            }
+        }
+
+        try {
+            setAnalyzingBid(true);
+            const response = await api.post('/ai/analyze-bid', {
+                projectDescription: project.description,
+                bidText: bidData.proposal.trim(),
+                budget: Number(bidData.bidAmount),
+                deliveryDays: daysNum
+            });
+
+            if (response.data) {
+                setBidAnalysisResult(response.data);
+                setShowBidAnalysisModal(true);
+                success('✨ Smart Bid Analysis complete!');
+            } else {
+                error('Unable to analyze bid proposal.');
+            }
+        } catch (err) {
+            console.error('Bid Analysis error:', err);
+            error(err.response?.data?.message || 'Unable to analyze bid proposal.');
+        } finally {
+            setAnalyzingBid(false);
+        }
+    };
+
+    const handleApplyImprovedBid = (improvedBidText) => {
+        setBidData(prev => ({ ...prev, proposal: improvedBidText }));
+        setShowBidAnalysisModal(false);
+        success('✨ Improved bid proposal applied to your bid form!');
+    };
+
+    // AI Freelancer Recommendation Engine State
+    const [recommendLoading, setRecommendLoading] = useState(false);
+    const [recommendationResults, setRecommendationResults] = useState(null);
+    const [showRecommendationModal, setShowRecommendationModal] = useState(false);
+
+    const handleRecommendFreelancers = async () => {
+        if (!bids || bids.length === 0) {
+            error('No freelancer proposals available.');
+            return;
+        }
+
+        try {
+            setRecommendLoading(true);
+
+            // Format candidate bids array
+            const candidateBids = bids.map((b) => ({
+                freelancerId: (b.freelancer?._id || b.freelancer?.id || b.freelancer || '').toString(),
+                username: b.freelancer?.username || b.freelancer?.name || 'Freelancer',
+                bidText: b.proposal || b.bidText || '',
+                bidAmount: Number(b.price || b.bidAmount || 0),
+                deliveryDays: parseInt((b.timeline || '7').toString().replace(/\D/g, ''), 10) || 7,
+                skills: Array.isArray(b.freelancer?.skills) ? b.freelancer.skills : [],
+                portfolioSummary: b.freelancer?.bio || '',
+                averageRating: Number(b.freelancer?.reputation?.rating) || Number(b.freelancer?.rating) || 4.5,
+                completedProjects: Number(b.freelancer?.reputation?.completedProjects) || Number(b.freelancer?.completedProjects) || 0
+            }));
+
+            // Parse project delivery days
+            let projectDays = 7;
+            if (project.timeline) {
+                const parsed = parseInt(project.timeline.toString().replace(/\D/g, ''), 10);
+                if (!isNaN(parsed) && parsed > 0) projectDays = parsed;
+            }
+
+            const response = await api.post('/ai/recommend-freelancers', {
+                projectDescription: project.description || project.title || '',
+                requiredSkills: Array.isArray(project.skills) ? project.skills : Array.isArray(project.requiredSkills) ? project.requiredSkills : [],
+                budget: Number(project.budget) || 1000,
+                deliveryDays: projectDays,
+                bids: candidateBids
+            });
+
+            if (response.data?.success && Array.isArray(response.data.recommendations)) {
+                // Enrich recommendation cards with freelancer usernames and ratings
+                const enrichedRecs = response.data.recommendations.map(rec => {
+                    const matchingBid = candidateBids.find(c => c.freelancerId === rec.freelancerId);
+                    return {
+                        ...rec,
+                        username: rec.username || matchingBid?.username || 'Freelancer',
+                        averageRating: rec.averageRating || matchingBid?.averageRating || 4.5,
+                        completedProjects: rec.completedProjects || matchingBid?.completedProjects || 0
+                    };
+                });
+
+                setRecommendationResults(enrichedRecs);
+                setShowRecommendationModal(true);
+                success('✨ AI Freelancer Recommendation audit complete!');
+            } else {
+                error('Unable to generate recommendations.');
+            }
+        } catch (err) {
+            console.error('Recommend Freelancers Error:', err);
+            if (err.response?.status === 401) {
+                error('Session expired. Please login again.');
+            } else if (err.response?.status === 400) {
+                error(err.response?.data?.message || 'Invalid request fields.');
+            } else {
+                error('Unable to generate recommendations.');
+            }
+        } finally {
+            setRecommendLoading(false);
+        }
+    };
 
     // Review Modal State - Already declared above
 
@@ -116,12 +249,13 @@ const ProjectDetail = () => {
 
         try {
             await api.projects.complete(id);
-            success('Project completed! Payment released to freelancer.');
+            if (refreshUser) refreshUser();
+            success('Payment released successfully.');
             fetchProjectDetails();
             fetchPayment();
             setShowReviewModal(true);
         } catch (err) {
-            error(err.response?.data?.message || 'Failed to complete project');
+            error(err.response?.data?.message || 'Failed to complete project and release payment.');
         }
     };
 
@@ -286,9 +420,10 @@ const ProjectDetail = () => {
     const canEdit = isOwner && project.status === 'open';
     const canDelete = isOwner && project.status === 'open';
     const canBid = user?.role === 'freelancer' && project.status === 'open' && !bids.some(b => b.freelancer._id === user._id);
-    const isAssignedFreelancer = user?.role === 'freelancer' && (user._id === project.freelancer?._id || user._id === project.freelancer);
+    const isAssignedFreelancer = user?.role === 'freelancer' && (String(user._id) === String(project.freelancer?._id || project.freelancer));
+    const isFreelancer = Boolean(isAssignedFreelancer || (user?.role === 'freelancer' && String(user?._id) === String(project.freelancer?._id || project.freelancer)));
     const canSubmitWork = isAssignedFreelancer && project.status === 'in_progress';
-    const canReview = project.status === 'completed' && (isOwner || (user?._id === project.freelancer?._id || user?._id === project.freelancer));
+    const canReview = project.status === 'completed' && (isOwner || (String(user?._id) === String(project.freelancer?._id || project.freelancer)));
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -388,7 +523,8 @@ const ProjectDetail = () => {
                         { id: 'details', label: 'Gig Details', icon: '📄', show: true },
                         { id: 'bids', label: `Proposals (${bids.length})`, icon: '🤝', show: project.status === 'open' || isOwner },
                         { id: 'workspace', label: 'Project Workspace', icon: '💻', show: project.status !== 'open' },
-                        { id: 'milestones', label: 'Milestones', icon: '🎯', show: project.status !== 'open' }
+                        { id: 'milestones', label: 'Milestones', icon: '🎯', show: project.status !== 'open' },
+                        { id: 'timeline', label: 'Timeline', icon: '⏱️' }
                     ].map(tab => tab.show !== false && (
                         <button
                             key={tab.id}
@@ -495,7 +631,29 @@ const ProjectDetail = () => {
 
                     {activeTab === 'bids' && (
                         <div className="max-w-4xl mx-auto">
-                            <h3 className="text-3xl font-black text-gray-900 mb-10 italic uppercase tracking-tighter"><span className="text-blue-600">Qualified</span> Proposals</h3>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+                                <h3 className="text-3xl font-black text-gray-900 italic uppercase tracking-tighter"><span className="text-blue-600">Qualified</span> Proposals</h3>
+                                {isOwner && (
+                                    <button
+                                        onClick={handleRecommendFreelancers}
+                                        disabled={recommendLoading || bids.length === 0}
+                                        title={bids.length === 0 ? "No freelancer proposals available." : ""}
+                                        className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-purple-100 hover:shadow-purple-300 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+                                    >
+                                        {recommendLoading ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                <span>Analyzing Freelancers...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>✨</span>
+                                                <span>Recommend Best Freelancer</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
                             {bids.length === 0 ? (
                                 <div className="text-center py-20 bg-gray-50/50 rounded-[3rem] border-2 border-dashed border-gray-200">
                                     <div className="text-7xl mb-6 grayscale opacity-20">📂</div>
@@ -513,7 +671,14 @@ const ProjectDetail = () => {
                                                         {bid.freelancer.username ? bid.freelancer.username[0].toUpperCase() : 'U'}
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-2xl font-black text-gray-900 tracking-tighter uppercase">{bid.freelancer.username}</h4>
+                                                        <div className="flex items-center gap-3">
+                                                            <h4 className="text-2xl font-black text-gray-900 tracking-tighter uppercase">{bid.freelancer.username}</h4>
+                                                            <UserPresence
+                                                                userId={bid.freelancer._id}
+                                                                initialIsOnline={bid.freelancer.isOnline}
+                                                                initialLastSeen={bid.freelancer.lastSeen}
+                                                            />
+                                                        </div>
                                                         <div className="flex items-center gap-3 mt-1">
                                                             <div className="flex items-center gap-1">
                                                                 <span className="text-yellow-400">★</span>
@@ -641,54 +806,18 @@ const ProjectDetail = () => {
                     )}
 
                     {activeTab === 'milestones' && (
-                        <div className="max-w-4xl mx-auto">
-                            <div className="flex justify-between items-end mb-16 px-4">
-                                <div>
-                                    <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase"><span className="text-blue-600">Smart</span> Escrow</h3>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Automated Milestone Release Protocol</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Total Gig Valuation</p>
-                                    <p className="text-5xl font-black text-gray-900 tracking-tighter">₹{project.selectedBid?.price || project.budget.max}</p>
-                                </div>
-                            </div>
+                        <MilestoneList
+                            project={project}
+                            isOwner={isOwner}
+                            isFreelancer={isFreelancer}
+                            toastError={error}
+                            toastSuccess={success}
+                        />
+                    )}
 
-                            <div className="space-y-16 relative">
-                                <div className="absolute left-[23px] top-4 bottom-4 w-1 bg-gray-100/50 rounded-full"></div>
-
-                                {(project.milestones?.length > 0 ? project.milestones : [
-                                    { title: 'Project Initialization & Discovery', status: 'released', amount: (project.selectedBid?.price || project.budget.max) * 0.2, dueDate: project.createdAt },
-                                    { title: 'Alpha Milestone - Core Delivery', status: 'escrowed', amount: (project.selectedBid?.price || project.budget.max) * 0.4, dueDate: new Date() },
-                                    { title: 'Beta Testing & Final Handover', status: 'escrowed', amount: (project.selectedBid?.price || project.budget.max) * 0.4, dueDate: project.deadline }
-                                ]).map((ms, idx) => (
-                                    <div key={idx} className="relative flex gap-12 group">
-                                        <div className={`w-12 h-12 rounded-[1.25rem] flex items-center justify-center shrink-0 z-10 shadow-lg border-4 border-white transition-all duration-500 scale-110 ${ms.status === 'released' ? 'bg-green-500 text-white shadow-green-100 rotate-12' : 'bg-white text-blue-600 shadow-blue-50 group-hover:bg-blue-600 group-hover:text-white'
-                                            }`}>
-                                            {ms.status === 'released' ? <span className="text-xl">✓</span> : <span className="font-black text-lg italic">{idx + 1}</span>}
-                                        </div>
-
-                                        <div className="flex-1 bg-white border-2 border-transparent hover:border-blue-50 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl transition-all">
-                                            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                                                <div>
-                                                    <h4 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{ms.title}</h4>
-                                                    <p className="text-[10px] font-black text-gray-400 mt-2 uppercase tracking-widest flex items-center gap-2">
-                                                        <span>📅 TARGET: {new Date(ms.dueDate).toLocaleDateString()}</span>
-                                                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                                        <span>SECURED IN ESCROW</span>
-                                                    </p>
-                                                </div>
-                                                <div className="text-right sm:text-right w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-50">
-                                                    <p className="text-3xl font-black text-blue-600 tracking-tighter">₹{ms.amount.toFixed(0)}</p>
-                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg mt-3 inline-block shadow-sm ${ms.status === 'released' ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'
-                                                        }`}>
-                                                        {ms.status === 'released' ? 'RELEASED' : 'LOCKED'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                    {activeTab === 'timeline' && (
+                        <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
+                            <ProjectTimeline projectId={id} />
                         </div>
                     )}
                 </div>
@@ -841,15 +970,55 @@ const ProjectDetail = () => {
                                 />
                             </div>
 
-                            <button
-                                type="submit"
-                                className="w-full bg-purple-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-purple-100 hover:shadow-purple-300 hover:-translate-y-1 transition-all active:scale-95"
-                            >
-                                SUBMIT BID
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button
+                                    type="button"
+                                    onClick={handleAnalyzeBid}
+                                    disabled={analyzingBid}
+                                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100 hover:shadow-indigo-300 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    {analyzingBid ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            <span>Analyzing...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>✨</span>
+                                            <span>Analyze My Bid</span>
+                                        </>
+                                    )}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={analyzingBid}
+                                    className="flex-1 bg-purple-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-purple-100 hover:shadow-purple-300 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
+                                >
+                                    SUBMIT BID
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
+            )}
+
+            {/* Smart Bid Analysis Modal */}
+            {showBidAnalysisModal && (
+                <SmartBidAnalysisModal
+                    analysis={bidAnalysisResult}
+                    onClose={() => setShowBidAnalysisModal(false)}
+                    onApplyImprovedBid={handleApplyImprovedBid}
+                    toastSuccess={success}
+                />
+            )}
+
+            {/* AI Freelancer Recommendation Modal */}
+            {showRecommendationModal && (
+                <RecommendationResultsModal
+                    recommendations={recommendationResults}
+                    onClose={() => setShowRecommendationModal(false)}
+                    projectTitle={project?.title}
+                />
             )}
             {/* Review Modal */}
             {showReviewModal && (

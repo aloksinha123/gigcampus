@@ -13,6 +13,7 @@ const MyProjects = () => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [aiLoading, setAiLoading] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -24,6 +25,55 @@ const MyProjects = () => {
         requirements: '',
         skills: ''
     });
+
+    const handleAiImprove = async () => {
+        if (!formData.description || !formData.description.trim()) {
+            error('Please enter a short description first to improve with AI.');
+            return;
+        }
+
+        try {
+            setAiLoading(true);
+            const response = await api.post('/ai/improve-description', { description: formData.description });
+
+            if (response.data?.success && response.data?.data) {
+                const aiData = response.data.data;
+                
+                let bMin = formData.budgetMin;
+                let bMax = formData.budgetMax;
+                if (aiData.budget) {
+                    const nums = aiData.budget.match(/\d+/g);
+                    if (nums && nums.length >= 2) {
+                        bMin = nums[0];
+                        bMax = nums[1];
+                    } else if (nums && nums.length === 1) {
+                        bMin = nums[0];
+                        bMax = (parseInt(nums[0]) * 2).toString();
+                    }
+                }
+
+                setFormData(prev => ({
+                    ...prev,
+                    title: aiData.title || prev.title,
+                    description: aiData.summary || prev.description,
+                    timeline: aiData.timeline || prev.timeline,
+                    requirements: Array.isArray(aiData.requirements) ? aiData.requirements.join(', ') : prev.requirements,
+                    skills: Array.isArray(aiData.skills) ? aiData.skills.join(', ') : prev.skills,
+                    budgetMin: bMin,
+                    budgetMax: bMax
+                }));
+
+                success('✨ AI suggestions generated! Please review and edit the fields before saving.');
+            } else {
+                error('Unable to generate AI suggestions.');
+            }
+        } catch (err) {
+            console.error('AI generation error:', err);
+            error(err.response?.data?.message || 'Unable to generate AI suggestions.');
+        } finally {
+            setAiLoading(false);
+        }
+    };
 
     const categories = [
         { value: 'development', label: 'Development' },
@@ -290,7 +340,27 @@ const MyProjects = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Core Objectives (Description)</label>
+                                    <div className="flex justify-between items-center mb-3">
+                                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">Core Objectives (Description)</label>
+                                        <button
+                                            type="button"
+                                            onClick={handleAiImprove}
+                                            disabled={aiLoading}
+                                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-indigo-200 hover:scale-105 transition-all disabled:opacity-50 cursor-pointer"
+                                        >
+                                            {aiLoading ? (
+                                                <>
+                                                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                    <span>Generating AI...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>✨</span>
+                                                    <span>Improve with AI</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
                                     <textarea
                                         name="description"
                                         value={formData.description}

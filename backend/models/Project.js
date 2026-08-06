@@ -107,10 +107,12 @@ const projectSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for searching
+// Index for searching and performance optimization
 projectSchema.index({ title: 'text', description: 'text' });
 projectSchema.index({ category: 1, status: 1 });
-projectSchema.index({ client: 1 });
+projectSchema.index({ client: 1, status: 1 });
+projectSchema.index({ status: 1, createdAt: -1 });
+projectSchema.index({ freelancer: 1, status: 1 });
 
 const Project = mongoose.model('Project', projectSchema);
 export default Project;

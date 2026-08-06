@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
@@ -7,11 +7,23 @@ const Home = () => {
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuth();
 
+    useEffect(() => {
+        const isRoleSelectionEnabled = import.meta.env.VITE_ENABLE_ROLE_SELECTION === 'true';
+        if (isAuthenticated && !isRoleSelectionEnabled) {
+            const role = user?.role;
+            if (role === 'admin') navigate('/admin');
+            else if (role === 'freelancer') navigate('/freelancer/dashboard');
+            else navigate('/student/dashboard');
+        }
+    }, [isAuthenticated, user, navigate]);
+
     const handleGetStarted = (role) => {
         if (isAuthenticated) {
-            if (role === 'student') navigate('/student/dashboard');
-            else if (role === 'freelancer') navigate('/freelancer/dashboard');
-            else navigate('/admin/dashboard');
+            const isRoleSelectionEnabled = import.meta.env.VITE_ENABLE_ROLE_SELECTION === 'true';
+            const targetRole = isRoleSelectionEnabled ? role : (user?.role || role);
+            if (targetRole === 'admin') navigate('/admin');
+            else if (targetRole === 'freelancer') navigate('/freelancer/dashboard');
+            else navigate('/student/dashboard');
         } else {
             navigate('/register', { state: { role } });
         }

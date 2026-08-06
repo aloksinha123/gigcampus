@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
 // Create axios instance
 const api = axios.create({
@@ -38,8 +38,27 @@ export default api;
 export const authAPI = {
     register: (data) => api.post('/auth/register', data),
     login: (data) => api.post('/auth/login', data),
+    verifyEmail: (token) => api.get(`/auth/verify-email/${token}`),
+    resendVerification: (data) => api.post('/auth/resend-verification', data),
+    forgotPassword: (data) => api.post('/auth/forgot-password', data),
+    resetPassword: (token, data) => api.put(`/auth/reset-password/${token}`, data),
+    getSessions: () => api.get('/auth/sessions'),
+    terminateSession: (sessionId) => api.delete(`/auth/sessions/${sessionId}`),
+    terminateOtherSessions: () => api.delete('/auth/sessions'),
     getMe: () => api.get('/auth/me'),
     updateProfile: (data) => api.put('/auth/profile', data)
+};
+
+// Security API
+export const securityAPI = {
+    getMyHistory: () => api.get('/security/my-history'),
+    getAdminLogs: (params) => api.get('/security/admin/logs', { params }),
+    unlockUserAccount: (userId) => api.put(`/security/admin/unlock/${userId}`)
+};
+
+// AI API
+export const aiAPI = {
+    improveDescription: (description) => api.post('/ai/improve-description', { description })
 };
 
 // Projects API
@@ -70,6 +89,9 @@ export const bidsAPI = {
 // Messages API
 export const messagesAPI = {
     send: (data) => api.post('/messages', data),
+    upload: (formData) => api.post('/messages/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
     getConversations: () => api.get('/messages/conversations'),
     getProjectMessages: (projectId, params) => api.get(`/messages/project/${projectId}`, { params }),
     markAsRead: (projectId) => api.put(`/messages/read/${projectId}`),
@@ -146,6 +168,17 @@ export const adminAPI = {
     getBids: (params) => api.get('/admin/bids', { params })
 };
 
+// Milestones API
+export const milestoneAPI = {
+    getProjectMilestones: (projectId) => api.get(`/milestones/project/${projectId}`),
+    create: (data) => api.post('/milestones', data),
+    update: (id, data) => api.put(`/milestones/${id}`, data),
+    delete: (id) => api.delete(`/milestones/${id}`),
+    submit: (id, data) => api.put(`/milestones/${id}/submit`, data),
+    approve: (id) => api.put(`/milestones/${id}/approve`),
+    reject: (id, data) => api.put(`/milestones/${id}/reject`, data)
+};
+
 // Add shortcuts to default api export
 api.auth = authAPI;
 api.projects = projectsAPI;
@@ -158,4 +191,4 @@ api.users = usersAPI;
 api.notifications = notificationsAPI;
 api.wallet = walletAPI;
 api.admin = adminAPI;
-
+api.milestones = milestoneAPI;

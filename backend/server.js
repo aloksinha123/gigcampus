@@ -1,8 +1,16 @@
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 import connectDB from './config/db.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
@@ -12,17 +20,31 @@ import projectRoutes from './routes/projects.js';
 import bidRoutes from './routes/bids.js';
 import messageRoutes from './routes/messages.js';
 import paymentRoutes from './routes/payments.js';
+import razorpayPaymentRoutes from './routes/paymentRoutes.js';
 import reviewRoutes from './routes/reviews.js';
 import portfolioRoutes from './routes/portfolio.js';
 import userRoutes from './routes/users.js';
 import walletRoutes from './routes/wallet.js';
 import notificationRoutes from './routes/notifications.js';
 import adminRoutes from './routes/adminRoutes.js';
+import emailRoutes from './routes/emailRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+import milestoneRoutes from './routes/milestoneRoutes.js';
+import securityRoutes from './routes/securityRoutes.js';
+import {
+  authLimiter,
+  aiLimiter,
+  paymentLimiter,
+  generalLimiter
+} from './middleware/rateLimiter.js';
+import { verifyEmailConnection } from './config/mail.js';
+import jwt from 'jsonwebtoken';
+import User from './models/User.js';
+import Message from './models/Message.js';
 
-dotenv.config();
-
-// Connect to database
+// Connect to database & verify email service
 connectDB();
+verifyEmailConnection();
 
 const app = express();
 const httpServer = createServer(app);
@@ -43,20 +65,37 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files
-app.use('/uploads', express.static('public/uploads'));
+const uploadDir = path.join(__dirname, 'public/uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadDir));
+
+// Global General Rate Limiter (300 requests / 15 min per IP baseline)
+app.use('/api', generalLimiter);
+
+// Specific Auth Endpoint Rate Limiting (5 requests / 15 min per IP)
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/bids', bidRoutes);
 app.use('/api/messages', messageRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use('/api/payments', paymentLimiter, paymentRoutes);
+app.use('/api/payments', paymentLimiter, razorpayPaymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/email', emailRoutes);
+app.use('/api/ai', aiLimiter, aiRoutes);
+app.use('/api/milestones', milestoneRoutes);
+app.use('/api/security', securityRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -67,9 +106,53 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Active sockets tracking map: Map<userIdString, Set<socketId>>
+const userSocketsMap = new Map();
+
+// Socket Authentication Middleware
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization;
+    if (!token) {
+      return next(new Error('Authentication error: Token missing'));
+    }
+
+    const cleanToken = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+    const decoded = jwt.verify(cleanToken, process.env.JWT_SECRET);
+    socket.userId = decoded.id;
+    next();
+  } catch (err) {
+    console.warn(`Socket auth rejected (${socket.id}):`, err.message);
+    next(new Error('Authentication error: Invalid or expired token'));
+  }
+});
+
 // Socket.io connection handling
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+io.on('connection', async (socket) => {
+  const userId = socket.userId?.toString();
+  console.log(`User connected socket ${socket.id} (User ID: ${userId || 'Unauthenticated'})`);
+
+  if (userId) {
+    if (!userSocketsMap.has(userId)) {
+      userSocketsMap.set(userId, new Set());
+    }
+    const userSet = userSocketsMap.get(userId);
+    const isFirstConnection = userSet.size === 0;
+    userSet.add(socket.id);
+
+    if (isFirstConnection) {
+      try {
+        await User.findByIdAndUpdate(userId, { isOnline: true });
+        io.emit('user-online', {
+          userId,
+          isOnline: true
+        });
+        console.log(`🟢 User ${userId} is now ONLINE`);
+      } catch (dbErr) {
+        console.error('Error setting user online:', dbErr.message);
+      }
+    }
+  }
 
   // Join project room
   socket.on('joinProject', (projectId) => {
@@ -86,25 +169,56 @@ io.on('connection', (socket) => {
   // Send message
   socket.on('sendMessage', (data) => {
     const { projectId, message } = data;
-    // Broadcast to all users in the project room except sender
     socket.to(`project_${projectId}`).emit('newMessage', message);
   });
 
-  // Typing indicator
+  // Typing indicator - start (room scoped)
+  socket.on('typing-start', (data) => {
+    const { conversationId, projectId, senderId, username } = data;
+    const targetRoom = projectId || conversationId;
+    if (targetRoom) {
+      socket.to(`project_${targetRoom}`).emit('typing-start', {
+        conversationId: targetRoom,
+        senderId: senderId || socket.userId,
+        username: username || 'Someone'
+      });
+    }
+  });
+
+  // Typing indicator - stop (room scoped)
+  socket.on('typing-stop', (data) => {
+    const { conversationId, projectId, senderId } = data;
+    const targetRoom = projectId || conversationId;
+    if (targetRoom) {
+      socket.to(`project_${targetRoom}`).emit('typing-stop', {
+        conversationId: targetRoom,
+        senderId: senderId || socket.userId
+      });
+    }
+  });
+
+  // Backwards compatibility aliases
   socket.on('typing', (data) => {
     const { projectId, username } = data;
-    socket.to(`project_${projectId}`).emit('userTyping', { username });
+    socket.to(`project_${projectId}`).emit('typing-start', {
+      conversationId: projectId,
+      senderId: socket.userId,
+      username
+    });
   });
 
   socket.on('stopTyping', (data) => {
     const { projectId } = data;
-    socket.to(`project_${projectId}`).emit('userStoppedTyping');
+    socket.to(`project_${projectId}`).emit('typing-stop', {
+      conversationId: projectId,
+      senderId: socket.userId
+    });
   });
 
   // Join personal room for notifications
-  socket.on('joinPersonal', (userId) => {
-    socket.join(userId.toString());
-    console.log(`User ${socket.id} joined personal room ${userId}`);
+  socket.on('joinPersonal', (roomUserId) => {
+    socket.join(roomUserId.toString());
+    console.log(`User ${socket.id} joined personal room ${roomUserId}`);
   });
 
   // New bid notification
@@ -113,22 +227,124 @@ io.on('connection', (socket) => {
     socket.to(`project_${projectId}`).emit('bidReceived', bid);
   });
 
+  // Mark message delivered (Security check: only receiver can mark delivered)
+  socket.on('markDelivered', async ({ messageId, projectId }) => {
+    try {
+      if (!userId || !messageId) return;
+      const msg = await Message.findById(messageId);
+      if (msg && msg.receiver.toString() === userId && msg.status === 'sent') {
+        const deliveredAt = new Date();
+        msg.status = 'delivered';
+        msg.deliveredAt = deliveredAt;
+        await msg.save();
+
+        io.to(`project_${projectId || msg.project}`).emit('message-delivered', {
+          messageId,
+          deliveredAt,
+          status: 'delivered'
+        });
+      }
+    } catch (err) {
+      console.error('Error marking message delivered:', err.message);
+    }
+  });
+
+  // Mark messages read (Security check: only receiver can mark read)
+  socket.on('markRead', async ({ projectId }) => {
+    try {
+      if (!userId || !projectId) return;
+      const unreadMessages = await Message.find({
+        project: projectId,
+        receiver: userId,
+        status: { $ne: 'read' }
+      }, '_id');
+
+      const messageIds = unreadMessages.map(m => m._id.toString());
+      const readAt = new Date();
+
+      if (messageIds.length > 0) {
+        await Message.updateMany(
+          { _id: { $in: messageIds } },
+          {
+            status: 'read',
+            read: true,
+            readAt
+          }
+        );
+
+        io.to(`project_${projectId}`).emit('message-read', {
+          projectId,
+          messageIds,
+          readAt,
+          status: 'read'
+        });
+      }
+    } catch (err) {
+      console.error('Error marking messages read:', err.message);
+    }
+  });
+
   // Disconnect
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log('User disconnected:', socket.id);
+    if (userId && userSocketsMap.has(userId)) {
+      const userSet = userSocketsMap.get(userId);
+      userSet.delete(socket.id);
+
+      if (userSet.size === 0) {
+        userSocketsMap.delete(userId);
+        const lastSeen = new Date();
+        try {
+          await User.findByIdAndUpdate(userId, {
+            isOnline: false,
+            lastSeen
+          });
+          io.emit('user-offline', {
+            userId,
+            isOnline: false,
+            lastSeen
+          });
+          console.log(`⚪ User ${userId} is now OFFLINE (Last seen: ${lastSeen.toISOString()})`);
+        } catch (dbErr) {
+          console.error('Error setting user offline:', dbErr.message);
+        }
+      }
+    }
   });
 });
 
 // Make io accessible to routes
 app.set('io', io);
 
-// Error handling
-app.use(notFound);
-app.use(errorHandler);
+const printRegisteredRoutes = (expressApp) => {
+  console.log('\n--- Registered Express Routes ---');
+  const printStack = (stack, parentPath = '') => {
+    stack.forEach((layer) => {
+      if (layer.route) {
+        const methods = Object.keys(layer.route.methods).map(m => m.toUpperCase()).join(', ');
+        console.log(`${methods} ${parentPath}${layer.route.path}`);
+      } else if (layer.name === 'router' && layer.handle && layer.handle.stack) {
+        let path = '';
+        if (layer.regexp) {
+          const match = layer.regexp.toString().match(/^\/\^\\?(.*?)\\\/\?\(\?=\\\/\|\$\)\/i?/);
+          if (match && match[1]) {
+            path = match[1].replace(/\\/g, '');
+          }
+        }
+        printStack(layer.handle.stack, '/' + path);
+      }
+    });
+  };
+  if (expressApp._router && expressApp._router.stack) {
+    printStack(expressApp._router.stack);
+  }
+  console.log('-----------------------------------\n');
+};
 
 const PORT = process.env.PORT || 5003;
 
 httpServer.listen(PORT, () => {
   console.log(`🚀 GigCampus server running on port ${PORT}`);
   console.log(`📡 Socket.io enabled for real-time features`);
+  printRegisteredRoutes(app);
 });

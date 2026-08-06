@@ -1,28 +1,35 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { NotificationProvider } from './context/NotificationContext';
-
-// Pages
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ProjectMarketplace from './pages/ProjectMarketplace';
-import ProjectDetail from './pages/ProjectDetail';
-import MyProjects from './pages/MyProjects';
-import MyBids from './pages/MyBids';
-import Messages from './pages/Messages';
-import Portfolio from './pages/Portfolio';
-import Profile from './pages/Profile';
-import StudentDashboard from './pages/StudentDashboard';
-import FreelancerDashboard from './pages/FreelancerDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminUsers from './pages/AdminUsers';
-import AdminProjects from './pages/AdminProjects';
-import AdminDisputes from './pages/AdminDisputes';
+import ErrorBoundary from './components/ErrorBoundary';
+import { PageSkeleton } from './components/SkeletonLoader';
 
 import './index.css';
+
+// Lazy Loaded Page Components for Code Splitting & Performance Optimization
+const Home = lazy(() => import('./pages/Home'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const ProjectMarketplace = lazy(() => import('./pages/ProjectMarketplace'));
+const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
+const MyProjects = lazy(() => import('./pages/MyProjects'));
+const MyBids = lazy(() => import('./pages/MyBids'));
+const Messages = lazy(() => import('./pages/Messages'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const Profile = lazy(() => import('./pages/Profile'));
+const StudentDashboard = lazy(() => import('./pages/StudentDashboard'));
+const FreelancerDashboard = lazy(() => import('./pages/FreelancerDashboard'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminUsers = lazy(() => import('./pages/AdminUsers'));
+const AdminProjects = lazy(() => import('./pages/AdminProjects'));
+const AdminDisputes = lazy(() => import('./pages/AdminDisputes'));
+const AdminSecurity = lazy(() => import('./pages/AdminSecurity'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Protected Route Component
 const ProtectedRoute = ({ children, roles }) => {
@@ -44,7 +51,6 @@ const PublicRoute = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
 
   if (isAuthenticated) {
-    // Redirect to appropriate dashboard
     if (user?.role === 'admin') return <Navigate to="/admin" />;
     if (user?.role === 'freelancer') return <Navigate to="/freelancer/dashboard" />;
     return <Navigate to="/student/dashboard" />;
@@ -56,96 +62,109 @@ const PublicRoute = ({ children }) => {
 function AppRoutes() {
   return (
     <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      <Suspense fallback={<PageSkeleton />}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* Marketplace (Public) */}
-        <Route path="/projects" element={<ProjectMarketplace />} />
-        <Route path="/projects/:id" element={<ProjectDetail />} />
-        <Route path="/portfolio" element={<Portfolio />} />
-        <Route path="/portfolio/:userId" element={<Portfolio />} />
+          {/* Marketplace (Public) */}
+          <Route path="/projects" element={<ProjectMarketplace />} />
+          <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/portfolio/:userId" element={<Portfolio />} />
 
-        {/* Protected Routes */}
-        <Route path="/my-projects" element={
-          <ProtectedRoute roles={['student', 'freelancer', 'admin']}>
-            <MyProjects />
-          </ProtectedRoute>
-        } />
+          {/* Protected Routes */}
+          <Route path="/my-projects" element={
+            <ProtectedRoute roles={['student', 'freelancer', 'admin']}>
+              <MyProjects />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/my-bids" element={
-          <ProtectedRoute roles={['freelancer', 'admin']}>
-            <MyBids />
-          </ProtectedRoute>
-        } />
+          <Route path="/my-bids" element={
+            <ProtectedRoute roles={['freelancer', 'admin']}>
+              <MyBids />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/messages" element={
-          <ProtectedRoute>
-            <Messages />
-          </ProtectedRoute>
-        } />
+          <Route path="/messages" element={
+            <ProtectedRoute>
+              <Messages />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
 
-        {/* Dashboards */}
-        <Route path="/student/dashboard" element={
-          <ProtectedRoute roles={['student', 'admin']}>
-            <StudentDashboard />
-          </ProtectedRoute>
-        } />
+          {/* Dashboards */}
+          <Route path="/student/dashboard" element={
+            <ProtectedRoute roles={['student', 'admin']}>
+              <StudentDashboard />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/freelancer/dashboard" element={
-          <ProtectedRoute roles={['freelancer', 'admin']}>
-            <FreelancerDashboard />
-          </ProtectedRoute>
-        } />
+          <Route path="/freelancer/dashboard" element={
+            <ProtectedRoute roles={['freelancer', 'admin']}>
+              <FreelancerDashboard />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/admin" element={
-          <ProtectedRoute roles={['admin']}>
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
+          <Route path="/admin" element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/admin/users" element={
-          <ProtectedRoute roles={['admin']}>
-            <AdminUsers />
-          </ProtectedRoute>
-        } />
+          <Route path="/admin/users" element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminUsers />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/admin/projects" element={
-          <ProtectedRoute roles={['admin']}>
-            <AdminProjects />
-          </ProtectedRoute>
-        } />
+          <Route path="/admin/projects" element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminProjects />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/admin/disputes" element={
-          <ProtectedRoute roles={['admin']}>
-            <AdminDisputes />
-          </ProtectedRoute>
-        } />
+          <Route path="/admin/disputes" element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminDisputes />
+            </ProtectedRoute>
+          } />
 
-        {/* 404 */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+          <Route path="/admin/security" element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminSecurity />
+            </ProtectedRoute>
+          } />
+
+          {/* Custom 404 Error Page */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }
 
 function App() {
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <NotificationProvider>
-          <AppRoutes />
-        </NotificationProvider>
-      </SocketProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SocketProvider>
+          <NotificationProvider>
+            <AppRoutes />
+          </NotificationProvider>
+        </SocketProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -1,6 +1,7 @@
 import Review from '../models/Review.js';
 import Project from '../models/Project.js';
 import { createNotification } from './notificationController.js';
+import { logActivity } from '../services/activityService.js';
 
 // @desc    Submit review
 // @route   POST /api/reviews
@@ -59,6 +60,15 @@ export const submitReview = async (req, res) => {
                 reviewId: review._id
             }
         );
+
+        // Log REVIEW_SUBMITTED Activity Event
+        await logActivity({
+            project: projectDoc._id,
+            user: req.user._id,
+            action: 'REVIEW_SUBMITTED',
+            description: `Submitted a ${rating}-star review`,
+            metadata: { rating, reviewId: review._id }
+        });
 
         const populatedReview = await Review.findById(review._id)
             .populate('reviewer', 'username profile.avatar')

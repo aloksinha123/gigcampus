@@ -59,9 +59,17 @@ const AdminDashboard = () => {
       <Navbar variant="dark" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <header className="mb-12">
-          <h1 className="text-4xl font-black text-white mb-2 italic">Platform <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 text-normal">Observability</span></h1>
-          <p className="text-slate-500 font-medium">Real-time oversight of the campus freelance ecosystem.</p>
+        <header className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-black text-white mb-2 italic">Platform <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 text-normal">Observability</span></h1>
+            <p className="text-slate-500 font-medium">Real-time oversight of the campus freelance ecosystem.</p>
+          </div>
+          <Link
+            to="/admin/security"
+            className="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-2xl shadow-lg transition active:scale-95 flex items-center gap-2 w-max"
+          >
+            🛡️ Security Audit Dashboard →
+          </Link>
         </header>
 
         {/* Key Metrics */}

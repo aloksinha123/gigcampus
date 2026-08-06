@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import api from '../services/api';
+import { triggerBrowserNotification } from '../utils/browserNotification';
 
 const NotificationBell = () => {
     const { user } = useAuth();
@@ -21,6 +22,14 @@ const NotificationBell = () => {
             socket.on('newNotification', (newNotif) => {
                 setNotifications(prev => [newNotif, ...prev.slice(0, 9)]);
                 setUnreadCount(prev => prev + 1);
+
+                const targetUrl = getNotificationLink(newNotif);
+                triggerBrowserNotification({
+                    title: 'GigCampus',
+                    body: newNotif.message || 'You received a new notification.',
+                    url: targetUrl,
+                    tag: `notif-${newNotif._id || Date.now()}`
+                });
             });
         }
 

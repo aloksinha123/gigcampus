@@ -1,6 +1,12 @@
 import Project from '../models/Project.js';
 import Bid from '../models/Bid.js';
+import User from '../models/User.js';
+import Payment from '../models/Payment.js';
+import Transaction from '../models/Transaction.js';
+import Activity from '../models/Activity.js';
 import { createNotification } from './notificationController.js';
+import { sendBidAcceptedEmail } from '../services/emailService.js';
+import { logActivity } from '../services/activityService.js';
 
 // @desc    Create new project
 // @route   POST /api/projects
@@ -10,6 +16,15 @@ export const createProject = async (req, res) => {
         const project = await Project.create({
             ...req.body,
             client: req.user._id
+        });
+
+        // Log PROJECT_CREATED Activity Event
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'PROJECT_CREATED',
+            description: `Project "${project.title}" was created`,
+            metadata: { budget: project.budget, category: project.category }
         });
 
         res.status(201).json(project);
@@ -156,7 +171,7 @@ export const getMyProjects = async (req, res) => {
     }
 };
 
-// @desc    Accept bid and assign freelancer
+// @desc    Accept bid and assign freelancer (Wallet -> Escrow Connection)
 // @route   PUT /api/projects/:id/accept-bid/:bidId
 // @access  Private (Owner only)
 export const acceptBid = async (req, res) => {
@@ -178,45 +193,51 @@ export const acceptBid = async (req, res) => {
             return res.status(400).json({ message: 'Project is not open for bids' });
         }
 
-        // Update project
-        project.selectedBid = bid._id;
-        project.freelancer = bid.freelancer;
-        project.status = 'in_progress';
-        await project.save();
-
-        // Update bid status
-        bid.status = 'accepted';
-        await bid.save();
-
-        // Reject other bids
-        await Bid.updateMany(
-            { project: project._id, _id: { $ne: bid._id } },
-            { status: 'rejected' }
-        );
-
-        // Create escrow payment automatically
-        const Payment = (await import('../models/Payment.js')).default;
-        const User = (await import('../models/User.js')).default;
-        const bidAmount = bid.price;
-
-        // Check if client has sufficient balance
-        const client = await User.findById(req.user._id);
-        if (client.wallet.balance < bidAmount) {
-            return res.status(400).json({ message: 'Insufficient wallet balance. Please deposit funds first.' });
+        // Prevent duplicate escrow creation
+        const existingPayment = await Payment.findOne({ project: project._id, status: 'escrowed' });
+        if (existingPayment) {
+            return res.status(400).json({
+                success: false,
+                message: 'Escrow payment already exists for this project.'
+            });
         }
 
+        const bidAmount = bid.price;
+
+        // Step 1: Fetch client's latest wallet balance from MongoDB (Never trust frontend)
+        const client = await User.findById(req.user._id);
+        if (!client || !client.wallet || client.wallet.balance < bidAmount) {
+            // Step 2: Return HTTP 400 if balance is insufficient (without modifying project status or creating escrow)
+            return res.status(400).json({
+                success: false,
+                message: 'Insufficient wallet balance. Please add money to continue.'
+            });
+        }
+
+        // Step 3: Atomic database deduction using $inc with atomic balance check ($gte: bidAmount)
+        const updatedClient = await User.findOneAndUpdate(
+            { _id: req.user._id, 'wallet.balance': { $gte: bidAmount } },
+            { $inc: { 'wallet.balance': -bidAmount } },
+            { new: true }
+        );
+
+        if (!updatedClient) {
+            return res.status(400).json({
+                success: false,
+                message: 'Insufficient wallet balance. Please add money to continue.'
+            });
+        }
+
+        // Step 4: Create Escrow Payment record
         const platformCommissionRate = 0.10; // 10% commission
         const platformCommission = bidAmount * platformCommissionRate;
         const freelancerAmount = bidAmount - platformCommission;
-
-        // Deduct from client wallet
-        client.wallet.balance -= bidAmount;
-        await client.save();
+        const freelancerId = bid.freelancer._id || bid.freelancer;
 
         const payment = await Payment.create({
             project: project._id,
             client: req.user._id,
-            freelancer: bid.freelancer._id,
+            freelancer: freelancerId,
             amount: bidAmount,
             platformCommission: platformCommission,
             freelancerAmount: freelancerAmount,
@@ -227,22 +248,36 @@ export const acceptBid = async (req, res) => {
             notes: `Escrow payment for project: ${project.title}`
         });
 
-        // Create transaction record for client
-        const Transaction = (await import('../models/Transaction.js')).default;
-        await Transaction.create({
+        // Step 5: Create Transaction record
+        const transaction = await Transaction.create({
             user: req.user._id,
             type: 'escrow_payment',
-            amount: -bidAmount,
-            balanceAfter: client.wallet.balance,
+            amount: bidAmount,
+            balanceAfter: updatedClient.wallet.balance,
             project: project._id,
             payment: payment._id,
             description: `Escrow payment for project: ${project.title}`,
             transactionId: payment.transactionId
         });
 
+        // Step 6: Continue existing workflow (Update project status, assign freelancer, accept bid, reject remaining bids)
+        project.selectedBid = bid._id;
+        project.freelancer = freelancerId;
+        project.status = 'in_progress';
+        await project.save();
+
+        bid.status = 'accepted';
+        await bid.save();
+
+        // Reject other bids
+        await Bid.updateMany(
+            { project: project._id, _id: { $ne: bid._id } },
+            { status: 'rejected' }
+        );
+
         // Create notification for freelancer
         await createNotification(
-            bid.freelancer._id,
+            freelancerId,
             'project',
             `Your bid for "${project.title}" has been accepted! You can now start working.`,
             {
@@ -252,18 +287,58 @@ export const acceptBid = async (req, res) => {
             }
         );
 
-        res.json({
+        // Log BID_ACCEPTED and ESCROW_CREATED Activity Events
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'BID_ACCEPTED',
+            description: `Accepted bid proposal from freelancer`,
+            metadata: { bidId: bid._id, freelancerId }
+        });
+
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'ESCROW_CREATED',
+            description: `Escrow payment of ₹${bidAmount} created and funds held in escrow`,
+            metadata: { amount: bidAmount, paymentId: payment._id }
+        });
+
+        // Send Bid Accepted HTML Email to Freelancer (Non-blocking: Bid acceptance succeeds even if SMTP fails)
+        try {
+            const freelancerEmail = bid.freelancer?.email;
+            const freelancerName = bid.freelancer?.username || bid.freelancer?.profile?.name || 'Freelancer';
+            const studentName = req.user?.username || req.user?.profile?.name || 'Student';
+
+            if (freelancerEmail) {
+                await sendBidAcceptedEmail({
+                    freelancerEmail,
+                    freelancerName,
+                    projectTitle: project.title,
+                    bidAmount,
+                    studentName,
+                    projectId: project._id
+                });
+            }
+        } catch (emailErr) {
+            console.error('⚠️ Bid accepted email dispatch failed:', emailErr.message);
+        }
+
+        return res.json({
+            success: true,
             project,
             bid,
             payment,
+            transaction,
+            walletBalance: updatedClient.wallet.balance,
             message: 'Bid accepted successfully. Payment has been escrowed.'
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Mark project as completed
+// @desc    Mark project as completed and release escrow payment
 // @route   PUT /api/projects/:id/complete
 // @access  Private (Client only)
 export const completeProject = async (req, res) => {
@@ -271,107 +346,127 @@ export const completeProject = async (req, res) => {
         const project = await Project.findById(req.params.id);
 
         if (!project) {
-            return res.status(404).json({ message: 'Project not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Project not found'
+            });
         }
 
         if (project.client.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ message: 'Not authorized' });
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to complete this project'
+            });
         }
 
         if (project.status !== 'in_progress') {
-            return res.status(400).json({ message: 'Project must be in progress to complete' });
+            return res.status(400).json({
+                success: false,
+                message: 'Project must be in progress to complete'
+            });
         }
 
-        // Mark project as completed
+        // Find active escrow payment
+        const payment = await Payment.findOne({ project: project._id, status: 'escrowed' });
+        if (!payment) {
+            return res.status(400).json({
+                success: false,
+                message: 'Payment is not in escrowed status or has already been released.'
+            });
+        }
+
+        const escrowAmount = payment.amount;
+        const platformCommissionRate = 0.10; // 10% platform fee
+        const platformCommission = escrowAmount * platformCommissionRate;
+        const freelancerAmount = escrowAmount - platformCommission;
+        const freelancerId = payment.freelancer;
+
+        // Atomic Wallet Credit for Freelancer using $inc
+        const updatedFreelancer = await User.findByIdAndUpdate(
+            freelancerId,
+            {
+                $inc: {
+                    'wallet.balance': freelancerAmount,
+                    'reputation.completedProjects': 1
+                }
+            },
+            { new: true }
+        );
+
+        const freelancerBalanceAfter = updatedFreelancer?.wallet?.balance || freelancerAmount;
+
+        // Create Transaction record for freelancer
+        const transactionId = `REL-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`.toUpperCase();
+        const transaction = await Transaction.create({
+            user: freelancerId,
+            type: 'payment_received',
+            amount: freelancerAmount,
+            platformCommission: platformCommission,
+            balanceAfter: freelancerBalanceAfter,
+            project: project._id,
+            payment: payment._id,
+            status: 'completed',
+            description: `Payment received for project: ${project.title} (₹${freelancerAmount.toFixed(2)} after 10% platform fee)`,
+            transactionId: transactionId
+        });
+
+        // Update Payment record
+        payment.status = 'released';
+        payment.releasedAt = new Date();
+        payment.platformCommission = platformCommission;
+        payment.freelancerAmount = freelancerAmount;
+        await payment.save();
+
+        // Update Project record
         project.status = 'completed';
         project.completedAt = new Date();
         await project.save();
 
-        // Find and release the escrowed payment
-        const Payment = (await import('../models/Payment.js')).default;
-        const User = (await import('../models/User.js')).default;
+        // Send Notifications to Client and Freelancer
+        try {
+            await createNotification(
+                req.user._id,
+                'payment',
+                `Payment released successfully.`,
+                { project: project._id, payment: payment._id }
+            );
 
-        const payment = await Payment.findOne({ project: project._id, status: 'escrowed' });
-
-        if (payment) {
-            // Calculate amounts if not already set
-            if (!payment.platformCommission || !payment.freelancerAmount) {
-                const platformCommissionRate = 0.10; // 10% commission
-                payment.platformCommission = payment.amount * platformCommissionRate;
-                payment.freelancerAmount = payment.amount - payment.platformCommission;
-            }
-
-            // Transfer funds to freelancer's wallet
-            const freelancerUser = await User.findById(payment.freelancer);
-            freelancerUser.wallet.balance = (freelancerUser.wallet.balance || 0) + payment.freelancerAmount;
-            await freelancerUser.save();
-
-            // Release payment
-            payment.status = 'released';
-            payment.releasedAt = new Date();
-            await payment.save();
-
-            // Create transaction record for freelancer
-            const Transaction = (await import('../models/Transaction.js')).default;
-            await Transaction.create({
-                user: payment.freelancer,
-                type: 'payment_received',
-                amount: payment.freelancerAmount,
-                balanceAfter: freelancerUser.wallet.balance,
-                project: project._id,
-                payment: payment._id,
-                description: `Payment released for project: ${project.title}`,
-                transactionId: `REL-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`.toUpperCase()
-            });
+            await createNotification(
+                freelancerId,
+                'payment',
+                `Payment has been credited to your wallet.`,
+                { project: project._id, payment: payment._id }
+            );
+        } catch (notifyErr) {
+            console.warn('Notification failed:', notifyErr.message);
         }
 
-        // Update freelancer's completed projects count
-        await User.findByIdAndUpdate(project.freelancer, {
-            $inc: { 'reputation.completedProjects': 1 }
+        // Log PAYMENT_RELEASED and PROJECT_COMPLETED Activity Events
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'PAYMENT_RELEASED',
+            description: `Released escrow payment of ₹${freelancerAmount.toFixed(2)} to freelancer`,
+            metadata: { freelancerAmount, platformCommission }
         });
 
-        // Create notification for freelancer
-        await createNotification(
-            project.freelancer,
-            'payment',
-            `Project "${project.title}" marked as completed. Payment released to your wallet!`,
-            {
-                project: project._id,
-                relatedUser: req.user._id
-            }
-        );
-
-        // Add to Portfolio automatically
-        const Portfolio = (await import('../models/Portfolio.js')).default;
-
-        // Check if already in portfolio
-        const existingPortfolio = await Portfolio.findOne({
-            user: project.freelancer,
-            project: project._id
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'PROJECT_COMPLETED',
+            description: `Marked project as completed`,
+            metadata: { completedAt: project.completedAt }
         });
 
-        if (!existingPortfolio) {
-            await Portfolio.create({
-                user: project.freelancer,
-                project: project._id,
-                title: project.title,
-                description: project.description,
-                category: project.category,
-                skills: project.skills || [],
-                // Use project attachments as initial portfolio files if any, or empty
-                files: project.attachments || []
-            });
-        }
-
-        res.json({
+        return res.json({
+            success: true,
+            message: 'Payment released successfully.',
             project,
             payment,
-            message: payment
-                ? `Project completed successfully. ₹${payment.freelancerAmount.toFixed(2)} released to freelancer's wallet.`
-                : 'Project completed successfully.'
+            transaction
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -410,6 +505,15 @@ export const submitDeliverable = async (req, res) => {
             `New deliverable submitted for "${project.title}" by ${req.user.username}`,
             { project: project._id, relatedUser: req.user._id }
         );
+
+        // Log DELIVERABLE_SUBMITTED Activity Event
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'DELIVERABLE_SUBMITTED',
+            description: `Submitted deliverable: "${title || 'Work submission'}"`,
+            metadata: { title, filesCount: files?.length || 0 }
+        });
 
         res.status(201).json({ message: 'Deliverable submitted successfully', project });
     } catch (error) {
@@ -515,5 +619,35 @@ export const raiseDispute = async (req, res) => {
         res.json({ message: 'Dispute raised successfully. Status set to disputed.', project });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get project activity timeline
+// @route   GET /api/projects/:id/timeline
+// @access  Private (Student, Freelancer, Admin)
+export const getProjectTimeline = async (req, res) => {
+    try {
+        const project = await Project.findById(req.params.id);
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        // Step 7 Validation: Only users involved in the project (Client, Freelancer, Admin) can view timeline
+        const isClient = project.client.toString() === req.user._id.toString();
+        const isFreelancer = project.freelancer && project.freelancer.toString() === req.user._id.toString();
+        const isAdmin = req.user.role === 'admin';
+
+        if (!isClient && !isFreelancer && !isAdmin) {
+            return res.status(403).json({ message: 'Not authorized to view project timeline' });
+        }
+
+        const activities = await Activity.find({ project: req.params.id })
+            .populate('user', 'username profile.fullName profile.avatar')
+            .sort({ createdAt: -1 });
+
+        return res.json(activities);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
 };

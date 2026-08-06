@@ -1,60 +1,154 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
-import io from 'socket.io-client';
 import Navbar from '../components/Navbar';
+import UserPresence from '../components/UserPresence';
+import ReadReceipt from '../components/ReadReceipt';
+import { triggerBrowserNotification } from '../utils/browserNotification';
+import FileAttachmentPreview, { formatFileSize } from '../components/FileAttachmentPreview';
 
 const Messages = () => {
     const { user, logout } = useAuth();
+    const { socket, joinProject, leaveProject, sendMessage: socketSendMessage, emitTyping, emitStopTyping } = useSocket();
     const { error } = useNotification();
 
     const [conversations, setConversations] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    const [pendingFile, setPendingFile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
-    const [typing, setTyping] = useState(false);
-    const [socket, setSocket] = useState(null);
+    const [typingUser, setTypingUser] = useState(null);
+
     const messagesEndRef = useRef(null);
-    const typingTimeoutRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const isTypingRef = useRef(false);
+    const typingTimerRef = useRef(null);
+    const selectedConversationRef = useRef(selectedConversation);
 
     useEffect(() => {
-        // Initialize socket connection
-        const newSocket = io(import.meta.env.VITE_API_URL, {
-            transports: ['websocket'],
-            reconnection: true
-        });
+        selectedConversationRef.current = selectedConversation;
+        setTypingUser(null);
+        setPendingFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }, [selectedConversation]);
 
-        newSocket.on('connect', () => {
-            console.log('Socket connected:', newSocket.id);
-        });
+    const handleFileSelect = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-        newSocket.on('newMessage', (message) => {
+        // 20 MB limit validation
+        if (file.size > 20 * 1024 * 1024) {
+            error('File size exceeds 20 MB limit.');
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
+        // Executable and script file blockage validation
+        const ext = file.name.split('.').pop().toLowerCase();
+        const blockedExts = ['exe', 'bat', 'cmd', 'sh', 'js', 'apk', 'vbs', 'msi', 'ps1', 'jar'];
+        if (blockedExts.includes(ext)) {
+            error('Executable and script files are strictly blocked for security.');
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
+        setPendingFile(file);
+    };
+
+    const stopTypingImmediate = () => {
+        if (typingTimerRef.current) {
+            clearTimeout(typingTimerRef.current);
+            typingTimerRef.current = null;
+        }
+        if (isTypingRef.current && selectedConversationRef.current) {
+            isTypingRef.current = false;
+            socket?.emit('typing-stop', {
+                conversationId: selectedConversationRef.current.projectId,
+                projectId: selectedConversationRef.current.projectId
+            });
+        }
+    };
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleNewMessage = (message) => {
+            const receiverId = message.receiver?._id || message.receiver;
+            if (receiverId === user?._id) {
+                socket.emit('markDelivered', { messageId: message._id, projectId: message.project });
+
+                if (selectedConversationRef.current?.projectId === message.project && !document.hidden) {
+                    socket.emit('markRead', { projectId: message.project });
+                    api.messages.markAsRead(message.project);
+                } else {
+                    const senderName = message.sender?.username || 'someone';
+                    triggerBrowserNotification({
+                        title: 'GigCampus',
+                        body: `New chat message from ${senderName}: "${message.content}"`,
+                        url: '/messages',
+                        tag: `msg-${message._id}`
+                    });
+                }
+            }
+
             setMessages(prev => {
-                // Prevent duplicate messages
                 if (prev.some(m => m._id === message._id)) return prev;
                 return [...prev, message];
             });
             scrollToBottom();
-        });
+        };
 
-        newSocket.on('userTyping', ({ username }) => {
-            setTyping(true);
-        });
+        const handleTypingStart = ({ conversationId, username }) => {
+            if (selectedConversationRef.current?.projectId === conversationId) {
+                setTypingUser(username || 'Someone');
+            }
+        };
 
-        newSocket.on('userStoppedTyping', () => {
-            setTyping(false);
-        });
+        const handleTypingStop = ({ conversationId }) => {
+            if (selectedConversationRef.current?.projectId === conversationId) {
+                setTypingUser(null);
+            }
+        };
 
-        setSocket(newSocket);
+        const handleMessageDelivered = ({ messageId }) => {
+            setMessages(prev =>
+                prev.map(m => (m._id === messageId ? { ...m, status: 'delivered' } : m))
+            );
+        };
+
+        const handleMessageRead = ({ projectId, messageIds }) => {
+            setMessages(prev =>
+                prev.map(m =>
+                    (messageIds?.includes(m._id) || m.project === projectId)
+                        ? { ...m, status: 'read', read: true }
+                        : m
+                )
+            );
+        };
+
+        socket.on('newMessage', handleNewMessage);
+        socket.on('typing-start', handleTypingStart);
+        socket.on('typing-stop', handleTypingStop);
+        socket.on('userTyping', handleTypingStart);
+        socket.on('userStoppedTyping', handleTypingStop);
+        socket.on('message-delivered', handleMessageDelivered);
+        socket.on('message-read', handleMessageRead);
 
         return () => {
-            newSocket.disconnect();
+            socket.off('newMessage', handleNewMessage);
+            socket.off('typing-start', handleTypingStart);
+            socket.off('typing-stop', handleTypingStop);
+            socket.off('userTyping', handleTypingStart);
+            socket.off('userStoppedTyping', handleTypingStop);
+            socket.off('message-delivered', handleMessageDelivered);
+            socket.off('message-read', handleMessageRead);
         };
-    }, []);
+    }, [socket, user]);
 
     useEffect(() => {
         fetchConversations();
@@ -63,13 +157,14 @@ const Messages = () => {
     useEffect(() => {
         if (selectedConversation) {
             fetchMessages(selectedConversation.projectId);
+            joinProject(selectedConversation.projectId);
             if (socket) {
-                socket.emit('joinProject', selectedConversation.projectId);
+                socket.emit('markRead', { projectId: selectedConversation.projectId });
             }
         }
         return () => {
-            if (selectedConversation && socket) {
-                socket.emit('leaveProject', selectedConversation.projectId);
+            if (selectedConversation) {
+                leaveProject(selectedConversation.projectId);
             }
         };
     }, [selectedConversation, socket]);
@@ -109,14 +204,28 @@ const Messages = () => {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedConversation) return;
+        if ((!newMessage.trim() && !pendingFile) || !selectedConversation) return;
+
+        stopTypingImmediate();
 
         try {
             setSending(true);
+            let attachmentData = null;
+
+            if (pendingFile) {
+                const formData = new FormData();
+                formData.append('file', pendingFile);
+                formData.append('project', selectedConversation.projectId);
+
+                const uploadRes = await api.messages.upload(formData);
+                attachmentData = uploadRes.data;
+            }
+
             const messageData = {
                 project: selectedConversation.projectId,
                 receiver: selectedConversation.otherUser._id,
-                content: newMessage.trim()
+                content: newMessage.trim(),
+                attachment: attachmentData
             };
 
             const response = await api.messages.send(messageData);
@@ -128,37 +237,49 @@ const Messages = () => {
                 return [...prev, sentMessage];
             });
 
-            // Emit socket event - REMOVED because backend controller emits it
-            if (socket) {
-                socket.emit('stopTyping', { projectId: selectedConversation.projectId });
-            }
-
             setNewMessage('');
+            setPendingFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
             scrollToBottom();
         } catch (err) {
-            error('Failed to send message');
+            error(err.response?.data?.message || 'Failed to send message/file');
             console.error(err);
         } finally {
             setSending(false);
         }
     };
 
-    const handleTyping = () => {
-        if (socket && selectedConversation) {
-            socket.emit('typing', {
-                projectId: selectedConversation.projectId,
-                username: user.username
-            });
+    const handleInputChange = (e) => {
+        const val = e.target.value;
+        setNewMessage(val);
 
-            // Clear existing timeout
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
+        if (!selectedConversation || !socket) return;
+
+        const convId = selectedConversation.projectId;
+
+        if (val.trim().length > 0) {
+            if (!isTypingRef.current) {
+                isTypingRef.current = true;
+                socket.emit('typing-start', {
+                    conversationId: convId,
+                    projectId: convId,
+                    username: user?.username
+                });
             }
 
-            // Set new timeout to stop typing indicator
-            typingTimeoutRef.current = setTimeout(() => {
-                socket.emit('stopTyping', { projectId: selectedConversation.projectId });
-            }, 1000);
+            if (typingTimerRef.current) {
+                clearTimeout(typingTimerRef.current);
+            }
+
+            typingTimerRef.current = setTimeout(() => {
+                isTypingRef.current = false;
+                socket.emit('typing-stop', {
+                    conversationId: convId,
+                    projectId: convId
+                });
+            }, 1500);
+        } else {
+            stopTypingImmediate();
         }
     };
 
@@ -226,9 +347,17 @@ const Messages = () => {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <h3 className="font-semibold text-gray-800 truncate">
-                                                            {conv.otherUser?.username}
-                                                        </h3>
+                                                        <div className="flex items-center gap-2 truncate">
+                                                            <h3 className="font-semibold text-gray-800 truncate">
+                                                                {conv.otherUser?.username}
+                                                            </h3>
+                                                            <UserPresence
+                                                                userId={conv.otherUser?._id}
+                                                                initialIsOnline={conv.otherUser?.isOnline}
+                                                                initialLastSeen={conv.otherUser?.lastSeen}
+                                                                showText={false}
+                                                            />
+                                                        </div>
                                                         {conv.lastMessage && (
                                                             <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                                                                 {formatTime(conv.lastMessage.createdAt)}
@@ -279,9 +408,16 @@ const Messages = () => {
                                                     {selectedConversation.otherUser?.username?.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-semibold text-gray-800">
-                                                        {selectedConversation.otherUser?.username}
-                                                    </h3>
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="font-semibold text-gray-800">
+                                                            {selectedConversation.otherUser?.username}
+                                                        </h3>
+                                                        <UserPresence
+                                                            userId={selectedConversation.otherUser?._id}
+                                                            initialIsOnline={selectedConversation.otherUser?.isOnline}
+                                                            initialLastSeen={selectedConversation.otherUser?.lastSeen}
+                                                        />
+                                                    </div>
                                                     <p className="text-sm text-gray-600">
                                                         {selectedConversation.project?.title}
                                                     </p>
@@ -332,23 +468,29 @@ const Messages = () => {
                                                                         ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
                                                                         : 'bg-white text-gray-800 shadow-sm'
                                                                         }`}>
-                                                                        <p className="text-sm break-words">{message.content}</p>
+                                                                        {message.content && <p className="text-sm break-words">{message.content}</p>}
+                                                                        <FileAttachmentPreview attachment={message.attachment} />
                                                                     </div>
-                                                                    <p className={`text-xs text-gray-500 mt-1 ${isOwn ? 'text-right' : 'text-left'}`}>
-                                                                        {formatTime(message.createdAt)}
+                                                                    <p className={`text-xs text-gray-500 mt-1 flex items-center gap-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                                                                        <span>{formatTime(message.createdAt)}</span>
+                                                                        <ReadReceipt
+                                                                            status={message.status || (message.read ? 'read' : 'sent')}
+                                                                            isSender={isOwn}
+                                                                        />
                                                                     </p>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     );
                                                 })}
-                                                {typing && (
-                                                    <div className="flex justify-start">
-                                                        <div className="bg-white rounded-2xl px-4 py-3 shadow-sm">
-                                                            <div className="flex gap-1">
-                                                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                                {typingUser && (
+                                                    <div className="flex justify-start my-2 animate-in fade-in duration-200">
+                                                        <div className="bg-white rounded-2xl px-4 py-2.5 shadow-sm border border-gray-100 flex items-center gap-2 text-xs italic text-gray-500">
+                                                            <span className="font-semibold text-gray-700 not-italic">{typingUser}</span> is typing
+                                                            <div className="flex gap-1 items-center ml-1">
+                                                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -360,22 +502,61 @@ const Messages = () => {
 
                                     {/* Message Input */}
                                     <div className="p-4 border-t border-gray-200 bg-white">
-                                        <form onSubmit={handleSendMessage} className="flex gap-2">
+                                        {/* Staging File Preview */}
+                                        {pendingFile && (
+                                            <div className="mb-3 p-3 bg-blue-50/80 border border-blue-200 rounded-2xl flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <span className="text-2xl">📎</span>
+                                                    <div className="min-w-0">
+                                                        <p className="font-bold text-xs text-blue-900 truncate">{pendingFile.name}</p>
+                                                        <p className="text-[10px] font-semibold text-blue-700">{formatFileSize(pendingFile.size)}</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setPendingFile(null);
+                                                        if (fileInputRef.current) fileInputRef.current.value = '';
+                                                    }}
+                                                    className="p-1 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-black cursor-pointer"
+                                                    title="Remove attachment"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
+                                            {/* File Picker Trigger */}
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                onChange={handleFileSelect}
+                                                className="hidden"
+                                                accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.rar"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={sending}
+                                                className="p-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition cursor-pointer flex-shrink-0"
+                                                title="Attach File (Images, Documents, PDFs up to 20MB)"
+                                            >
+                                                <span className="text-xl">📎</span>
+                                            </button>
+
                                             <input
                                                 type="text"
                                                 value={newMessage}
-                                                onChange={(e) => {
-                                                    setNewMessage(e.target.value);
-                                                    handleTyping();
-                                                }}
+                                                onChange={handleInputChange}
                                                 placeholder="Type a message..."
                                                 className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                 disabled={sending}
                                             />
                                             <button
                                                 type="submit"
-                                                disabled={!newMessage.trim() || sending}
-                                                className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-full hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
+                                                disabled={(!newMessage.trim() && !pendingFile) || sending}
+                                                className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-full hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold flex-shrink-0"
                                             >
                                                 {sending ? '...' : '📤 Send'}
                                             </button>
