@@ -22,7 +22,12 @@ const activitySchema = new mongoose.Schema(
                 'DELIVERABLE_SUBMITTED',
                 'PAYMENT_RELEASED',
                 'PROJECT_COMPLETED',
-                'REVIEW_SUBMITTED'
+                'REVIEW_SUBMITTED',
+                'MILESTONE_CREATED',
+                'MILESTONE_SUBMITTED',
+                'MILESTONE_APPROVED',
+                'MILESTONE_REJECTED',
+                'MILESTONE_PAYMENT_RELEASED'
             ],
             required: true
         },

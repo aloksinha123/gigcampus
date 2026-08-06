@@ -22,6 +22,7 @@ import notificationRoutes from './routes/notifications.js';
 import adminRoutes from './routes/adminRoutes.js';
 import emailRoutes from './routes/emailRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import milestoneRoutes from './routes/milestoneRoutes.js';
 import { verifyEmailConnection } from './config/mail.js';
 
 // Connect to database & verify email service
@@ -64,6 +65,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/milestones', milestoneRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
