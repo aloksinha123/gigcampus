@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import CreateMilestoneModal from './CreateMilestoneModal';
 import SubmitMilestoneModal from './SubmitMilestoneModal';
 import RejectMilestoneModal from './RejectMilestoneModal';
 
 const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSuccess }) => {
+    const { user } = useAuth();
     const [milestones, setMilestones] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoadingId, setActionLoadingId] = useState(null);
@@ -16,6 +18,21 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
 
     const projectId = project._id;
     const acceptedAmount = project.selectedBid?.price || project.selectedBid?.bidAmount || project.budget?.max || 0;
+
+    // Bulletproof ownership & role checks
+    const currentUserId = user?._id || user?.id;
+    const projectClientId = project.client?._id || project.client;
+    const projectFreelancerId = project.freelancer?._id || project.freelancer;
+
+    const isOwnerCheck = Boolean(
+        isOwner ||
+        (currentUserId && projectClientId && String(currentUserId) === String(projectClientId))
+    );
+
+    const isFreelancerCheck = Boolean(
+        isFreelancer ||
+        (currentUserId && projectFreelancerId && String(currentUserId) === String(projectFreelancerId))
+    );
 
     useEffect(() => {
         if (projectId) {
@@ -110,7 +127,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
                         </p>
                     </div>
 
-                    {isOwner && project.status === 'in_progress' && (
+                    {isOwnerCheck && (
                         <button
                             onClick={() => setShowCreateModal(true)}
                             className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-purple-900/50 hover:scale-105 transition flex items-center gap-2 cursor-pointer"
@@ -160,10 +177,18 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
                     <div className="text-7xl mb-6 grayscale opacity-20">🎯</div>
                     <h4 className="text-xl font-black text-gray-800 tracking-tight uppercase mb-2">No Milestones Created Yet</h4>
                     <p className="text-gray-400 font-medium text-xs max-w-sm mx-auto leading-relaxed">
-                        {isOwner
-                            ? 'As the project owner, click "+ Create Milestone" above to break this gig into manageable payment phases.'
+                        {isOwnerCheck
+                            ? 'As the project owner, click "+ Create Milestone" to break this gig into manageable payment phases.'
                             : 'The project owner has not created payment milestones for this gig yet.'}
                     </p>
+                    {isOwnerCheck && (
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="mt-6 px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-purple-200 hover:scale-105 transition cursor-pointer"
+                        >
+                            + Create First Milestone
+                        </button>
+                    )}
                 </div>
             ) : (
                 <div className="space-y-6">
@@ -253,7 +278,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
 
                                     <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
                                         {/* Student Actions */}
-                                        {isOwner && item.status === 'pending' && (
+                                        {isOwnerCheck && item.status === 'pending' && (
                                             <button
                                                 onClick={() => handleDeleteMilestone(item._id)}
                                                 disabled={isActionLoading}
@@ -263,7 +288,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
                                             </button>
                                         )}
 
-                                        {isOwner && item.status === 'submitted' && (
+                                        {isOwnerCheck && item.status === 'submitted' && (
                                             <>
                                                 <button
                                                     onClick={() => setSelectedMilestoneForReject(item)}
@@ -290,7 +315,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
                                         )}
 
                                         {/* Freelancer Actions */}
-                                        {isFreelancer && (item.status === 'pending' || item.status === 'rejected') && (
+                                        {isFreelancerCheck && (item.status === 'pending' || item.status === 'rejected') && (
                                             <button
                                                 onClick={() => setSelectedMilestoneForSubmit(item)}
                                                 disabled={isActionLoading}
