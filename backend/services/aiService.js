@@ -1,7 +1,7 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 /**
- * Generates an improved, structured project description using Google Gemini API
+ * Generates an improved, structured project description using official Google GenAI SDK and gemini-2.5-flash model
  * @param {string} rawDescription - The initial raw project description from the user
  * @returns {Object} Parsed JSON object containing title, summary, requirements, skills, timeline, budget, deliverables
  */
@@ -12,8 +12,7 @@ export const improveProjectDescription = async (rawDescription) => {
         throw new Error('GEMINI_API_KEY is not configured in backend/.env.');
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const ai = new GoogleGenAI({ apiKey });
 
     const prompt = `You are an expert technical project manager and specification generator for a student freelance hub.
 Analyze the following project description and generate a structured JSON specification.
@@ -36,8 +35,33 @@ Strict Rules:
 2. Do NOT use markdown code blocks (do NOT use \`\`\`json or \`\`\`).
 3. Do NOT include any intro text, explanations, or commentary outside the JSON object.`;
 
-    const result = await model.generateContent(prompt);
-    const responseText = await result.response.text();
+    let responseText = '';
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json'
+            }
+        });
+        responseText = response.text || '';
+    } catch (modelErr) {
+        console.warn('⚠️ gemini-2.5-flash model call failed, trying fallback gemini-2.0-flash model:', modelErr.message);
+        try {
+            const fallbackResponse = await ai.models.generateContent({
+                model: 'gemini-2.0-flash',
+                contents: prompt,
+                config: {
+                    responseMimeType: 'application/json'
+                }
+            });
+            responseText = fallbackResponse.text || '';
+        } catch (fallbackErr) {
+            console.error('⚠️ Fallback model failed as well:', fallbackErr.message);
+            throw modelErr;
+        }
+    }
 
     // Clean any markdown formatting if present
     const cleanedText = responseText
@@ -49,7 +73,7 @@ Strict Rules:
         const parsedJSON = JSON.parse(cleanedText);
         return parsedJSON;
     } catch (parseError) {
-        console.error('⚠️ Failed to parse Gemini response as JSON:', responseText);
+        console.error('⚠️ Failed to parse GenAI response as JSON:', responseText);
         throw new Error('Invalid JSON format received from AI model.');
     }
 };
