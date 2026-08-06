@@ -257,6 +257,7 @@ Strict Rules:
 
     for (const modelName of modelsToTry) {
         try {
+            console.log(`🤖 Trying model: ${modelName}...`);
             const response = await ai.models.generateContent({
                 model: modelName,
                 contents: prompt,
