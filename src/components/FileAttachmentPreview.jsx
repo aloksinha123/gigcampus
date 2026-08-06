@@ -39,10 +39,36 @@ export const getFileDetails = (mimeType = '', fileName = '') => {
 };
 
 /**
+ * Programmatically force direct file download to user's device
+ */
+export const downloadFile = async (url, fileName = 'download') => {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+        console.error('Download failed:', err);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', fileName);
+        link.target = '_blank';
+        link.click();
+    }
+};
+
+/**
  * FileAttachmentPreview Component
  */
 const FileAttachmentPreview = ({ attachment }) => {
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+    const [downloading, setDownloading] = useState(false);
 
     if (!attachment || !attachment.url) return null;
 
@@ -50,6 +76,13 @@ const FileAttachmentPreview = ({ attachment }) => {
     const fullUrl = attachment.url.startsWith('http') ? attachment.url : `${baseUrl}${attachment.url}`;
 
     const { isImage, icon, label, color } = getFileDetails(attachment.mimeType, attachment.name);
+
+    const handleDownload = async (e) => {
+        e.stopPropagation();
+        setDownloading(true);
+        await downloadFile(fullUrl, attachment.name);
+        setDownloading(false);
+    };
 
     if (isImage) {
         return (
@@ -88,15 +121,14 @@ const FileAttachmentPreview = ({ attachment }) => {
                                     <span className="font-bold text-sm truncate max-w-md">{attachment.name || 'Image Preview'}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <a
-                                        href={fullUrl}
-                                        download={attachment.name || true}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 cursor-pointer"
+                                    <button
+                                        type="button"
+                                        onClick={handleDownload}
+                                        disabled={downloading}
+                                        className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 cursor-pointer active:scale-95 shadow-sm"
                                     >
-                                        📥 Download
-                                    </a>
+                                        {downloading ? '⏳ Downloading...' : '📥 Download'}
+                                    </button>
                                     <button
                                         onClick={() => setIsLightboxOpen(false)}
                                         className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition text-lg font-bold cursor-pointer"
@@ -143,16 +175,15 @@ const FileAttachmentPreview = ({ attachment }) => {
                 </div>
             </div>
 
-            <a
-                href={fullUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                download={attachment.name || true}
-                className="px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1 flex-shrink-0 transition active:scale-95 cursor-pointer"
+            <button
+                type="button"
+                onClick={handleDownload}
+                disabled={downloading}
+                className="px-3.5 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1 flex-shrink-0 transition active:scale-95 cursor-pointer disabled:opacity-50"
                 title="Download Attachment"
             >
-                <span>📥</span> Download
-            </a>
+                {downloading ? '⏳ Downloading...' : '📥 Download'}
+            </button>
         </div>
     );
 };
