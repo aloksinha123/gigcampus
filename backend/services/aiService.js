@@ -230,57 +230,69 @@ export const calculateFallbackRecommendations = ({ projectDescription, requiredS
 };
 
 /**
- * Rich Fallback Engine for Project Description Enhancement when API quota is limited
+ * Extract clean topic title and subject from user raw input
+ */
+const extractProjectTopic = (rawTitle, rawDesc) => {
+    let raw = (rawTitle || rawDesc || '').replace(/^Enhanced:\s*/gi, '').trim();
+    if (!raw) return { topic: 'Web Application', cleanStr: 'Web Application' };
+
+    // Clean filler words
+    let clean = raw.replace(/\b(need a|need an|need|of name|for me|project of a|project of|project for|website of|app of|stall e-commerce platform)\b/gi, '').trim();
+    clean = clean.replace(/\s+/g, ' ').trim();
+
+    // Capitalize words
+    const capitalized = clean.replace(/\b\w/g, c => c.toUpperCase());
+
+    return {
+        topic: capitalized || 'Web Application',
+        cleanStr: capitalized || 'Web Application'
+    };
+};
+
+/**
+ * Subject-Aware Rich Fallback Engine for Project Description Enhancement
  */
 const generateRichFallback = (rawTitle, rawDesc, category, budget, timeline) => {
-    const text = `${rawTitle} ${rawDesc}`.toLowerCase();
+    const combinedText = `${rawTitle} ${rawDesc}`.toLowerCase();
+    const { topic } = extractProjectTopic(rawTitle, rawDesc);
 
-    let domain = 'Full-Stack Web Development';
-    let skills = ['React.js', 'Node.js', 'MongoDB', 'REST APIs', 'JWT Authentication'];
+    let skills = ['React.js', 'Tailwind CSS', 'JavaScript', 'HTML5', 'UI/UX Design'];
     let complexity = 'Medium';
 
-    if (text.includes('website') || text.includes('store') || text.includes('shop') || text.includes('e-commerce') || text.includes('ecommerce') || text.includes('shoes') || text.includes('nike')) {
-        domain = 'E-Commerce & Web Development';
+    if (combinedText.includes('wada pav') || combinedText.includes('food') || combinedText.includes('stall') || combinedText.includes('restaurant') || combinedText.includes('cafe')) {
+        skills = ['Figma', 'React.js', 'Tailwind CSS', 'UI/UX Design', 'HTML5/CSS3'];
+        complexity = 'Low';
+    } else if (combinedText.includes('shoes') || combinedText.includes('nike') || combinedText.includes('e-commerce') || combinedText.includes('ecommerce') || combinedText.includes('store')) {
         skills = ['React.js', 'Node.js', 'Express.js', 'MongoDB', 'Tailwind CSS', 'Payment Gateway'];
         complexity = 'Medium';
-    } else if (text.includes('design') || text.includes('ui') || text.includes('ux') || text.includes('figma')) {
-        domain = 'UI/UX Design';
-        skills = ['Figma', 'UI/UX Design', 'Wireframing', 'Prototyping', 'Responsive Design'];
+    } else if (combinedText.includes('design') || combinedText.includes('ui') || combinedText.includes('ux') || combinedText.includes('figma')) {
+        skills = ['Figma', 'UI/UX Design', 'Wireframing', 'Prototyping', 'Responsive Layouts'];
         complexity = 'Low';
-    } else if (text.includes('mobile') || text.includes('app') || text.includes('android') || text.includes('flutter') || text.includes('react native')) {
-        domain = 'Mobile App Development';
-        skills = ['React Native', 'Flutter', 'Mobile Development', 'REST API', 'Firebase'];
+    } else if (combinedText.includes('mobile') || combinedText.includes('app') || combinedText.includes('android') || combinedText.includes('flutter')) {
+        skills = ['React Native', 'Flutter', 'Mobile UI Design', 'REST API', 'Firebase'];
         complexity = 'High';
     }
 
-    // Title refinement: strip filler words ("Need A", "Of Name", "Enhanced:")
-    let cleanTitleStr = (rawTitle || rawDesc || '').replace(/^Enhanced:\s*/gi, '').trim();
-    cleanTitleStr = cleanTitleStr.replace(/\b(need a|need an|need|of name|for me|website of|app of)\b/gi, '').trim();
-    cleanTitleStr = cleanTitleStr.replace(/\s+/g, ' ').trim();
-
-    const formattedTitle = cleanTitleStr
-        ? cleanTitleStr.replace(/\b\w/g, c => c.toUpperCase())
-        : 'Modern Web Application';
-
-    const generatedTitle = formattedTitle.toLowerCase().includes('website') || formattedTitle.toLowerCase().includes('platform') || formattedTitle.toLowerCase().includes('store') || formattedTitle.toLowerCase().includes('app')
-        ? formattedTitle
-        : `${formattedTitle} E-Commerce Platform`;
-
     const budgetDisplay = budget && Number(budget) > 0 ? `₹${budget}` : 'Specified Budget';
+    const timelineDisplay = timeline || '14 Days';
+
+    const generatedTitle = topic.toLowerCase().includes('design') || topic.toLowerCase().includes('website') || topic.toLowerCase().includes('platform') || topic.toLowerCase().includes('store') || topic.toLowerCase().includes('app')
+        ? topic
+        : `${topic} Web Platform`;
 
     const generatedDescription = `Project Overview:
-Development of a high-performance, responsive ${domain.toLowerCase()} solution. This project requires an end-to-end implementation focusing on user experience, security, and scalable architecture.
+Design and implementation for "${topic}". This project focuses on building an engaging, high-performance interface tailored specifically to showcase ${topic} features with an intuitive, user-friendly experience.
 
 Key Technical Scope & Deliverables:
-- End-to-end implementation based on modern architecture and clean coding standards.
-- Fully responsive interface optimized across desktop, tablet, and mobile displays.
-- Core feature suite including user authentication, state management, and data persistence.
-- Integration of essential third-party APIs and services.
+- Custom responsive layout and visual branding crafted for ${topic}.
+- Interactive frontend components (e.g., product/menu showcase, service catalog, and intuitive navigation).
+- Mobile-first, fully responsive UI optimized across desktop, tablet, and smartphone screens.
+- Clean, documented codebase adhering to modern web standards and design best practices.
 
 Acceptance Criteria & Quality Assurance:
-- 100% functional feature set meeting performance benchmarks.
-- Clean, documented codebase with modular component structure.
-- Timely delivery within specified project timeframe (${timeline || '14 Days'}) and budget (${budgetDisplay}).`;
+- 100% functional, responsive user interface meeting performance benchmarks.
+- Tested and verified across all major modern web browsers (Chrome, Safari, Firefox, Edge).
+- Completed on-schedule within the specified project timeframe (${timelineDisplay}) and budget (${budgetDisplay}).`;
 
     return {
         enhancedTitle: generatedTitle,
@@ -315,20 +327,21 @@ Category: "${category}"
 Budget: "${budget}"
 Timeline: "${timeline}"
 
-Your task is to refine this project brief to be professional, clear, complete, and attractive to top freelancers.
+CRITICAL INSTRUCTION: Your generated enhancedTitle and enhancedDescription MUST be 100% specific and directly connected to the exact subject/topic provided in the input (e.g. if the input is about a "Wada Pav Stall", your description MUST explicitly focus on a food stall website/ordering design; if about "Nike Shoes", it MUST focus on shoe e-commerce; if about "Gym", it MUST focus on fitness/gym platform). Do NOT generate generic or unrelated template text.
+
 Improve:
-1. Professional writing & title refinement (e.g. convert "Need A E-Commerce Shoes Website Of Nike Name" into "Nike Shoes E-Commerce Platform").
-2. Scope clarity & acceptance criteria.
-3. Key technical deliverables.
-4. Recommended skills list (e.g. React.js, Node.js, MongoDB, REST APIs, JWT).
+1. Professional writing & title refinement tailored to the exact topic.
+2. Topic-specific scope clarity, features, and acceptance criteria.
+3. Key technical deliverables matching the subject.
+4. Recommended skills list directly relevant to the project subject.
 5. Estimated complexity rating (strictly "Low", "Medium", or "High").
 
 Return ONLY a 100% valid raw JSON object matching this exact structure:
 {
-  "enhancedTitle": "Refined, professional project title",
-  "enhancedDescription": "Comprehensive, clear project description including scope, acceptance criteria, and key deliverables.",
-  "recommendedSkills": ["React.js", "Node.js", "MongoDB", "REST APIs", "JWT"],
-  "estimatedComplexity": "Medium"
+  "enhancedTitle": "Refined, topic-tailored project title",
+  "enhancedDescription": "Comprehensive, clear project description directly focusing on the exact input subject, key deliverables, and acceptance criteria.",
+  "recommendedSkills": ["Skill1", "Skill2", "Skill3"],
+  "estimatedComplexity": "Low"
 }
 
 Strict Rules:
@@ -366,7 +379,7 @@ Strict Rules:
                     enhancedDescription: parsed.enhancedDescription || cleanDescInput,
                     recommendedSkills: Array.isArray(parsed.recommendedSkills) && parsed.recommendedSkills.length > 0 
                         ? parsed.recommendedSkills 
-                        : ['React.js', 'Node.js', 'MongoDB', 'REST APIs', 'JWT'],
+                        : ['React.js', 'Tailwind CSS', 'UI/UX Design'],
                     estimatedComplexity: ['Low', 'Medium', 'High'].includes(parsed.estimatedComplexity) ? parsed.estimatedComplexity : 'Medium',
                     modelUsed: modelName,
                     promptTokens: usage.promptTokenCount || null,
@@ -379,7 +392,7 @@ Strict Rules:
         }
     }
 
-    // Dynamic Rich Fallback if Gemini API free-tier quota is reached
+    // Subject-Aware Dynamic Rich Fallback if Gemini API free-tier quota is reached
     const fallbackData = generateRichFallback(cleanTitleInput, cleanDescInput, category, budget, timeline);
 
     return {
@@ -387,7 +400,7 @@ Strict Rules:
         enhancedDescription: fallbackData.enhancedDescription,
         recommendedSkills: fallbackData.recommendedSkills,
         estimatedComplexity: fallbackData.estimatedComplexity,
-        modelUsed: 'fallback-template',
+        modelUsed: 'subject-aware-fallback',
         promptTokens: null,
         responseTokens: null,
         warning: lastError?.message || null
