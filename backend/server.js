@@ -35,6 +35,7 @@ import emailRoutes from './routes/emailRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import milestoneRoutes from './routes/milestoneRoutes.js';
 import securityRoutes from './routes/securityRoutes.js';
+import serveSwagger from './docs/swagger.js';
 import {
   authLimiter,
   aiLimiter,
@@ -108,6 +109,9 @@ app.use('/api/email', emailRoutes);
 app.use('/api/ai', aiLimiter, aiRoutes);
 app.use('/api/milestones', milestoneRoutes);
 app.use('/api/security', securityRoutes);
+
+// OpenAPI Swagger Documentation UI
+serveSwagger(app);
 
 // Health check
 app.get('/api/health', (req, res) => {

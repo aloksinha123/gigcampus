@@ -4,9 +4,24 @@ import { protect, admin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// @desc    Get all users
-// @route   GET /api/users
-// @access  Private/Admin
+/**
+ * @openapi
+ * /users:
+ *   get:
+ *     summary: Get all users list (Admin only)
+ *     tags: [Users]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: List of all platform users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/User' }
+ *       403:
+ *         description: Forbidden. Admin access required.
+ */
 router.get('/', protect, admin, async (req, res) => {
     try {
         const users = await User.find({}).select('-password');
@@ -16,9 +31,26 @@ router.get('/', protect, admin, async (req, res) => {
     }
 });
 
-// @desc    Get user by ID
-// @route   GET /api/users/:id
-// @access  Public
+/**
+ * @openapi
+ * /users/{id}:
+ *   get:
+ *     summary: Get user public profile by ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: User profile data.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/User' }
+ *       404:
+ *         description: User not found.
+ */
 router.get('/:id', async (req, res) => {
     try {
         const user = await User.findById(req.params.id).select('-password');
@@ -31,9 +63,34 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// @desc    Update user (admin)
-// @route   PUT /api/users/:id
-// @access  Private/Admin
+/**
+ * @openapi
+ * /users/{id}:
+ *   put:
+ *     summary: Update user verification, role, or active status (Admin only)
+ *     tags: [Users]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               verified: { type: boolean }
+ *               isActive: { type: boolean }
+ *               role: { type: string, enum: [student, freelancer, admin] }
+ *     responses:
+ *       200:
+ *         description: Updated user profile.
+ *       404:
+ *         description: User not found.
+ */
 router.put('/:id', protect, admin, async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
@@ -53,9 +110,24 @@ router.put('/:id', protect, admin, async (req, res) => {
     }
 });
 
-// @desc    Delete user
-// @route   DELETE /api/users/:id
-// @access  Private/Admin
+/**
+ * @openapi
+ * /users/{id}:
+ *   delete:
+ *     summary: Delete a user account (Admin only)
+ *     tags: [Users]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: User deleted successfully.
+ *       404:
+ *         description: User not found.
+ */
 router.delete('/:id', protect, admin, async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
