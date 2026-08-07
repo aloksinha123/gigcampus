@@ -10,20 +10,29 @@ export const requestIdMiddleware = (req, res, next) => {
     const requestId = req.headers['x-request-id'] || crypto.randomUUID();
 
     req.requestId = requestId;
+    
+    // Set Request ID header before response is sent
     res.setHeader('X-Request-ID', requestId);
 
-    // Capture response finish to measure duration and log structured request details
+    // Hook writeHead to safely set X-Response-Time BEFORE headers are sent
+    const originalWriteHead = res.writeHead;
+    res.writeHead = function (...args) {
+        const durationMs = Date.now() - startMs;
+        if (!res.headersSent) {
+            res.setHeader('X-Response-Time', `${durationMs}ms`);
+        }
+        return originalWriteHead.apply(this, args);
+    };
+
+    // Log structured request info upon finish
     res.on('finish', () => {
         const durationMs = Date.now() - startMs;
-        res.setHeader('X-Response-Time', `${durationMs}ms`);
-
         const rawIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress || '127.0.0.1';
         const clientIp = rawIp === '::1' ? '127.0.0.1' : rawIp;
         const userId = req.user?._id ? req.user._id.toString() : 'Unauthenticated';
         const timestamp = new Date().toISOString();
         const route = req.originalUrl || req.url;
 
-        // Print structured request log
         console.log(`
 [REQUEST]
 Request ID: ${requestId}
