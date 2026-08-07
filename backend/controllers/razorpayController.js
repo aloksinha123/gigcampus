@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Payment from '../models/Payment.js';
 import Project from '../models/Project.js';
 import Transaction from '../models/Transaction.js';
+import WebhookLog from '../models/WebhookLog.js';
 
 /**
  * Utility helper for structured payment logging
@@ -368,14 +369,181 @@ export const getMyPaymentHistory = async (req, res) => {
     }
 };
 
-// @desc    Handle Razorpay Webhooks
-// @route   POST /api/v1/payments/razorpay/webhook
-// @access  Public
+// @desc    Production-Grade Razorpay Webhook Handler
+// @route   POST /api/v1/payments/webhook & POST /api/v1/payments/razorpay/webhook
+// @access  Public (Signature Verified)
 export const handleWebhook = async (req, res) => {
+    const requestId = req.requestId || 'N/A';
+    const signature = req.headers['x-razorpay-signature'];
+    const timestamp = new Date().toISOString();
+
+    console.log(`
+[WEBHOOK LOG - RECEIVED]
+Request ID: ${requestId}
+Timestamp: ${timestamp}
+Headers Signature: ${signature ? 'Present' : 'Missing'}
+`);
+
+    // 1. Webhook Signature Verification
+    const isVerified = razorpayService.verifyWebhookSignature(req.body, signature);
+    if (!isVerified) {
+        console.error(`
+[WEBHOOK LOG - SIGNATURE MISMATCH]
+Request ID: ${requestId}
+Timestamp: ${timestamp}
+Status: Invalid Webhook Signature
+`);
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid Razorpay Webhook Signature'
+        });
+    }
+
+    console.log(`
+[WEBHOOK LOG - SIGNATURE VERIFIED]
+Request ID: ${requestId}
+Timestamp: ${timestamp}
+Status: Signature Verified Successfully
+`);
+
     try {
-        res.json({ received: true });
+        const body = req.body || {};
+        const eventId = body.event_id || req.headers['x-razorpay-event-id'] || `evt_${Date.now()}`;
+        const eventType = body.event || 'unknown';
+        const payload = body.payload || {};
+
+        const paymentEntity = payload.payment?.entity || {};
+        const orderEntity = payload.order?.entity || {};
+        const refundEntity = payload.refund?.entity || {};
+
+        const razorpayOrderId = paymentEntity.order_id || orderEntity.id || payload.order_id;
+        const razorpayPaymentId = paymentEntity.id || refundEntity.payment_id || payload.payment_id;
+
+        // 2. Idempotency Check - Prevent Duplicate Webhook Processing
+        const existingLog = await WebhookLog.findOne({ eventId });
+        if (existingLog && existingLog.processed) {
+            console.log(`
+[WEBHOOK LOG - DUPLICATE IGNORED]
+Request ID: ${requestId}
+Event ID: ${eventId}
+Event Type: ${eventType}
+Timestamp: ${timestamp}
+Status: Duplicate Event Ignored
+`);
+            return res.status(200).json({
+                success: true,
+                message: 'Duplicate webhook event ignored'
+            });
+        }
+
+        // 3. Find Associated Payment Document
+        let payment = null;
+        if (razorpayOrderId) {
+            payment = await Payment.findOne({ razorpayOrderId });
+        }
+        if (!payment && razorpayPaymentId) {
+            payment = await Payment.findOne({ razorpayPaymentId });
+        }
+
+        let newStatus = null;
+        let timelineMessage = '';
+
+        // 4. Handle Supported Event Types
+        switch (eventType) {
+            case 'payment.authorized':
+                newStatus = 'PENDING';
+                timelineMessage = `Payment authorized by bank/gateway (${paymentEntity.method || 'Razorpay'})`;
+                break;
+
+            case 'payment.captured':
+            case 'order.paid':
+                newStatus = 'SUCCESS';
+                timelineMessage = `Payment captured successfully via Webhook (${paymentEntity.method || 'Razorpay'})`;
+                break;
+
+            case 'payment.failed':
+                newStatus = 'FAILED';
+                timelineMessage = `Payment failed at gateway: ${paymentEntity.error_description || 'Gateway error'}`;
+                break;
+
+            case 'refund.created':
+                newStatus = 'PENDING';
+                timelineMessage = `Refund initiated via Razorpay Webhook (Amount: ₹${(refundEntity.amount || 0) / 100})`;
+                break;
+
+            case 'refund.processed':
+                newStatus = 'REFUNDED';
+                timelineMessage = `Refund processed by Razorpay (Amount: ₹${(refundEntity.amount || 0) / 100})`;
+                break;
+
+            default:
+                timelineMessage = `Webhook event received: ${eventType}`;
+                break;
+        }
+
+        // 5. Update Payment Status & Timeline in MongoDB
+        if (payment && newStatus) {
+            payment.status = newStatus;
+            if (razorpayPaymentId && !payment.razorpayPaymentId) {
+                payment.razorpayPaymentId = razorpayPaymentId;
+            }
+            if (newStatus === 'SUCCESS') {
+                payment.escrowedAt = payment.escrowedAt || new Date();
+            }
+            if (newStatus === 'REFUNDED') {
+                payment.refundedAt = payment.refundedAt || new Date();
+            }
+
+            payment.timeline.push({
+                status: newStatus,
+                message: timelineMessage,
+                timestamp: new Date()
+            });
+
+            await payment.save();
+        }
+
+        // 6. Save Webhook Log for Idempotency Audit
+        await WebhookLog.create({
+            eventId,
+            eventType,
+            paymentId: payment?._id,
+            razorpayOrderId,
+            razorpayPaymentId,
+            verified: true,
+            processed: true,
+            receivedTime: new Date(),
+            notes: timelineMessage
+        });
+
+        console.log(`
+[WEBHOOK LOG - DATABASE UPDATED]
+Request ID: ${requestId}
+Payment ID: ${payment?._id || 'N/A'}
+Event ID: ${eventId}
+Event Type: ${eventType}
+Updated Status: ${newStatus || 'Unchanged'}
+Timestamp: ${timestamp}
+`);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Webhook processed successfully',
+            eventId,
+            eventType,
+            paymentStatus: payment?.status || 'N/A'
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(`
+[WEBHOOK LOG - ERROR]
+Request ID: ${requestId}
+Timestamp: ${timestamp}
+Error: ${error.message}
+`);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Webhook processing failed'
+        });
     }
 };
 

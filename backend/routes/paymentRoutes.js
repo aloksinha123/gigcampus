@@ -105,6 +105,25 @@ router.get('/history', protect, getMyPaymentHistory);
 
 /**
  * @openapi
+ * /payments/webhook:
+ *   post:
+ *     summary: Production-grade Razorpay Webhook listener & status synchronization
+ *     tags: [Payments]
+ *     parameters:
+ *       - in: header
+ *         name: x-razorpay-signature
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Webhook event verified & processed.
+ *       400:
+ *         description: Signature mismatch.
+ */
+router.post('/webhook', handleWebhook);
+
+/**
+ * @openapi
  * /payments/razorpay/order:
  *   post:
  *     summary: Create authenticated Razorpay payment order
@@ -145,6 +164,11 @@ router.post('/razorpay/verify', protect, verifySignature);
  *   post:
  *     summary: Razorpay Webhook listener endpoint
  *     tags: [Payments]
+ *     parameters:
+ *       - in: header
+ *         name: x-razorpay-signature
+ *         required: true
+ *         schema: { type: string }
  *     responses:
  *       200:
  *         description: Webhook received.

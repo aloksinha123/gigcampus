@@ -48,6 +48,37 @@ export const verifySignature = async ({ razorpay_order_id, razorpay_payment_id, 
 };
 
 /**
+ * Service to verify Razorpay Webhook signature using HMAC SHA256
+ * @param {string|Object} rawBody - Request body payload
+ * @param {string} signature - Received x-razorpay-signature header
+ * @returns {boolean} True if webhook signature matches, false otherwise
+ */
+export const verifyWebhookSignature = (rawBody, signature) => {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET;
+    if (!webhookSecret || !signature) {
+        return false;
+    }
+
+    const payloadString = typeof rawBody === 'string' 
+        ? rawBody 
+        : (Buffer.isBuffer(rawBody) ? rawBody.toString('utf8') : JSON.stringify(rawBody));
+
+    const expectedSignature = crypto
+        .createHmac('sha256', webhookSecret)
+        .update(payloadString)
+        .digest('hex');
+
+    const expectedBuffer = Buffer.from(expectedSignature, 'utf-8');
+    const receivedBuffer = Buffer.from(signature, 'utf-8');
+
+    if (expectedBuffer.length !== receivedBuffer.length) {
+        return false;
+    }
+
+    return crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
+};
+
+/**
  * Service to fetch payment details from Razorpay
  * @param {string} paymentId - Razorpay payment ID
  */
@@ -59,5 +90,6 @@ export const fetchPayment = async (paymentId) => {
 export default {
     createOrder,
     verifySignature,
+    verifyWebhookSignature,
     fetchPayment
 };
