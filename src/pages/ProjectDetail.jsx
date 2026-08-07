@@ -839,61 +839,7 @@ const ProjectDetail = () => {
                 </div>
             )}
 
-            {/* Review Modal */}
-            {showReviewModal && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-md rounded-[3rem] p-12 shadow-2xl animate-in zoom-in-95 duration-500">
-                        <div className="text-center mb-10">
-                            <span className="text-6xl mb-6 inline-block">🏆</span>
-                            <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase mb-2">Gig Complete!</h3>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Collaborator Evaluation Protocol</p>
-                        </div>
 
-                        <form onSubmit={handleSubmitReview} className="space-y-8">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 text-center">Collaboration Rating</label>
-                                <div className="flex justify-center gap-3">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
-                                            key={star}
-                                            type="button"
-                                            onClick={() => setReviewData({ ...reviewData, rating: star })}
-                                            className={`text-4xl transition-all hover:scale-125 ${reviewData.rating >= star ? 'text-yellow-400' : 'text-gray-200'}`}
-                                        >
-                                            ★
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <textarea
-                                    value={reviewData.comment}
-                                    onChange={(e) => setReviewData({ ...reviewData, comment: e.target.value })}
-                                    required
-                                    rows="4"
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-blue-200 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
-                                    placeholder="Brief evaluation of the freelancer's performance..."
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-100 hover:shadow-blue-300 hover:-translate-y-1 transition-all"
-                            >
-                                SUBMIT EVALUATION
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowReviewModal(false)}
-                                className="w-full py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-900 transition-all"
-                            >
-                                Skip for Now
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
             {/* Bid Modal */}
             {showBidModal && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
