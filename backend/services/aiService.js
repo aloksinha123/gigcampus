@@ -239,7 +239,7 @@ const generateRichFallback = (rawTitle, rawDesc, category, budget, timeline) => 
     let skills = ['React.js', 'Node.js', 'MongoDB', 'REST APIs', 'JWT Authentication'];
     let complexity = 'Medium';
 
-    if (text.includes('website') || text.includes('store') || text.includes('shop') || text.includes('e-commerce') || text.includes('ecommerce')) {
+    if (text.includes('website') || text.includes('store') || text.includes('shop') || text.includes('e-commerce') || text.includes('ecommerce') || text.includes('shoes') || text.includes('nike')) {
         domain = 'E-Commerce & Web Development';
         skills = ['React.js', 'Node.js', 'Express.js', 'MongoDB', 'Tailwind CSS', 'Payment Gateway'];
         complexity = 'Medium';
@@ -253,14 +253,20 @@ const generateRichFallback = (rawTitle, rawDesc, category, budget, timeline) => 
         complexity = 'High';
     }
 
-    const cleanTitleText = (rawTitle || rawDesc || '').replace(/^Enhanced:\s*/gi, '').trim();
-    const formattedTitle = cleanTitleText
-        ? cleanTitleText.replace(/\b\w/g, c => c.toUpperCase())
-        : 'Modern Web Application Platform';
+    // Title refinement: strip filler words ("Need A", "Of Name", "Enhanced:")
+    let cleanTitleStr = (rawTitle || rawDesc || '').replace(/^Enhanced:\s*/gi, '').trim();
+    cleanTitleStr = cleanTitleStr.replace(/\b(need a|need an|need|of name|for me|website of|app of)\b/gi, '').trim();
+    cleanTitleStr = cleanTitleStr.replace(/\s+/g, ' ').trim();
 
-    const generatedTitle = formattedTitle.toLowerCase().includes('platform') || formattedTitle.toLowerCase().includes('system') || formattedTitle.toLowerCase().includes('website')
+    const formattedTitle = cleanTitleStr
+        ? cleanTitleStr.replace(/\b\w/g, c => c.toUpperCase())
+        : 'Modern Web Application';
+
+    const generatedTitle = formattedTitle.toLowerCase().includes('website') || formattedTitle.toLowerCase().includes('platform') || formattedTitle.toLowerCase().includes('store') || formattedTitle.toLowerCase().includes('app')
         ? formattedTitle
-        : `${formattedTitle} Application`;
+        : `${formattedTitle} E-Commerce Platform`;
+
+    const budgetDisplay = budget && Number(budget) > 0 ? `₹${budget}` : 'Specified Budget';
 
     const generatedDescription = `Project Overview:
 Development of a high-performance, responsive ${domain.toLowerCase()} solution. This project requires an end-to-end implementation focusing on user experience, security, and scalable architecture.
@@ -274,7 +280,7 @@ Key Technical Scope & Deliverables:
 Acceptance Criteria & Quality Assurance:
 - 100% functional feature set meeting performance benchmarks.
 - Clean, documented codebase with modular component structure.
-- Timely delivery within specified project timeframe (${timeline || '14 Days'}) and budget (${budget ? '₹' + budget : 'Specified Budget'}).`;
+- Timely delivery within specified project timeframe (${timeline || '14 Days'}) and budget (${budgetDisplay}).`;
 
     return {
         enhancedTitle: generatedTitle,
@@ -311,7 +317,7 @@ Timeline: "${timeline}"
 
 Your task is to refine this project brief to be professional, clear, complete, and attractive to top freelancers.
 Improve:
-1. Professional writing & tone.
+1. Professional writing & title refinement (e.g. convert "Need A E-Commerce Shoes Website Of Nike Name" into "Nike Shoes E-Commerce Platform").
 2. Scope clarity & acceptance criteria.
 3. Key technical deliverables.
 4. Recommended skills list (e.g. React.js, Node.js, MongoDB, REST APIs, JWT).

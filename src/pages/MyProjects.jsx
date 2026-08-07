@@ -35,11 +35,15 @@ const MyProjects = () => {
 
         try {
             setAiLoading(true);
+            const effectiveBudget = Number(formData.budgetMax) > 0 
+                ? formData.budgetMax 
+                : (Number(formData.budgetMin) > 0 ? formData.budgetMin : '');
+
             const response = await api.ai.enhanceDescription({
                 title: formData.title,
                 description: formData.description || formData.title,
                 category: formData.category,
-                budget: formData.budgetMax || formData.budgetMin,
+                budget: effectiveBudget,
                 timeline: formData.timeline
             });
 
