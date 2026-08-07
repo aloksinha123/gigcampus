@@ -151,9 +151,14 @@ export const usersAPI = {
 export const walletAPI = {
     getBalance: () => api.get('/wallet/balance'),
     getTransactions: () => api.get('/wallet/transactions'),
+    getBankDetails: () => api.get('/wallet/bank-details'),
+    saveBankDetails: (data) => api.post('/wallet/bank-details', data),
+    deleteBankDetails: () => api.delete('/wallet/bank-details'),
     withdraw: (data) => api.post('/wallet/withdraw', data),
+    getWithdrawalStatus: (id) => api.get(`/wallet/withdrawal/${id}/status`),
     deposit: (data) => api.post('/wallet/deposit', data)
 };
+
 
 // Notifications API
 export const notificationsAPI = {

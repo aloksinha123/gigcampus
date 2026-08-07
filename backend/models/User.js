@@ -59,6 +59,36 @@ const userSchema = new mongoose.Schema({
             type: Number,
             default: 0,
             min: 0
+        },
+        razorpayContactId: {
+            type: String,
+            default: null
+        },
+        bankDetails: {
+            accountHolderName: String,
+            accountNumber: String,
+            ifscCode: String,
+            bankName: String,
+            upiId: String,
+            mode: {
+                type: String,
+                enum: ['NEFT', 'UPI', 'RTGS', 'IMPS'],
+                default: 'NEFT'
+            },
+            razorpayFundAccountId: String,
+            isVerified: {
+                type: Boolean,
+                default: false
+            },
+            addedAt: Date
+        },
+        totalWithdrawn: {
+            type: Number,
+            default: 0
+        },
+        pendingWithdrawal: {
+            type: Number,
+            default: 0
         }
     },
     verified: {

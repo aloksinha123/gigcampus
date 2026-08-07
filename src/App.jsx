@@ -30,6 +30,7 @@ const AdminUsers = lazy(() => import('./pages/AdminUsers'));
 const AdminProjects = lazy(() => import('./pages/AdminProjects'));
 const AdminDisputes = lazy(() => import('./pages/AdminDisputes'));
 const AdminSecurity = lazy(() => import('./pages/AdminSecurity'));
+const Wallet = lazy(() => import('./pages/Wallet'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Protected Route Component
@@ -107,6 +108,12 @@ function AppRoutes() {
           <Route path="/notification-settings" element={
             <ProtectedRoute>
               <NotificationSettings />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/wallet" element={
+            <ProtectedRoute>
+              <Wallet />
             </ProtectedRoute>
           } />
 

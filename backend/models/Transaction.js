@@ -39,6 +39,24 @@ const transactionSchema = new mongoose.Schema({
         type: String,
         unique: true,
         required: true
+    },
+    razorpayPayoutId: {
+        type: String,
+        default: null
+    },
+    withdrawalMode: {
+        type: String,
+        enum: ['NEFT', 'UPI', 'RTGS', 'IMPS', null],
+        default: null
+    },
+    payoutStatus: {
+        type: String,
+        enum: ['pending', 'processing', 'processed', 'reversed', 'cancelled', 'queued', null],
+        default: null
+    },
+    utrNumber: {
+        type: String,
+        default: null
     }
 }, {
     timestamps: true

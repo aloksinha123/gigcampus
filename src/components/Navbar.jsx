@@ -53,6 +53,7 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                 { name: 'Dashboard', path: '/student/dashboard' },
                 ...commonLinks,
                 { name: 'My Projects', path: '/my-projects' },
+                { name: '💰 Wallet', path: '/wallet' },
                 { name: 'Profile', path: '/profile' },
             ];
         }
@@ -62,6 +63,7 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                 { name: 'Dashboard', path: '/freelancer/dashboard' },
                 ...commonLinks,
                 { name: 'My Projects', path: '/my-projects' },
+                { name: '💰 Wallet', path: '/wallet' },
                 { name: 'Profile', path: '/profile' },
             ];
         }
