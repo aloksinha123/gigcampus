@@ -101,17 +101,15 @@ const ProjectDetail = () => {
 
         try {
             setAnalyzingBid(true);
-            const response = await api.post('/ai/analyze-bid', {
-                projectDescription: project.description,
-                bidText: bidData.proposal.trim(),
-                budget: Number(bidData.bidAmount),
-                deliveryDays: daysNum
+            const response = await api.ai.analyzeBid({
+                projectId: id,
+                proposal: bidData.proposal.trim()
             });
 
-            if (response.data) {
+            if (response.data?.success || response.data?.score) {
                 setBidAnalysisResult(response.data);
                 setShowBidAnalysisModal(true);
-                success('✨ Smart Bid Analysis complete!');
+                success('✨ AI Bid Quality Audit Complete!');
             } else {
                 error('Unable to analyze bid proposal.');
             }
@@ -1007,13 +1005,12 @@ const ProjectDetail = () => {
                 </div>
             )}
 
-            {/* Smart Bid Analysis Modal */}
             {showBidAnalysisModal && (
                 <SmartBidAnalysisModal
                     analysis={bidAnalysisResult}
                     onClose={() => setShowBidAnalysisModal(false)}
-                    onApplyImprovedBid={handleApplyImprovedBid}
-                    toastSuccess={success}
+                    onReanalyze={handleAnalyzeBid}
+                    isAnalyzing={analyzingBid}
                 />
             )}
 

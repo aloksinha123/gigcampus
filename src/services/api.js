@@ -64,6 +64,8 @@ export const aiAPI = {
     improveDescription: (description) => api.post('/ai/improve-description', { description }),
     enhanceDescription: (data) => api.post('/ai/enhance-description', data),
     generateProposal: (projectId, tone = 'professional') => api.post('/ai/generate-proposal', { projectId, tone }),
+    analyzeBid: (data) => api.post('/ai/analyze-bid', data),
+    analyzeProjectRisk: (data) => api.post('/ai/analyze-project-risk', data),
     recommendFreelancers: (data) => api.post('/ai/recommend-freelancers', typeof data === 'string' ? { projectId: data } : data)
 };
 

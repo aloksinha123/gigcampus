@@ -5,6 +5,8 @@ import {
     improveProjectDescription,
     enhanceProjectDescriptionService,
     recommendFreelancersForProjectService,
+    analyzeBidQualityService,
+    analyzeProjectRiskService,
     analyzeBidProposal,
     recommendFreelancers
 } from '../services/aiService.js';
@@ -214,83 +216,137 @@ Timestamp: ${new Date().toISOString()}
     }
 };
 
-// @desc    Analyze a freelancer's bid proposal before submission
-// @route   POST /api/ai/analyze-bid
-// @access  Private (Authenticated Users)
+// @desc    Analyze a freelancer's bid proposal quality (FEATURE 1)
+// @route   POST /api/v1/ai/analyze-bid & POST /api/ai/analyze-bid
+// @access  Private (Freelancers / Authenticated Users)
 export const analyzeBid = async (req, res) => {
+    const startTime = Date.now();
     try {
-        let { projectDescription, bidText, budget, deliveryDays } = req.body;
+        let { projectId, proposal, projectDescription, bidText } = req.body;
+        const userId = req.user?._id;
 
-        // Validation
-        if (!projectDescription || typeof projectDescription !== 'string' || !projectDescription.trim()) {
+        const effectiveProposal = proposal || bidText || '';
+
+        // Reject empty proposals
+        if (!effectiveProposal || typeof effectiveProposal !== 'string' || !effectiveProposal.trim()) {
             return res.status(400).json({
                 success: false,
-                message: 'projectDescription is required and must be a valid string.'
+                message: 'Proposal text cannot be empty.'
             });
         }
 
-        if (projectDescription.trim().length > 5000) {
+        if (effectiveProposal.trim().length > 5000) {
             return res.status(400).json({
                 success: false,
-                message: 'projectDescription must not exceed 5000 characters.'
+                message: 'Proposal text cannot exceed 5000 characters.'
             });
         }
 
-        if (!bidText || typeof bidText !== 'string' || !bidText.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: 'bidText is required and must be a valid string.'
-            });
+        let project = null;
+        if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+            project = await Project.findById(projectId);
+        } else if (projectDescription) {
+            project = { title: 'Project Listing', description: projectDescription };
         }
 
-        if (bidText.trim().length > 3000) {
-            return res.status(400).json({
-                success: false,
-                message: 'bidText must not exceed 3000 characters.'
-            });
-        }
-
-        if (budget === undefined || budget === null || isNaN(Number(budget)) || Number(budget) <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'budget is required and must be a positive number greater than 0.'
-            });
-        }
-
-        if (deliveryDays === undefined || deliveryDays === null || isNaN(Number(deliveryDays)) || Number(deliveryDays) <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'deliveryDays is required and must be a positive number greater than 0.'
-            });
-        }
-
-        const analysis = await analyzeBidProposal({
-            projectDescription: projectDescription.trim(),
-            bidText: bidText.trim(),
-            budget: Number(budget),
-            deliveryDays: Number(deliveryDays)
+        const result = await analyzeBidQualityService({
+            projectId,
+            proposal: effectiveProposal.trim(),
+            project
         });
 
-        if (!analysis || typeof analysis !== 'object') {
-            return res.status(500).json({
-                success: false,
-                message: 'Unable to analyze bid proposal.'
-            });
-        }
+        const generationTimeMs = Date.now() - startTime;
+
+        // Structured Logging
+        console.log(`
+[AI BID QUALITY ANALYZED]
+Request ID: ${req.requestId || 'N/A'}
+User ID: ${userId || 'Unauthenticated'}
+Project ID: ${projectId || 'N/A'}
+Generation Time: ${generationTimeMs}ms
+Model Used: ${result.modelUsed}
+Prompt Tokens: ${result.promptTokens ?? 'N/A'}
+Response Tokens: ${result.responseTokens ?? 'N/A'}
+Timestamp: ${new Date().toISOString()}
+`);
 
         return res.status(200).json({
-            score: typeof analysis.score === 'number' ? analysis.score : 80,
-            requirementMatch: typeof analysis.requirementMatch === 'number' ? analysis.requirementMatch : 85,
-            professionalism: analysis.professionalism || 'Good',
-            communication: analysis.communication || 'Good',
-            risk: analysis.risk || 'Low',
-            strengths: Array.isArray(analysis.strengths) ? analysis.strengths : [],
-            weaknesses: Array.isArray(analysis.weaknesses) ? analysis.weaknesses : [],
-            missingPoints: Array.isArray(analysis.missingPoints) ? analysis.missingPoints : [],
-            improvedBid: analysis.improvedBid || bidText
+            success: true,
+            score: result.score,
+            estimatedWinChance: result.estimatedWinChance,
+            strengths: result.strengths,
+            weaknesses: result.weaknesses,
+            suggestions: result.suggestions,
+            meta: {
+                modelUsed: result.modelUsed,
+                generationTimeMs,
+                promptTokens: result.promptTokens,
+                responseTokens: result.responseTokens
+            }
         });
     } catch (error) {
-        return handleAiError(res, error, 'Unable to analyze bid proposal.');
+        return handleAiError(res, error, 'Unable to analyze bid proposal quality.');
+    }
+};
+
+// @desc    Analyze project risk & complexity for client listings (FEATURE 2)
+// @route   POST /api/v1/ai/analyze-project-risk
+// @access  Private (Students / Clients / Authenticated Users)
+export const analyzeProjectRiskController = async (req, res) => {
+    const startTime = Date.now();
+    try {
+        const { title = '', description = '', budget, timeline, category } = req.body;
+        const userId = req.user?._id;
+
+        const reqTitle = String(title).trim();
+        const reqDesc = String(description).trim();
+
+        // Reject empty title/description
+        if (!reqTitle && !reqDesc) {
+            return res.status(400).json({
+                success: false,
+                message: 'Project title and description cannot be empty.'
+            });
+        }
+
+        const result = await analyzeProjectRiskService({
+            title: reqTitle || reqDesc.substring(0, 50),
+            description: reqDesc || reqTitle,
+            budget: budget ? String(budget).trim() : '',
+            timeline: timeline ? String(timeline).trim() : '',
+            category: category ? String(category).trim() : 'Development'
+        });
+
+        const generationTimeMs = Date.now() - startTime;
+
+        // Structured Logging
+        console.log(`
+[AI PROJECT RISK ANALYZED]
+Request ID: ${req.requestId || 'N/A'}
+User ID: ${userId || 'Unauthenticated'}
+Project Category: ${category || 'Development'}
+Generation Time: ${generationTimeMs}ms
+Model Used: ${result.modelUsed}
+Prompt Tokens: ${result.promptTokens ?? 'N/A'}
+Response Tokens: ${result.responseTokens ?? 'N/A'}
+Timestamp: ${new Date().toISOString()}
+`);
+
+        return res.status(200).json({
+            success: true,
+            risk: result.risk,
+            estimatedComplexity: result.estimatedComplexity,
+            issues: result.issues,
+            recommendations: result.recommendations,
+            meta: {
+                modelUsed: result.modelUsed,
+                generationTimeMs,
+                promptTokens: result.promptTokens,
+                responseTokens: result.responseTokens
+            }
+        });
+    } catch (error) {
+        return handleAiError(res, error, 'Unable to analyze project risk.');
     }
 };
 
@@ -380,5 +436,6 @@ export default {
     enhanceDescriptionController,
     generateProposalController,
     analyzeBid,
+    analyzeProjectRiskController,
     recommendFreelancersController
 };

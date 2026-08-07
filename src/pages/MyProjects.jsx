@@ -71,6 +71,44 @@ const MyProjects = () => {
         }
     };
 
+    const [riskLoading, setRiskLoading] = useState(false);
+    const [riskAnalysis, setRiskAnalysis] = useState(null);
+
+    const handleAnalyzeRisk = async () => {
+        const titleText = (formData.title || '').trim();
+        const descText = (formData.description || formData.title || '').trim();
+
+        if (!titleText && !descText) {
+            error('Please enter a project title or description before analyzing project risk.');
+            return;
+        }
+
+        try {
+            setRiskLoading(true);
+            const effectiveBudget = Number(formData.budgetMax) > 0 ? Number(formData.budgetMax) : (Number(formData.budgetMin) > 0 ? Number(formData.budgetMin) : 10000);
+
+            const response = await api.ai.analyzeProjectRisk({
+                title: titleText || descText,
+                description: descText || titleText,
+                budget: effectiveBudget,
+                timeline: formData.timeline || '15 Days',
+                category: formData.category || 'Web Development'
+            });
+
+            if (response.data?.success) {
+                setRiskAnalysis(response.data);
+                success(`🛡️ Project Risk Analysis Complete! Risk Level: [${response.data.risk}]`);
+            } else {
+                error('Unable to analyze project risk.');
+            }
+        } catch (err) {
+            console.error('Project Risk analysis error:', err);
+            error(err.response?.data?.message || 'Unable to analyze project risk.');
+        } finally {
+            setRiskLoading(false);
+        }
+    };
+
     const categories = [
         { value: 'development', label: 'Development' },
         { value: 'design', label: 'Design' },
@@ -336,26 +374,46 @@ const MyProjects = () => {
                                 </div>
 
                                 <div>
-                                    <div className="flex justify-between items-center mb-3">
+                                    <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
                                         <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">Core Objectives (Description)</label>
-                                        <button
-                                            type="button"
-                                            onClick={handleAiImprove}
-                                            disabled={aiLoading}
-                                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-indigo-200 hover:scale-105 transition-all disabled:opacity-50 cursor-pointer"
-                                        >
-                                            {aiLoading ? (
-                                                <>
-                                                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                    <span>Generating AI...</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span>✨</span>
-                                                    <span>Enhance with AI</span>
-                                                </>
-                                            )}
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={handleAnalyzeRisk}
+                                                disabled={riskLoading}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition-all disabled:opacity-50 cursor-pointer"
+                                            >
+                                                {riskLoading ? (
+                                                    <>
+                                                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                        <span>Analyzing...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span>🛡️</span>
+                                                        <span>Analyze Risk</span>
+                                                    </>
+                                                )}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleAiImprove}
+                                                disabled={aiLoading}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-indigo-200 hover:scale-105 transition-all disabled:opacity-50 cursor-pointer"
+                                            >
+                                                {aiLoading ? (
+                                                    <>
+                                                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                        <span>Enhancing...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span>✨</span>
+                                                        <span>Enhance with AI</span>
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
                                     <textarea
                                         name="description"
@@ -367,6 +425,57 @@ const MyProjects = () => {
                                         placeholder="Explain the technical and creative requirements of the project..."
                                     />
                                 </div>
+
+                                {riskAnalysis && (
+                                    <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-3xl border border-indigo-800/40 shadow-xl space-y-4">
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-indigo-800/40">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xl">🛡️</span>
+                                                <h4 className="text-lg font-black tracking-tight italic">AI Risk & Complexity Audit</h4>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                                                    riskAnalysis.risk === 'Low' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
+                                                    riskAnalysis.risk === 'Medium' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                                                    'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                                                }`}>
+                                                    Risk: {riskAnalysis.risk}
+                                                </span>
+                                                <span className="px-3 py-1 bg-purple-500/20 text-purple-300 border border-purple-500/40 rounded-full text-xs font-black uppercase tracking-wider">
+                                                    Complexity: {riskAnalysis.estimatedComplexity}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {Array.isArray(riskAnalysis.issues) && riskAnalysis.issues.length > 0 && (
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-300">Identified Issues</p>
+                                                <ul className="space-y-1">
+                                                    {riskAnalysis.issues.map((issue, idx) => (
+                                                        <li key={idx} className="text-xs text-indigo-100 flex items-start gap-2">
+                                                            <span className="text-amber-400 font-bold">•</span>
+                                                            <span>{issue}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {Array.isArray(riskAnalysis.recommendations) && riskAnalysis.recommendations.length > 0 && (
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Strategic Recommendations</p>
+                                                <ul className="space-y-1">
+                                                    {riskAnalysis.recommendations.map((rec, idx) => (
+                                                        <li key={idx} className="text-xs text-indigo-100 flex items-start gap-2">
+                                                            <span className="text-emerald-400 font-bold">•</span>
+                                                            <span>{rec}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
