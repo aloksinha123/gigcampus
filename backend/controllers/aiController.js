@@ -1,7 +1,12 @@
 import mongoose from 'mongoose';
 import Project from '../models/Project.js';
 import User from '../models/User.js';
-import { improveProjectDescription, analyzeBidProposal, recommendFreelancers } from '../services/aiService.js';
+import {
+    improveProjectDescription,
+    enhanceProjectDescriptionService,
+    analyzeBidProposal,
+    recommendFreelancers
+} from '../services/aiService.js';
 import { generateAIProposal } from '../services/geminiProposalService.js';
 
 // Helper for formatting clean error responses for temporary AI availability issues
@@ -68,6 +73,72 @@ export const improveDescription = async (req, res) => {
         });
     } catch (error) {
         return handleAiError(res, error, 'Unable to generate AI suggestions.');
+    }
+};
+
+// @desc    Enhance project description, title, skills & complexity using Google Gemini AI
+// @route   POST /api/v1/ai/enhance-description
+// @access  Private (Authenticated Clients / Users)
+export const enhanceDescriptionController = async (req, res) => {
+    const startTime = Date.now();
+    try {
+        const { title, description, budget, category, timeline } = req.body;
+        const userId = req.user?._id;
+
+        // Validation: Description
+        if (!description || typeof description !== 'string' || !description.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide a valid project description.'
+            });
+        }
+
+        if (description.trim().length > 5000) {
+            return res.status(400).json({
+                success: false,
+                message: 'Project description exceeds maximum length of 5000 characters.'
+            });
+        }
+
+        // Call Gemini Enhancement Service
+        const result = await enhanceProjectDescriptionService({
+            title: title ? title.trim() : '',
+            description: description.trim(),
+            budget: budget ? String(budget).trim() : '',
+            category: category ? String(category).trim() : 'General',
+            timeline: timeline ? String(timeline).trim() : ''
+        });
+
+        const generationTimeMs = Date.now() - startTime;
+
+        // Structured Logging
+        console.log(`
+[AI DESCRIPTION ENHANCED]
+Request ID: ${req.requestId || 'N/A'}
+User ID: ${userId || 'Unauthenticated'}
+Project Category: ${category || 'General'}
+Generation Time: ${generationTimeMs}ms
+Model Used: ${result.modelUsed}
+Prompt Tokens: ${result.promptTokens ?? 'N/A'}
+Response Tokens: ${result.responseTokens ?? 'N/A'}
+Timestamp: ${new Date().toISOString()}
+`);
+
+        return res.status(200).json({
+            success: true,
+            enhancedTitle: result.enhancedTitle,
+            enhancedDescription: result.enhancedDescription,
+            recommendedSkills: result.recommendedSkills,
+            estimatedComplexity: result.estimatedComplexity,
+            meta: {
+                modelUsed: result.modelUsed,
+                generationTimeMs,
+                promptTokens: result.promptTokens,
+                responseTokens: result.responseTokens
+            }
+        });
+    } catch (error) {
+        return handleAiError(res, error, 'Unable to enhance project description.');
     }
 };
 
@@ -278,6 +349,7 @@ export const recommendFreelancersController = async (req, res) => {
 
 export default {
     improveDescription,
+    enhanceDescriptionController,
     generateProposalController,
     analyzeBid,
     recommendFreelancersController

@@ -450,8 +450,109 @@ Strict Rules:
     return calculateFallbackRecommendations({ projectDescription, requiredSkills, budget, deliveryDays, bids });
 };
 
+/**
+ * Service to enhance project description with Gemini AI
+ * @param {Object} params - { title, description, budget, category, timeline }
+ * @returns {Promise<Object>} { enhancedTitle, enhancedDescription, recommendedSkills, estimatedComplexity, modelUsed, promptTokens, responseTokens }
+ */
+export const enhanceProjectDescriptionService = async ({ title = '', description = '', budget = '', category = '', timeline = '' }) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+        throw new Error('GEMINI_API_KEY is not configured in backend/.env.');
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+
+    const prompt = `You are a world-class technical product manager and project scoping consultant.
+Enhance and structure the following project details for publishing on GigCampus:
+
+Input Title: "${title}"
+Input Description: "${description}"
+Category: "${category}"
+Budget: "${budget}"
+Timeline: "${timeline}"
+
+Your task is to refine this project brief to be professional, clear, complete, and attractive to top freelancers.
+Improve:
+1. Professional writing & tone.
+2. Scope clarity & acceptance criteria.
+3. Key technical deliverables.
+4. Recommended skills list.
+5. Estimated complexity rating (Low, Medium, or High).
+
+Return ONLY a 100% valid raw JSON object matching this exact structure:
+{
+  "enhancedTitle": "Refined, professional project title",
+  "enhancedDescription": "Comprehensive, clear project description including scope, acceptance criteria, and key deliverables.",
+  "recommendedSkills": ["Skill1", "Skill2", "Skill3"],
+  "estimatedComplexity": "Low"
+}
+
+Strict Rules:
+1. Output MUST be 100% valid raw JSON.
+2. Do NOT use markdown code blocks or intro text outside JSON.
+3. Complexity MUST be strictly one of: "Low", "Medium", or "High".`;
+
+    const modelsToTry = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+        try {
+            const response = await ai.models.generateContent({
+                model: modelName,
+                contents: prompt,
+                config: {
+                    responseMimeType: 'application/json'
+                }
+            });
+
+            const responseText = typeof response.text === 'function' ? response.text() : (response.text || '');
+            if (responseText && responseText.trim()) {
+                let cleanedText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                const firstBrace = cleanedText.indexOf('{');
+                const lastBrace = cleanedText.lastIndexOf('}');
+                if (firstBrace !== -1 && lastBrace !== -1) {
+                    cleanedText = cleanedText.substring(firstBrace, lastBrace + 1);
+                }
+
+                const parsed = JSON.parse(cleanedText);
+                const usage = response.usageMetadata || {};
+
+                return {
+                    enhancedTitle: parsed.enhancedTitle || title || 'Enhanced Project Title',
+                    enhancedDescription: parsed.enhancedDescription || description,
+                    recommendedSkills: Array.isArray(parsed.recommendedSkills) ? parsed.recommendedSkills : ['JavaScript', 'Web Development'],
+                    estimatedComplexity: ['Low', 'Medium', 'High'].includes(parsed.estimatedComplexity) ? parsed.estimatedComplexity : 'Medium',
+                    modelUsed: modelName,
+                    promptTokens: usage.promptTokenCount || null,
+                    responseTokens: usage.candidatesTokenCount || null
+                };
+            }
+        } catch (err) {
+            console.warn(`⚠️ Model [${modelName}] enhance description failed:`, err.message);
+            lastError = err;
+        }
+    }
+
+    // Fallback template if Gemini API is exhausted/unavailable
+    const fallbackDescription = `${description.trim()}\n\nKey Scope & Deliverables:\n- Well-structured, fully responsive implementation.\n- Clean, documented codebase adhering to best practices.\n- Timely completion within the specified budget (${budget || 'Negotiable'}).\n\nAcceptance Criteria:\n- 100% functional feature set.\n- Tested across modern browsers.`;
+
+    return {
+        enhancedTitle: title ? `Enhanced: ${title}` : 'Enhanced Project Title',
+        enhancedDescription: fallbackDescription,
+        recommendedSkills: ['Web Development', 'Software Architecture', 'REST API'],
+        estimatedComplexity: 'Medium',
+        modelUsed: 'fallback-template',
+        promptTokens: null,
+        responseTokens: null,
+        warning: lastError?.message || null
+    };
+};
+
 export default {
     improveProjectDescription,
+    enhanceProjectDescriptionService,
     analyzeBidProposal,
     calculateFallbackRecommendations,
     recommendFreelancers

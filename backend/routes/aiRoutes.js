@@ -1,13 +1,50 @@
 import express from 'express';
 import {
     improveDescription,
+    enhanceDescriptionController,
     generateProposalController,
     analyzeBid,
     recommendFreelancersController
 } from '../controllers/aiController.js';
-import { protect, freelancer } from '../middleware/auth.js';
+import { protect, student } from '../middleware/auth.js';
 
 const router = express.Router();
+
+/**
+ * @openapi
+ * /ai/enhance-description:
+ *   post:
+ *     summary: AI Project Description Enhancer (Google Gemini AI)
+ *     tags: [AI]
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [description]
+ *             properties:
+ *               title: { type: string, example: 'E-commerce Store' }
+ *               description: { type: string, example: 'Need a shop website for selling clothes.' }
+ *               category: { type: string, example: 'Web Development' }
+ *               budget: { type: string, example: '15000' }
+ *               timeline: { type: string, example: '14 Days' }
+ *     responses:
+ *       200:
+ *         description: Enhanced project scope, title, recommended skills & complexity rating.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 enhancedTitle: { type: string }
+ *                 enhancedDescription: { type: string }
+ *                 recommendedSkills: { type: array, items: { type: string } }
+ *                 estimatedComplexity: { type: string, enum: [Low, Medium, High] }
+ */
+router.post('/enhance-description', protect, enhanceDescriptionController);
 
 /**
  * @openapi

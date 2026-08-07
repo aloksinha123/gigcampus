@@ -28,48 +28,39 @@ const MyProjects = () => {
 
     const handleAiImprove = async () => {
         if (!formData.description || !formData.description.trim()) {
-            error('Please enter a short description first to improve with AI.');
+            error('Please enter a project description first to enhance with AI.');
             return;
         }
 
         try {
             setAiLoading(true);
-            const response = await api.post('/ai/improve-description', { description: formData.description });
+            const response = await api.ai.enhanceDescription({
+                title: formData.title,
+                description: formData.description,
+                category: formData.category,
+                budget: formData.budgetMax || formData.budgetMin,
+                timeline: formData.timeline
+            });
 
-            if (response.data?.success && response.data?.data) {
-                const aiData = response.data.data;
-                
-                let bMin = formData.budgetMin;
-                let bMax = formData.budgetMax;
-                if (aiData.budget) {
-                    const nums = aiData.budget.match(/\d+/g);
-                    if (nums && nums.length >= 2) {
-                        bMin = nums[0];
-                        bMax = nums[1];
-                    } else if (nums && nums.length === 1) {
-                        bMin = nums[0];
-                        bMax = (parseInt(nums[0]) * 2).toString();
-                    }
-                }
+            if (response.data?.success) {
+                const { enhancedTitle, enhancedDescription, recommendedSkills, estimatedComplexity } = response.data;
 
                 setFormData(prev => ({
                     ...prev,
-                    title: aiData.title || prev.title,
-                    description: aiData.summary || prev.description,
-                    timeline: aiData.timeline || prev.timeline,
-                    requirements: Array.isArray(aiData.requirements) ? aiData.requirements.join(', ') : prev.requirements,
-                    skills: Array.isArray(aiData.skills) ? aiData.skills.join(', ') : prev.skills,
-                    budgetMin: bMin,
-                    budgetMax: bMax
+                    title: enhancedTitle || prev.title,
+                    description: enhancedDescription || prev.description,
+                    skills: Array.isArray(recommendedSkills) && recommendedSkills.length > 0
+                        ? recommendedSkills.join(', ')
+                        : prev.skills
                 }));
 
-                success('✨ AI suggestions generated! Please review and edit the fields before saving.');
+                success(`✨ Project description enhanced! Estimated Complexity: [${estimatedComplexity || 'Medium'}]`);
             } else {
-                error('Unable to generate AI suggestions.');
+                error('Unable to enhance project description.');
             }
         } catch (err) {
-            console.error('AI generation error:', err);
-            error(err.response?.data?.message || 'Unable to generate AI suggestions.');
+            console.error('AI enhancement error:', err);
+            error(err.response?.data?.message || 'Unable to enhance project description.');
         } finally {
             setAiLoading(false);
         }
@@ -356,7 +347,7 @@ const MyProjects = () => {
                                             ) : (
                                                 <>
                                                     <span>✨</span>
-                                                    <span>Improve with AI</span>
+                                                    <span>Enhance with AI</span>
                                                 </>
                                             )}
                                         </button>
