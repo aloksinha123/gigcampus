@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Payment from '../models/Payment.js';
 import Transaction from '../models/Transaction.js';
 import Activity from '../models/Activity.js';
+import Notification from '../models/Notification.js';
 import { createNotification } from './notificationController.js';
 import { sendBidAcceptedEmail } from '../services/emailService.js';
 import { logActivity } from '../services/activityService.js';
@@ -649,5 +650,69 @@ export const getProjectTimeline = async (req, res) => {
         return res.json(activities);
     } catch (error) {
         return res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Invite a freelancer to bid/apply on a project
+// @route   POST /api/v1/projects/:id/invite
+// @access  Private (Project Client / Owner)
+export const inviteFreelancerToProject = async (req, res) => {
+    try {
+        const { freelancerId } = req.body;
+        const projectId = req.params.id;
+
+        if (!freelancerId) {
+            return res.status(400).json({ success: false, message: 'freelancerId is required.' });
+        }
+
+        const project = await Project.findById(projectId);
+        if (!project) {
+            return res.status(404).json({ success: false, message: 'Project not found.' });
+        }
+
+        // Authorization check: only project client owner or admin
+        if (project.client.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Only project owner can invite freelancers.' });
+        }
+
+        const freelancer = await User.findById(freelancerId);
+        if (!freelancer) {
+            return res.status(404).json({ success: false, message: 'Target freelancer not found.' });
+        }
+
+        const clientName = req.user.profile?.fullName || req.user.username || 'Client';
+
+        // Create Real MongoDB Notification for target freelancer
+        const notification = await Notification.create({
+            user: freelancer._id,
+            type: 'project',
+            message: `✉️ Invitation Received! ${clientName} invited you to bid on project: "${project.title}"`,
+            project: project._id,
+            relatedUser: req.user._id
+        });
+
+        // Real-time Socket Notification
+        const io = req.app.get('socketio');
+        if (io) {
+            io.to(freelancer._id.toString()).emit('newNotification', notification);
+        }
+
+        // Log Activity Event
+        await logActivity({
+            project: project._id,
+            user: req.user._id,
+            action: 'FREELANCER_INVITED',
+            description: `Invited freelancer ${freelancer.profile?.fullName || freelancer.username} to bid on project`,
+            metadata: { freelancerId: freelancer._id }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: `Invitation successfully sent to ${freelancer.profile?.fullName || freelancer.username}!`,
+            notification
+        });
+    } catch (error) {
+        console.error('Invite Freelancer Error:', error);
+        return res.status(500).json({ success: false, message: error.message });
     }
 };

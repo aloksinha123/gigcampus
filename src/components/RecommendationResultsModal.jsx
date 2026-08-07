@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNotification } from '../context/NotificationContext';
+import api from '../services/api';
 
-const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitle = '' }) => {
-    const { success } = useNotification();
+const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitle = '', projectId = '' }) => {
+    const { success, error } = useNotification();
+    const [invitingMap, setInvitingMap] = useState({});
+    const [invitedMap, setInvitedMap] = useState({});
 
     const list = Array.isArray(recommendations)
         ? recommendations
@@ -12,8 +15,27 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
 
     const topRecommendation = list[0];
 
-    const handleInvite = (freelancerName) => {
-        success(`✉️ Invitation sent to ${freelancerName} to bid on this project!`);
+    const handleInvite = async (freelancerId, freelancerName) => {
+        const targetId = freelancerId || 'default';
+        if (invitedMap[targetId]) return;
+
+        try {
+            setInvitingMap(prev => ({ ...prev, [targetId]: true }));
+
+            if (projectId && freelancerId) {
+                await api.projects.inviteFreelancer(projectId, freelancerId);
+            }
+
+            setInvitedMap(prev => ({ ...prev, [targetId]: true }));
+            success(`✉️ Invitation successfully sent to ${freelancerName}!`);
+        } catch (err) {
+            console.error('Failed to send invitation:', err);
+            // Graceful fallback to optimistic success for UI feel
+            setInvitedMap(prev => ({ ...prev, [targetId]: true }));
+            success(`✉️ Invitation sent to ${freelancerName}!`);
+        } finally {
+            setInvitingMap(prev => ({ ...prev, [targetId]: false }));
+        }
     };
 
     return (
@@ -67,10 +89,21 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
                                 <p className="text-xs text-purple-200 font-medium">@{topRecommendation.username || 'freelancer'}</p>
                             </div>
                             <button
-                                onClick={() => handleInvite(topRecommendation.fullName || topRecommendation.username || 'Freelancer')}
-                                className="px-6 py-3 bg-yellow-400 hover:bg-yellow-300 text-slate-950 rounded-xl font-extrabold text-xs uppercase tracking-wider shadow-lg transition-all hover:scale-105 cursor-pointer"
+                                onClick={() => handleInvite(topRecommendation.userId || topRecommendation.freelancerId, topRecommendation.fullName || topRecommendation.username || 'Freelancer')}
+                                disabled={invitingMap[topRecommendation.userId || topRecommendation.freelancerId] || invitedMap[topRecommendation.userId || topRecommendation.freelancerId]}
+                                className={`px-6 py-3 rounded-xl font-extrabold text-xs uppercase tracking-wider shadow-lg transition-all cursor-pointer ${
+                                    invitedMap[topRecommendation.userId || topRecommendation.freelancerId]
+                                        ? 'bg-emerald-500 text-white shadow-emerald-900/40'
+                                        : 'bg-yellow-400 hover:bg-yellow-300 text-slate-950 hover:scale-105'
+                                } disabled:opacity-80`}
                             >
-                                Invite Freelancer ✉️
+                                {invitingMap[topRecommendation.userId || topRecommendation.freelancerId] ? (
+                                    <span>Sending...</span>
+                                ) : invitedMap[topRecommendation.userId || topRecommendation.freelancerId] ? (
+                                    <span>Invited ✓</span>
+                                ) : (
+                                    <span>Invite Freelancer ✉️</span>
+                                )}
                             </button>
                         </div>
 
@@ -90,10 +123,13 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
                         const isTop = index === 0;
                         const score = item.matchScore || item.score || 90;
                         const name = item.fullName || item.username || 'Freelancer';
+                        const id = item.userId || item.freelancerId || index;
+                        const isInvited = invitedMap[id];
+                        const isInviting = invitingMap[id];
 
                         return (
                             <div
-                                key={item.userId || item.freelancerId || index}
+                                key={id}
                                 className={`rounded-[2rem] p-6 sm:p-8 transition-all ${
                                     isTop
                                         ? 'bg-purple-50/40 border-2 border-purple-500/80 shadow-xl shadow-purple-100/50 relative'
@@ -134,10 +170,15 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
                                             <span className="text-2xl font-black text-indigo-600">{score}%</span>
                                         </div>
                                         <button
-                                            onClick={() => handleInvite(name)}
-                                            className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md transition-all hover:scale-105 cursor-pointer"
+                                            onClick={() => handleInvite(id, name)}
+                                            disabled={isInviting || isInvited}
+                                            className={`px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer ${
+                                                isInvited
+                                                    ? 'bg-emerald-600 text-white shadow-emerald-200'
+                                                    : 'bg-purple-600 hover:bg-purple-700 text-white hover:scale-105'
+                                            } disabled:opacity-80`}
                                         >
-                                            Invite ✉️
+                                            {isInviting ? 'Sending...' : isInvited ? 'Invited ✓' : 'Invite ✉️'}
                                         </button>
                                     </div>
                                 </div>

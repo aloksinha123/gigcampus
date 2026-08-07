@@ -12,7 +12,8 @@ import {
     approveDeliverable,
     rejectBid,
     raiseDispute,
-    getProjectTimeline
+    getProjectTimeline,
+    inviteFreelancerToProject
 } from '../controllers/projectController.js';
 import { protect, student } from '../middleware/auth.js';
 
@@ -296,5 +297,32 @@ router.put('/:id/reject-bid/:bidId', protect, student, rejectBid);
  *         description: Dispute raised successfully.
  */
 router.put('/:id/dispute', protect, raiseDispute);
+
+/**
+ * @openapi
+ * /projects/{id}/invite:
+ *   post:
+ *     summary: Invite a freelancer to bid on a project
+ *     tags: [Projects]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [freelancerId]
+ *             properties:
+ *               freelancerId: { type: string }
+ *     responses:
+ *       200:
+ *         description: Invitation sent to target freelancer.
+ */
+router.post('/:id/invite', protect, student, inviteFreelancerToProject);
 
 export default router;

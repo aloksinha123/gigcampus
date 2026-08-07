@@ -80,7 +80,8 @@ export const projectsAPI = {
     complete: (id) => api.put(`/projects/${id}/complete`),
     submitDeliverable: (id, data) => api.post(`/projects/${id}/deliverable`, data),
     approveDeliverable: (id, deliverableId) => api.put(`/projects/${id}/deliverable/${deliverableId}/approve`),
-    raiseDispute: (id, reason) => api.put(`/projects/${id}/dispute`, { reason })
+    raiseDispute: (id, reason) => api.put(`/projects/${id}/dispute`, { reason }),
+    inviteFreelancer: (id, freelancerId) => api.post(`/projects/${id}/invite`, { freelancerId })
 };
 
 // Bids API

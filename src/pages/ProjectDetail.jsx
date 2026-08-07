@@ -1151,6 +1151,15 @@ const ProjectDetail = () => {
                 </div>
             )}
 
+            {showRecommendationModal && (
+                <RecommendationResultsModal
+                    recommendations={recommendationResults}
+                    onClose={() => setShowRecommendationModal(false)}
+                    projectTitle={project?.title}
+                    projectId={id}
+                />
+            )}
+
             {showDisputeModal && (
                 <div className="fixed inset-0 bg-orange-950/60 backdrop-blur-xl z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
                     <div className="bg-white w-full max-w-lg rounded-[3rem] p-12 shadow-2xl animate-in zoom-in-95 duration-500 border-4 border-orange-100">
