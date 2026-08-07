@@ -36,6 +36,8 @@ import aiRoutes from './routes/aiRoutes.js';
 import milestoneRoutes from './routes/milestoneRoutes.js';
 import securityRoutes from './routes/securityRoutes.js';
 import serveSwagger from './docs/swagger.js';
+import requestIdMiddleware from './middleware/requestId.js';
+import { getHealth } from './controllers/healthController.js';
 import {
   authLimiter,
   aiLimiter,
@@ -68,6 +70,7 @@ global.io = io; // Attach to global for easy access in controllers
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(requestIdMiddleware);
 
 // Serve uploaded files
 const uploadDir = path.join(__dirname, 'public/uploads');
@@ -80,11 +83,12 @@ app.use('/uploads', express.static(uploadDir));
 app.use('/api', generalLimiter);
 
 // Specific Auth Endpoint Rate Limiting (5 requests / 15 min per IP)
-// Feature Flag: ENABLE_LOGIN_RATE_LIMIT (defaults to true for production security)
-// Set ENABLE_LOGIN_RATE_LIMIT=false in .env during dev/testing to temporarily disable login 429 limits without removing security code
 const isLoginRateLimitEnabled = process.env.ENABLE_LOGIN_RATE_LIMIT !== 'false';
 
 if (isLoginRateLimitEnabled) {
+  app.use('/api/v1/auth/login', authLimiter);
+  app.use('/api/v1/auth/register', authLimiter);
+  app.use('/api/v1/auth/forgot-password', authLimiter);
   app.use('/api/auth/login', authLimiter);
   app.use('/api/auth/register', authLimiter);
   app.use('/api/auth/forgot-password', authLimiter);
@@ -92,7 +96,30 @@ if (isLoginRateLimitEnabled) {
   console.log('⚠️ [DEV NOTICE] Login Rate Limiter (authLimiter) is temporarily DISABLED via ENABLE_LOGIN_RATE_LIMIT=false');
 }
 
-// API Routes
+// ----------------------------------------------------
+// Production API Version 1 Routes (/api/v1/*)
+// ----------------------------------------------------
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/projects', projectRoutes);
+app.use('/api/v1/bids', bidRoutes);
+app.use('/api/v1/messages', messageRoutes);
+app.use('/api/v1/payments', paymentLimiter, paymentRoutes);
+app.use('/api/v1/payments', paymentLimiter, razorpayPaymentRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/portfolio', portfolioRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/wallet', walletRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/email', emailRoutes);
+app.use('/api/v1/ai', aiLimiter, aiRoutes);
+app.use('/api/v1/milestones', milestoneRoutes);
+app.use('/api/v1/security', securityRoutes);
+app.get('/api/v1/health', getHealth);
+
+// ----------------------------------------------------
+// Legacy API Backward Compatibility (/api/*)
+// ----------------------------------------------------
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/bids', bidRoutes);
@@ -109,18 +136,10 @@ app.use('/api/email', emailRoutes);
 app.use('/api/ai', aiLimiter, aiRoutes);
 app.use('/api/milestones', milestoneRoutes);
 app.use('/api/security', securityRoutes);
+app.get('/api/health', getHealth);
 
-// OpenAPI Swagger Documentation UI
+// OpenAPI Swagger Documentation UI (/api/docs)
 serveSwagger(app);
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'GigCampus API is running',
-    timestamp: new Date().toISOString()
-  });
-});
 
 // Active sockets tracking map: Map<userIdString, Set<socketId>>
 const userSocketsMap = new Map();

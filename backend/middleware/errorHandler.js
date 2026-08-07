@@ -23,9 +23,26 @@ export const errorHandler = (err, req, res, next) => {
             .join(', ');
     }
 
+    const requestId = req.requestId || 'N/A';
+    const route = req.originalUrl || req.url;
+    const userId = req.user?._id ? req.user._id.toString() : 'Unauthenticated';
+    const timestamp = new Date().toISOString();
+
+    // Structured Error Logging
+    console.error(`
+[ERROR]
+Request ID: ${requestId}
+Route: ${route}
+User: ${userId}
+Timestamp: ${timestamp}
+Message: ${message}
+Stack: ${err.stack}
+`);
+
     return res.status(statusCode).json({
         success: false,
         message,
+        requestId,
         stack: process.env.NODE_ENV === 'production' ? null : err.stack
     });
 };

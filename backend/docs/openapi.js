@@ -14,12 +14,16 @@ export const openapiDefinition = {
     },
     servers: [
         {
-            url: 'http://localhost:5003/api',
-            description: 'Local Development Server'
+            url: 'http://localhost:5003/api/v1',
+            description: 'Local Development Server (v1)'
+        },
+        {
+            url: '/api/v1',
+            description: 'Production API Server (v1)'
         },
         {
             url: '/api',
-            description: 'Production API Server'
+            description: 'Legacy API Server'
         }
     ],
     tags: [
