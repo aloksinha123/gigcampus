@@ -168,6 +168,8 @@ io.on('connection', async (socket) => {
   console.log(`User connected socket ${socket.id} (User ID: ${userId || 'Unauthenticated'})`);
 
   if (userId) {
+    socket.join(userId);
+    socket.join(`user_${userId}`);
     if (!userSocketsMap.has(userId)) {
       userSocketsMap.set(userId, new Set());
     }

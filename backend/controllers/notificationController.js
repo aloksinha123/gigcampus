@@ -239,10 +239,16 @@ export const createNotification = async (userId, type, message, metadata = {}) =
         const sentTime = new Date().toISOString();
         console.log(`[NOTIFICATION SENT] ID: ${notification._id}, User: ${userId}, Type: ${type}, Sent Time: ${sentTime}`);
 
-        // Emit socket event if io is available
+        // Emit socket event to user rooms & project room if available
         const io = global.io;
         if (io) {
-            io.to(userId.toString()).emit('newNotification', notification);
+            const uid = userId.toString();
+            io.to(uid).emit('newNotification', notification);
+            io.to(`user_${uid}`).emit('newNotification', notification);
+            if (metadata.project) {
+                const pid = metadata.project.toString();
+                io.to(`project_${pid}`).emit('newNotification', notification);
+            }
         }
 
         return notification;
