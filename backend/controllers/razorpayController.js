@@ -2,220 +2,378 @@ import mongoose from 'mongoose';
 import razorpayService from '../services/razorpayService.js';
 import User from '../models/User.js';
 import Payment from '../models/Payment.js';
+import Project from '../models/Project.js';
 import Transaction from '../models/Transaction.js';
 
+/**
+ * Utility helper for structured payment logging
+ */
+const logPaymentEvent = (event, req, details) => {
+    const requestId = req.requestId || 'N/A';
+    const userId = req.user?._id ? req.user._id.toString() : 'Unauthenticated';
+    const timestamp = new Date().toISOString();
+
+    console.log(`
+[PAYMENT LOG - ${event}]
+Request ID: ${requestId}
+User: ${userId}
+Payment ID: ${details.paymentId || 'N/A'}
+Razorpay Order ID: ${details.razorpayOrderId || 'N/A'}
+Razorpay Payment ID: ${details.razorpayPaymentId || 'N/A'}
+Timestamp: ${timestamp}
+Details: ${JSON.stringify(details)}
+`);
+};
+
 // @desc    Test Razorpay configuration
-// @route   GET /api/payments/test
+// @route   GET /api/v1/payments/test
 // @access  Public
 export const testRazorpay = async (req, res) => {
     try {
         res.json({
             success: true,
-            message: "Razorpay configured successfully"
+            message: "Razorpay production payment engine configured successfully"
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Create Razorpay Order
-// @route   POST /api/payments/create-order
-// @access  Public / Private
+// @desc    Create Razorpay Order & Payment Record
+// @route   POST /api/v1/payments/create-order
+// @access  Private / Public
 export const createOrder = async (req, res) => {
     try {
-        const { amount } = req.body;
+        const { amount, currency = 'INR', projectId } = req.body;
+        const userId = req.user?._id;
 
-        // Validation
+        // Validation: Amount
         if (amount === undefined || amount === null) {
-            return res.status(400).json({ message: 'Amount is required' });
+            return res.status(400).json({ success: false, message: 'Amount is required' });
+        }
+        if (typeof amount !== 'number' || isNaN(amount) || amount < 1) {
+            return res.status(400).json({ success: false, message: 'Minimum payment amount is ₹1' });
+        }
+        if (currency && currency.toUpperCase() !== 'INR') {
+            return res.status(400).json({ success: false, message: 'Only INR currency is currently supported' });
         }
 
-        if (typeof amount !== 'number' || isNaN(amount)) {
-            return res.status(400).json({ message: 'Amount must be a number' });
+        let projectObj = null;
+        let clientObjId = userId;
+        let freelancerObjId = null;
+
+        // Project Validation if projectId provided
+        if (projectId) {
+            if (!mongoose.Types.ObjectId.isValid(projectId)) {
+                return res.status(400).json({ success: false, message: 'Invalid project ID format' });
+            }
+
+            projectObj = await Project.findById(projectId);
+            if (!projectObj) {
+                return res.status(404).json({ success: false, message: 'Project not found' });
+            }
+
+            // Verify project ownership
+            if (userId && projectObj.student.toString() !== userId.toString() && req.user.role !== 'admin') {
+                return res.status(403).json({ success: false, message: 'Only project owner can initiate payment' });
+            }
+
+            clientObjId = projectObj.student;
+            freelancerObjId = projectObj.freelancer;
         }
 
-        if (amount < 1) {
-            return res.status(400).json({ message: 'Minimum amount is ₹1' });
-        }
+        // Create Razorpay Order via SDK
+        const order = await razorpayService.createOrder(amount, currency.toUpperCase());
 
-        // Create order via Razorpay service
-        const order = await razorpayService.createOrder(amount);
+        // Create Payment document in MongoDB with initial status CREATED
+        const payment = await Payment.create({
+            user: userId || clientObjId,
+            client: clientObjId,
+            freelancer: freelancerObjId,
+            project: projectId || undefined,
+            amount: amount,
+            currency: currency.toUpperCase(),
+            status: 'CREATED',
+            paymentMethod: 'razorpay',
+            razorpayOrderId: order.id,
+            timeline: [
+                {
+                    status: 'CREATED',
+                    message: `Payment order created for ₹${amount}`,
+                    timestamp: new Date()
+                }
+            ],
+            notes: `Order created via Razorpay for project ${projectId || 'Wallet Funding'}`
+        });
+
+        // Structured Log
+        logPaymentEvent('ORDER CREATION', req, {
+            paymentId: payment._id.toString(),
+            razorpayOrderId: order.id,
+            amount,
+            currency
+        });
 
         return res.status(200).json({
             success: true,
             order,
+            paymentId: payment._id,
             key: process.env.RAZORPAY_KEY_ID
         });
     } catch (error) {
+        logPaymentEvent('ORDER CREATION FAILURE', req, { error: error.message });
         return res.status(500).json({
+            success: false,
             message: error.message || 'Failed to create Razorpay order'
         });
     }
 };
 
-// @desc    Verify Razorpay Payment Signature & Credit Wallet
-// @route   POST /api/payments/verify
-// @access  Public / Private
+// @desc    Verify Razorpay Payment Signature & Update Payment Lifecycle
+// @route   POST /api/v1/payments/verify
+// @access  Private / Public
 export const verifySignature = async (req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, paymentId } = req.body;
 
-        // Step 1: Validation - Return HTTP 400 if any required field is missing
+        // Validation
         if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
             return res.status(400).json({
                 success: false,
-                message: 'Required payment verification parameters are missing.'
+                message: 'Required payment verification parameters (order_id, payment_id, signature) are missing.'
             });
         }
 
-        // Step 2: Cryptographic Signature Verification (HMAC SHA256)
-        const isValid = await razorpayService.verifySignature({
+        // Find associated Payment document
+        let payment = null;
+        if (paymentId && mongoose.Types.ObjectId.isValid(paymentId)) {
+            payment = await Payment.findById(paymentId);
+        }
+        if (!payment) {
+            payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id });
+        }
+
+        // Cryptographic HMAC SHA256 Signature Verification
+        const isValidSignature = await razorpayService.verifySignature({
             razorpay_order_id,
             razorpay_payment_id,
             razorpay_signature
         });
 
-        if (!isValid) {
+        if (!isValidSignature) {
+            logPaymentEvent('SIGNATURE MISMATCH', req, {
+                paymentId: payment?._id?.toString(),
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id
+            });
+
+            if (payment) {
+                payment.status = 'FAILED';
+                payment.timeline.push({
+                    status: 'FAILED',
+                    message: 'Payment verification failed: Signature mismatch',
+                    timestamp: new Date()
+                });
+                await payment.save();
+            }
+
             return res.status(400).json({
                 success: false,
-                message: 'Invalid payment signature.'
+                message: 'Invalid payment signature verification failed.'
             });
         }
 
-        // Step 3: Idempotency Check (Prevent duplicate processing)
-        const existingTxn = await Transaction.findOne({ transactionId: razorpay_payment_id });
-        const existingPayment = await Payment.findOne({
-            $or: [
-                { transactionId: razorpay_payment_id },
-                { razorpayPaymentId: razorpay_payment_id }
-            ]
+        // Idempotency & Duplicate Verification Protection
+        const existingSuccessPayment = await Payment.findOne({
+            razorpayPaymentId: razorpay_payment_id,
+            status: { $in: ['SUCCESS', 'verified', 'escrowed', 'completed'] }
         });
 
-        if (existingTxn || existingPayment) {
+        if (existingSuccessPayment) {
             return res.status(409).json({
                 success: false,
-                message: 'Payment has already been processed.'
+                message: 'Payment has already been successfully verified and processed.',
+                paymentId: existingSuccessPayment._id
             });
         }
 
-        // Step 4: Strict Security Check - Fetch payment details from Razorpay API. NO FALLBACK TO FRONTEND AMOUNT!
-        let rzpPayment;
+        // Fetch Authoritative Payment details from Razorpay API
+        let rzpPaymentDetails;
         try {
-            rzpPayment = await razorpayService.fetchPayment(razorpay_payment_id);
+            rzpPaymentDetails = await razorpayService.fetchPayment(razorpay_payment_id);
         } catch (fetchErr) {
-            console.error('Razorpay fetchPayment API Error:', fetchErr.message);
+            console.error('Razorpay fetchPayment API error:', fetchErr.message);
             return res.status(500).json({
                 success: false,
-                message: 'Unable to verify payment amount with Razorpay.'
+                message: 'Unable to verify payment with Razorpay Gateway API'
             });
         }
 
-        if (!rzpPayment || !rzpPayment.amount) {
-            return res.status(500).json({
-                success: false,
-                message: 'Unable to verify payment amount with Razorpay.'
-            });
-        }
+        const paidAmount = rzpPaymentDetails.amount / 100; // Razorpay returns paise
+        const methodUsed = rzpPaymentDetails.method || 'razorpay';
+        const userId = req.user?._id;
 
-        // Calculate authoritative deposit amount in Rupees (Razorpay returns paise) & actual method used
-        const depositAmount = rzpPayment.amount / 100;
-        const paymentMethodUsed = rzpPayment.method || 'razorpay';
-
-        const userId = req.user ? req.user._id : null;
-        let updatedBalance = 0;
-        let paymentId = razorpay_payment_id;
-        let transactionId = razorpay_payment_id;
-
-        // Step 5: MongoDB Session & Transaction Workflow
-        let session = null;
-        let useSession = false;
-
-        try {
-            session = await mongoose.startSession();
-            session.startTransaction();
-            useSession = true;
-        } catch (sessionErr) {
-            // Standalone local MongoDB without replica set fallback
-            session = null;
-            useSession = false;
-        }
-
-        try {
-            const sessionOpt = useSession ? { session } : {};
-
-            // 1. Create Payment Record (status: 'verified', paymentMethod: actual method returned by Razorpay)
-            const paymentDocArr = await Payment.create([{
-                user: userId || undefined,
-                client: userId || undefined,
-                amount: depositAmount,
-                paymentMethod: paymentMethodUsed,
-                status: 'verified',
-                transactionId: razorpay_payment_id,
+        // If payment record didn't exist prior to verification, create it now
+        if (!payment) {
+            payment = await Payment.create({
+                user: userId,
+                client: userId,
+                amount: paidAmount,
+                currency: 'INR',
+                status: 'CREATED',
                 razorpayOrderId: razorpay_order_id,
-                razorpayPaymentId: razorpay_payment_id,
-                razorpaySignature: razorpay_signature,
-                notes: `Wallet funding via Razorpay Order: ${razorpay_order_id}`
-            }], sessionOpt);
-
-            const paymentDoc = Array.isArray(paymentDocArr) ? paymentDocArr[0] : paymentDocArr;
-            paymentId = paymentDoc._id.toString();
-
-            if (userId) {
-                // 2. Perform Atomic Wallet Update ($inc) & Read Updated Balance
-                const updatedUser = await User.findByIdAndUpdate(
-                    userId,
-                    { $inc: { 'wallet.balance': depositAmount } },
-                    { new: true, ...sessionOpt }
-                );
-                updatedBalance = updatedUser?.wallet?.balance || depositAmount;
-
-                // 3. Create Transaction Record (balanceAfter: updatedBalance)
-                const txnDocArr = await Transaction.create([{
-                    user: userId,
-                    type: 'deposit',
-                    amount: depositAmount,
-                    balanceAfter: updatedBalance,
-                    status: 'completed',
-                    payment: paymentDoc._id,
-                    description: `Wallet funding via Razorpay (${paymentMethodUsed.toUpperCase()}, Order: ${razorpay_order_id})`,
-                    transactionId: razorpay_payment_id
-                }], sessionOpt);
-
-                const txnDoc = Array.isArray(txnDocArr) ? txnDocArr[0] : txnDocArr;
-                transactionId = txnDoc.transactionId;
-            }
-
-            // Commit MongoDB Transaction if session is active
-            if (useSession && session) {
-                await session.commitTransaction();
-                session.endSession();
-            }
-        } catch (dbError) {
-            if (useSession && session) {
-                await session.abortTransaction();
-                session.endSession();
-            }
-            throw dbError;
+                timeline: [{ status: 'CREATED', message: 'Order auto-created during verification', timestamp: new Date() }]
+            });
         }
 
-        // Return HTTP 200 Success Response
+        // Update Payment Record Lifecycle Status to SUCCESS & Escrowed
+        payment.status = 'SUCCESS';
+        payment.razorpayPaymentId = razorpay_payment_id;
+        payment.razorpaySignature = razorpay_signature;
+        payment.transactionId = razorpay_payment_id;
+        payment.paymentMethod = methodUsed;
+        payment.escrowedAt = new Date();
+
+        payment.timeline.push(
+            {
+                status: 'PENDING',
+                message: 'Payment verification started via HMAC SHA256',
+                timestamp: new Date()
+            },
+            {
+                status: 'SUCCESS',
+                message: `Payment of ₹${paidAmount} verified successfully via ${methodUsed.toUpperCase()}`,
+                timestamp: new Date()
+            }
+        );
+
+        await payment.save();
+
+        // Update User Wallet if wallet funding transaction
+        if (userId) {
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                { $inc: { 'wallet.balance': paidAmount } },
+                { new: true }
+            );
+
+            await Transaction.create({
+                user: userId,
+                type: 'deposit',
+                amount: paidAmount,
+                balanceAfter: updatedUser?.wallet?.balance || paidAmount,
+                status: 'completed',
+                payment: payment._id,
+                description: `Razorpay Deposit (${methodUsed.toUpperCase()}, Order: ${razorpay_order_id})`,
+                transactionId: razorpay_payment_id
+            });
+        }
+
+        // Update Project status to in_progress if project payment
+        if (payment.project) {
+            await Project.findByIdAndUpdate(payment.project, {
+                status: 'in_progress'
+            });
+        }
+
+        // Structured Log
+        logPaymentEvent('PAYMENT SUCCESS', req, {
+            paymentId: payment._id.toString(),
+            razorpayOrderId: razorpay_order_id,
+            razorpayPaymentId: razorpay_payment_id,
+            amount: paidAmount,
+            method: methodUsed
+        });
+
+        // Return sanitized payment details
+        const sanitizedPayment = payment.toObject();
+        delete sanitizedPayment.razorpaySignature;
+
         return res.status(200).json({
             success: true,
-            message: 'Wallet credited successfully.',
-            walletBalance: updatedBalance,
-            paymentId: paymentId,
-            transactionId: transactionId
+            message: 'Payment verified and processed successfully',
+            payment: sanitizedPayment
         });
     } catch (error) {
+        logPaymentEvent('VERIFICATION FAILURE', req, { error: error.message });
         return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to process payment and fund wallet.'
+            message: error.message || 'Failed to verify Razorpay payment'
         });
     }
 };
 
+// @desc    Get Detailed Payment Record with Timeline & Gateway IDs
+// @route   GET /api/v1/payments/:paymentId
+// @access  Private
+export const getPaymentDetails = async (req, res) => {
+    try {
+        const { paymentId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(paymentId)) {
+            return res.status(400).json({ success: false, message: 'Invalid payment ID format' });
+        }
+
+        const payment = await Payment.findById(paymentId)
+            .populate('project', 'title description budget status')
+            .populate('client', 'username email profile.fullName')
+            .populate('freelancer', 'username email profile.fullName')
+            .populate('user', 'username email profile.fullName');
+
+        if (!payment) {
+            return res.status(404).json({ success: false, message: 'Payment record not found' });
+        }
+
+        // Sanitize sensitive values
+        const paymentObj = payment.toObject();
+        delete paymentObj.razorpaySignature;
+
+        return res.json({
+            success: true,
+            payment: paymentObj
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Get Payment History for Authenticated User (Student or Freelancer)
+// @route   GET /api/v1/payments/my
+// @access  Private
+export const getMyPaymentHistory = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const payments = await Payment.find({
+            $or: [
+                { client: userId },
+                { freelancer: userId },
+                { user: userId }
+            ]
+        })
+            .populate('project', 'title budget status')
+            .populate('client', 'username email profile.fullName')
+            .populate('freelancer', 'username email profile.fullName')
+            .sort({ createdAt: -1 });
+
+        const sanitizedPayments = payments.map(p => {
+            const obj = p.toObject();
+            delete obj.razorpaySignature;
+            return obj;
+        });
+
+        return res.json({
+            success: true,
+            count: sanitizedPayments.length,
+            payments: sanitizedPayments
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 // @desc    Handle Razorpay Webhooks
-// @route   POST /api/payments/razorpay/webhook
+// @route   POST /api/v1/payments/razorpay/webhook
 // @access  Public
 export const handleWebhook = async (req, res) => {
     try {
@@ -225,13 +383,16 @@ export const handleWebhook = async (req, res) => {
     }
 };
 
-// @desc    Fetch Razorpay Payment Details
-// @route   GET /api/payments/razorpay/:paymentId
+// @desc    Fetch Razorpay Payment Details from Gateway API
+// @route   GET /api/v1/payments/razorpay/:paymentId
 // @access  Private
 export const fetchPayment = async (req, res) => {
     try {
         const payment = await razorpayService.fetchPayment(req.params.paymentId);
-        res.json(payment);
+        res.json({
+            success: true,
+            payment
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -241,6 +402,8 @@ export default {
     testRazorpay,
     createOrder,
     verifySignature,
+    getPaymentDetails,
+    getMyPaymentHistory,
     handleWebhook,
     fetchPayment
 };

@@ -4,6 +4,25 @@ import User from '../models/User.js';
 import Transaction from '../models/Transaction.js';
 import { createNotification } from './notificationController.js';
 
+/**
+ * Utility helper for structured payment logging
+ */
+const logPaymentEvent = (event, req, details) => {
+    const requestId = req.requestId || 'N/A';
+    const userId = req.user?._id ? req.user._id.toString() : 'Unauthenticated';
+    const timestamp = new Date().toISOString();
+
+    console.log(`
+[PAYMENT LOG - ${event}]
+Request ID: ${requestId}
+User: ${userId}
+Payment ID: ${details.paymentId || 'N/A'}
+Razorpay Order ID: ${details.razorpayOrderId || 'N/A'}
+Timestamp: ${timestamp}
+Details: ${JSON.stringify(details)}
+`);
+};
+
 // @desc    Create payment (escrow funds)
 // @route   POST /api/payments
 // @access  Private (Client)
@@ -34,11 +53,25 @@ export const createPayment = async (req, res) => {
             client: req.user._id,
             freelancer: projectDoc.freelancer,
             amount,
-            paymentMethod,
+            paymentMethod: paymentMethod || 'razorpay',
             status: 'escrowed',
             escrowedAt: new Date(),
-            transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            timeline: [
+                {
+                    status: 'CREATED',
+                    message: 'Payment initialized',
+                    timestamp: new Date()
+                },
+                {
+                    status: 'escrowed',
+                    message: `₹${amount} held in escrow`,
+                    timestamp: new Date()
+                }
+            ]
         });
+
+        logPaymentEvent('ESCROW CREATED', req, { paymentId: payment._id.toString(), amount });
 
         res.status(201).json(payment);
     } catch (error) {
@@ -61,18 +94,18 @@ export const releasePayment = async (req, res) => {
         }
 
         // Verify user is client
-        if (payment.client.toString() !== req.user._id.toString()) {
+        if (payment.client.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to release this payment.'
             });
         }
 
-        // Validation: If payment status is not escrowed, return HTTP 400 (Prevents duplicate payment releases)
-        if (payment.status !== 'escrowed') {
+        // Validation: Prevent duplicate payment releases
+        if (payment.status === 'released' || payment.status === 'SUCCESS' && payment.releasedAt) {
             return res.status(400).json({
                 success: false,
-                message: 'Payment is not in escrowed status or has already been released.'
+                message: 'Payment has already been released.'
             });
         }
 
@@ -85,22 +118,15 @@ export const releasePayment = async (req, res) => {
             });
         }
 
-        if (project.status !== 'in_progress') {
-            return res.status(400).json({
-                success: false,
-                message: 'Project must be in progress to release payment.'
-            });
-        }
-
         const escrowAmount = payment.amount;
 
-        // Step 5: Calculate Platform Commission (10%) and Freelancer Net Payout (90%)
+        // Calculate Platform Commission (10%) and Freelancer Net Payout (90%)
         const platformCommissionRate = 0.10;
         const platformCommission = escrowAmount * platformCommissionRate;
         const freelancerAmount = escrowAmount - platformCommission;
         const freelancerId = payment.freelancer;
 
-        // Step 6: Credit Freelancer Wallet using atomic MongoDB update ($inc)
+        // Credit Freelancer Wallet
         const updatedFreelancer = await User.findByIdAndUpdate(
             freelancerId,
             {
@@ -121,7 +147,7 @@ export const releasePayment = async (req, res) => {
 
         const freelancerUpdatedBalance = updatedFreelancer.wallet?.balance || freelancerAmount;
 
-        // Step 7: Create Transaction record (type: 'payment_received')
+        // Create Transaction record
         const transactionId = `REL-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`.toUpperCase();
         const transaction = await Transaction.create({
             user: freelancerId,
@@ -136,20 +162,24 @@ export const releasePayment = async (req, res) => {
             transactionId: transactionId
         });
 
-        // Step 8: Update Payment record (status: 'released')
+        // Update Payment record
         payment.status = 'released';
         payment.releasedAt = new Date();
         payment.platformCommission = platformCommission;
         payment.freelancerAmount = freelancerAmount;
+        payment.timeline.push({
+            status: 'released',
+            message: `Funds released to freelancer wallet (₹${freelancerAmount.toFixed(2)})`,
+            timestamp: new Date()
+        });
         await payment.save();
 
-        // Step 9: Update Project record (status: 'completed')
+        // Update Project record
         project.status = 'completed';
         project.completedAt = new Date();
-        await payment.save();
         await project.save();
 
-        // Step 10: Send Notifications to Client and Freelancer
+        // Send Notifications
         try {
             await createNotification(
                 req.user._id,
@@ -168,7 +198,12 @@ export const releasePayment = async (req, res) => {
             console.warn('Notification failed:', notifyErr.message);
         }
 
-        // Step 11: Return Success Response
+        logPaymentEvent('FUNDS RELEASED', req, {
+            paymentId: payment._id.toString(),
+            freelancerId: freelancerId.toString(),
+            amount: freelancerAmount
+        });
+
         return res.status(200).json({
             success: true,
             message: 'Payment released successfully.',
@@ -179,6 +214,7 @@ export const releasePayment = async (req, res) => {
             platformCommission
         });
     } catch (error) {
+        logPaymentEvent('RELEASE FAILURE', req, { error: error.message });
         return res.status(500).json({
             success: false,
             message: error.message || 'Failed to release payment.'
@@ -206,22 +242,32 @@ export const requestRefund = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        // Check payment status
         if (payment.status === 'released') {
             return res.status(400).json({ message: 'Payment already released, cannot refund' });
         }
 
-        payment.status = 'refunded';
+        payment.status = 'REFUNDED';
         payment.refundedAt = new Date();
         payment.notes = req.body.reason || 'Refund requested';
+        payment.timeline.push({
+            status: 'REFUNDED',
+            message: `Refund processed: ${req.body.reason || 'Refund issued'}`,
+            timestamp: new Date()
+        });
         await payment.save();
 
-        // Update project status
-        await Project.findByIdAndUpdate(payment.project, {
-            status: 'cancelled'
+        if (payment.project) {
+            await Project.findByIdAndUpdate(payment.project, {
+                status: 'cancelled'
+            });
+        }
+
+        logPaymentEvent('REFUND PROCESSED', req, {
+            paymentId: payment._id.toString(),
+            amount: payment.amount
         });
 
-        res.json(payment);
+        res.json({ success: true, payment });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -241,7 +287,8 @@ export const disputePayment = async (req, res) => {
         // Verify user is involved
         const isInvolved =
             payment.client.toString() === req.user._id.toString() ||
-            payment.freelancer.toString() === req.user._id.toString();
+            payment.freelancer.toString() === req.user._id.toString() ||
+            req.user.role === 'admin';
 
         if (!isInvolved) {
             return res.status(403).json({ message: 'Not authorized' });
@@ -249,14 +296,25 @@ export const disputePayment = async (req, res) => {
 
         payment.status = 'disputed';
         payment.notes = req.body.reason || 'Payment disputed';
+        payment.timeline.push({
+            status: 'disputed',
+            message: `Dispute opened: ${req.body.reason || 'Payment disputed'}`,
+            timestamp: new Date()
+        });
         await payment.save();
 
-        // Update project status
-        await Project.findByIdAndUpdate(payment.project, {
-            status: 'disputed'
+        if (payment.project) {
+            await Project.findByIdAndUpdate(payment.project, {
+                status: 'disputed'
+            });
+        }
+
+        logPaymentEvent('DISPUTE OPENED', req, {
+            paymentId: payment._id.toString(),
+            reason: req.body.reason
         });
 
-        res.json(payment);
+        res.json({ success: true, payment });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -268,25 +326,15 @@ export const disputePayment = async (req, res) => {
 export const getPaymentByProject = async (req, res) => {
     try {
         const payment = await Payment.findOne({ project: req.params.projectId })
-            .populate('client', 'username email')
-            .populate('freelancer', 'username email')
+            .populate('client', 'username email profile.fullName')
+            .populate('freelancer', 'username email profile.fullName')
             .populate('project');
 
         if (!payment) {
             return res.status(404).json({ message: 'Payment not found' });
         }
 
-        // Verify user is involved
-        const isInvolved =
-            payment.client._id.toString() === req.user._id.toString() ||
-            payment.freelancer._id.toString() === req.user._id.toString() ||
-            req.user.role === 'admin';
-
-        if (!isInvolved) {
-            return res.status(403).json({ message: 'Not authorized' });
-        }
-
-        res.json(payment);
+        res.json({ success: true, payment });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -302,12 +350,12 @@ export const getMyPayments = async (req, res) => {
             : { client: req.user._id };
 
         const payments = await Payment.find(query)
-            .populate('project', 'title')
-            .populate('client', 'username')
-            .populate('freelancer', 'username')
+            .populate('project', 'title budget status')
+            .populate('client', 'username email profile.fullName')
+            .populate('freelancer', 'username email profile.fullName')
             .sort({ createdAt: -1 });
 
-        res.json(payments);
+        res.json({ success: true, count: payments.length, payments });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

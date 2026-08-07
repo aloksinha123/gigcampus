@@ -25,6 +25,10 @@ const paymentSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    currency: {
+        type: String,
+        default: 'INR'
+    },
     platformCommission: {
         type: Number,
         default: 0
@@ -35,8 +39,21 @@ const paymentSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'escrowed', 'released', 'refunded', 'disputed', 'completed', 'verified'],
-        default: 'pending'
+        enum: [
+            'CREATED',
+            'PENDING',
+            'SUCCESS',
+            'FAILED',
+            'REFUNDED',
+            'pending',
+            'escrowed',
+            'released',
+            'refunded',
+            'disputed',
+            'completed',
+            'verified'
+        ],
+        default: 'CREATED'
     },
     escrowedAt: Date,
     releasedAt: Date,
@@ -47,19 +64,34 @@ const paymentSchema = new mongoose.Schema({
     razorpaySignature: String,
     paymentMethod: {
         type: String,
-        enum: ['card', 'paypal', 'bank_transfer', 'wallet', 'razorpay', 'upi', 'netbanking'],
-        default: 'card'
+        default: 'razorpay'
     },
+    timeline: [{
+        status: {
+            type: String,
+            required: true
+        },
+        message: {
+            type: String,
+            required: true
+        },
+        timestamp: {
+            type: Date,
+            default: Date.now
+        }
+    }],
     notes: String
 }, {
     timestamps: true
 });
 
-// Index for payment queries
+// Indexes for query performance
 paymentSchema.index({ project: 1 });
 paymentSchema.index({ user: 1 });
 paymentSchema.index({ client: 1, status: 1 });
 paymentSchema.index({ freelancer: 1, status: 1 });
+paymentSchema.index({ razorpayOrderId: 1 });
+paymentSchema.index({ razorpayPaymentId: 1 });
 
 const Payment = mongoose.model('Payment', paymentSchema);
 export default Payment;
