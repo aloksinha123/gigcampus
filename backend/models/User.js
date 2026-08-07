@@ -89,6 +89,15 @@ const userSchema = new mongoose.Schema({
     lastSeen: {
         type: Date,
         default: Date.now
+    },
+    notificationPreferences: {
+        browserNotifications: { type: Boolean, default: true },
+        messageNotifications: { type: Boolean, default: true },
+        paymentNotifications: { type: Boolean, default: true },
+        bidNotifications: { type: Boolean, default: true },
+        projectNotifications: { type: Boolean, default: true },
+        aiNotifications: { type: Boolean, default: true },
+        marketingNotifications: { type: Boolean, default: false }
     }
 }, {
     timestamps: true
@@ -122,6 +131,7 @@ userSchema.methods.getPublicProfile = function () {
         isEmailVerified: this.isEmailVerified,
         isOnline: this.isOnline,
         lastSeen: this.lastSeen,
+        notificationPreferences: this.notificationPreferences,
         createdAt: this.createdAt
     };
 };

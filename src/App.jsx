@@ -22,6 +22,7 @@ const MyBids = lazy(() => import('./pages/MyBids'));
 const Messages = lazy(() => import('./pages/Messages'));
 const Portfolio = lazy(() => import('./pages/Portfolio'));
 const Profile = lazy(() => import('./pages/Profile'));
+const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
 const StudentDashboard = lazy(() => import('./pages/StudentDashboard'));
 const FreelancerDashboard = lazy(() => import('./pages/FreelancerDashboard'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -100,6 +101,12 @@ function AppRoutes() {
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/notification-settings" element={
+            <ProtectedRoute>
+              <NotificationSettings />
             </ProtectedRoute>
           } />
 

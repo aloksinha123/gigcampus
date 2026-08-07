@@ -9,7 +9,7 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['bid', 'message', 'payment', 'review', 'project', 'system'],
+        enum: ['bid', 'message', 'payment', 'review', 'project', 'system', 'ai', 'marketing'],
         required: true
     },
     message: {
@@ -19,6 +19,19 @@ const notificationSchema = new mongoose.Schema({
     read: {
         type: Boolean,
         default: false
+    },
+    readAt: {
+        type: Date
+    },
+    clickedAt: {
+        type: Date
+    },
+    dismissed: {
+        type: Boolean,
+        default: false
+    },
+    dismissedAt: {
+        type: Date
     },
     project: {
         type: mongoose.Schema.Types.ObjectId,

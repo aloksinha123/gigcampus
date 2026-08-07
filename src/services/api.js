@@ -158,7 +158,11 @@ export const walletAPI = {
 // Notifications API
 export const notificationsAPI = {
     getMy: () => api.get('/notifications/my'),
+    getPreferences: () => api.get('/notifications/preferences'),
+    updatePreferences: (data) => api.put('/notifications/preferences', data),
     markAsRead: (id) => api.put(`/notifications/${id}/read`),
+    markAsClicked: (id) => api.put(`/notifications/${id}/click`),
+    dismiss: (id) => api.put(`/notifications/${id}/dismiss`),
     markAllAsRead: () => api.put('/notifications/read-all'),
     delete: (id) => api.delete(`/notifications/${id}`)
 };

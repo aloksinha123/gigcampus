@@ -197,9 +197,9 @@ const NotificationBell = () => {
                                         key={notification._id}
                                         to={getNotificationLink(notification)}
                                         onClick={() => {
-                                            if (!notification.read) {
-                                                markAsRead(notification._id);
-                                            }
+                                            try {
+                                                api.notifications.markAsClicked(notification._id);
+                                            } catch (e) {}
                                             setShowDropdown(false);
                                         }}
                                         className={`block p-4 hover:bg-gray-50 transition ${!notification.read ? 'bg-blue-50' : ''

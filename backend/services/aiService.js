@@ -186,29 +186,44 @@ Strict Rules:
 
     // Fallback proposal quality analyzer when API rate limit is reached
     const words = proposal.trim().split(/\s+/).length;
-    const hasTechnicalKeywords = /react|node|mongo|api|design|code|testing|milestone|deliverable|figma|build/i.test(proposal);
+    const hasTechnicalKeywords = /react|node|mongo|mern|api|design|code|testing|milestone|deliverable|figma|build|deployment|documentation|authentication/i.test(proposal);
 
-    let fallbackScore = 75;
-    if (words >= 40) fallbackScore += 10;
+    let fallbackScore = 45;
+    if (words >= 10) fallbackScore += 20;
+    if (words >= 35) fallbackScore += 20;
     if (hasTechnicalKeywords) fallbackScore += 10;
-    fallbackScore = Math.min(95, fallbackScore);
+    fallbackScore = Math.min(95, Math.max(35, fallbackScore));
 
-    const fallbackWinChance = fallbackScore >= 85 ? 'High' : (fallbackScore >= 70 ? 'Medium' : 'Low');
+    const fallbackWinChance = fallbackScore >= 85 ? 'High' : (fallbackScore >= 65 ? 'Medium' : 'Low');
+
+    const weaknesses = [];
+    const suggestions = [];
+
+    if (words < 10) {
+        weaknesses.push('Proposal is extremely brief and lacks technical depth');
+        weaknesses.push('No delivery breakdown or milestone timeline provided');
+        suggestions.push('Explain your technical approach and past experience in detail');
+        suggestions.push('Provide a step-by-step milestone schedule');
+    } else if (words < 35) {
+        weaknesses.push('Proposal is relatively brief; consider expanding on your technical approach');
+        suggestions.push('Mention specific milestones or delivery timeline for each stage');
+    }
+
+    if (!hasTechnicalKeywords) {
+        weaknesses.push('Lacks specific technical stack terms relevant to the project');
+        suggestions.push('Include 14-day post-launch support guarantee to improve client trust');
+    }
+
+    const strengths = words >= 10
+        ? ['Directly addresses project deliverables and scope', hasTechnicalKeywords ? 'Includes relevant technical stack terminology' : 'Clear and approachable communication style']
+        : ['Quick initial response to project listing'];
 
     return {
         score: fallbackScore,
         estimatedWinChance: fallbackWinChance,
-        strengths: [
-            'Directly addresses project deliverables and scope',
-            hasTechnicalKeywords ? 'Includes relevant technical stack terminology' : 'Clear and approachable communication style'
-        ],
-        weaknesses: [
-            words < 40 ? 'Proposal is relatively brief; consider expanding on your technical approach' : 'Could detail testing and post-launch verification'
-        ],
-        suggestions: [
-            'Mention specific milestones or delivery timeline for each stage',
-            'Include 14-day post-launch support guarantee to improve client trust'
-        ],
+        strengths,
+        weaknesses,
+        suggestions,
         modelUsed: 'deterministic-bid-fallback',
         promptTokens: null,
         responseTokens: null
@@ -305,28 +320,36 @@ Strict Rules:
     // Dynamic Fallback risk analyzer when API rate limit is reached
     const combined = `${title} ${description}`.toLowerCase();
     const wordCount = description.trim().split(/\s+/).length;
+    const numBudget = Number(budget) || 0;
+    const timelineStr = (timeline || '').toLowerCase();
 
     let risk = 'Low';
     let complexity = 'Low';
     const issues = [];
     const recommendations = [];
 
-    if (combined.includes('e-commerce') || combined.includes('fullstack') || combined.includes('mobile app')) {
+    if (combined.includes('amazon') || combined.includes('e-commerce') || combined.includes('fullstack') || combined.includes('mobile app')) {
         complexity = 'High';
-    } else if (combined.includes('website') || combined.includes('dashboard') || combined.includes('api')) {
+    } else if (combined.includes('website') || combined.includes('dashboard') || combined.includes('api') || combined.includes('portfolio')) {
         complexity = 'Medium';
     }
 
-    if (wordCount < 25) {
-        risk = 'Medium';
-        issues.push('Brief is short; freelancers may require clarification on project scope');
-        recommendations.push('Add more technical detail regarding core features and expected deliverables');
+    if (combined.includes('amazon') || (numBudget > 0 && numBudget < 2000 && complexity === 'High')) {
+        risk = 'High';
+        issues.push(`Unrealistic budget (₹${budget}) for an enterprise fullstack scope like Amazon Clone`);
+        recommendations.push('Increase budget floor significantly or break development into phase milestones');
     }
 
-    if (budget && Number(budget) < 1000 && complexity === 'High') {
+    if (timelineStr.includes('tomorrow') || timelineStr.includes('1 day') || timelineStr.includes('2 day') || timelineStr.includes('fast')) {
         risk = 'High';
-        issues.push(`Budget (₹${budget}) may be low for a high-complexity project`);
-        recommendations.push('Consider raising budget floor or breaking scope into milestone phases');
+        issues.push(`Unrealistic delivery timeline ("${timeline}") for requested technical scope`);
+        recommendations.push('Extend delivery timeline to a realistic 14-21 day development cycle');
+    }
+
+    if (wordCount < 10) {
+        if (risk !== 'High') risk = 'Medium';
+        issues.push('Brief description is very short; freelancers may require additional scope clarification');
+        recommendations.push('Add explicit feature acceptance criteria and design assets link');
     }
 
     if (issues.length === 0) {
