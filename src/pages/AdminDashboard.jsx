@@ -123,6 +123,12 @@ const AdminDashboard = () => {
               Audit Users
             </Link>
             <Link
+              to="/admin/reviews"
+              className="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition"
+            >
+              Moderate Reviews
+            </Link>
+            <Link
               to="/admin/disputes"
               className="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition"
             >

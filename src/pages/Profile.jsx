@@ -8,6 +8,7 @@ import AddMoneyModal from '../components/AddMoneyModal';
 import UserPresence from '../components/UserPresence';
 import ActiveSessions from '../components/ActiveSessions';
 import MySecurityHistory from '../components/MySecurityHistory';
+import ReviewSummaryCard from '../components/ReviewSummaryCard';
 
 const Profile = () => {
     const { user, logout, refreshUser } = useAuth();
@@ -24,6 +25,9 @@ const Profile = () => {
     const [walletAmount, setWalletAmount] = useState('');
     const [walletLoading, setWalletLoading] = useState(false);
     const [transactions, setTransactions] = useState([]);
+    const [reviews, setReviews] = useState([]);
+    const [reviewsAverages, setReviewsAverages] = useState({});
+    const [reviewsLoading, setReviewsLoading] = useState(true);
 
     useEffect(() => {
         if (refreshUser) {
@@ -32,12 +36,32 @@ const Profile = () => {
         fetchTransactions();
     }, []);
 
+    useEffect(() => {
+        if (user?._id) {
+            fetchReviews();
+        }
+    }, [user?._id]);
+
     const fetchTransactions = async () => {
         try {
             const response = await api.wallet.getTransactions();
             setTransactions(response.data?.transactions || response.data || []);
         } catch (err) {
             console.error('Failed to fetch transactions:', err);
+        }
+    };
+
+    const fetchReviews = async () => {
+        if (!user?._id) return;
+        try {
+            setReviewsLoading(true);
+            const response = await api.reviews.getUserReviews(user._id);
+            setReviews(response.data.reviews || []);
+            setReviewsAverages(response.data.averages || {});
+        } catch (err) {
+            console.error('Failed to fetch reviews:', err);
+        } finally {
+            setReviewsLoading(false);
         }
     };
 
@@ -469,6 +493,109 @@ const Profile = () => {
                                 <p className="text-sm text-gray-600">Reviews</p>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Reviews & Ratings Section */}
+                <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-800">Reviews & Ratings</h2>
+                            <p className="text-sm text-gray-500">Feedback from your collaborators</p>
+                        </div>
+                        {user?.role === 'freelancer' && user?.reputation?.totalReviews >= 20 && user?.reputation?.score >= 4.8 && (
+                            <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-black rounded-full flex items-center gap-1 shadow-sm border border-amber-200">
+                                🏆 TOP RATED FREELANCER
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Stats Dashboard */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        {/* Overall Average */}
+                        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center flex flex-col justify-center items-center">
+                            <span className="text-5xl font-black text-slate-800">
+                                {user?.reputation?.score?.toFixed(1) || '0.0'}
+                            </span>
+                            <div className="flex text-amber-400 my-2">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <span key={star} className="text-lg">
+                                        {star <= (user?.reputation?.score || 0) ? '★' : '☆'}
+                                    </span>
+                                ))}
+                            </div>
+                            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                                {user?.reputation?.totalReviews || 0} Total Reviews
+                            </span>
+                        </div>
+
+                        {/* Middle Stat Card (Distribution or Client Profile details) */}
+                        {user?.role === 'freelancer' ? (
+                            /* Rating Distribution */
+                            <div className="md:col-span-2 bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-2">
+                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Rating Distribution</h3>
+                                {[5, 4, 3, 2, 1].map((stars) => {
+                                    const count = user?.reputation?.ratingDistribution?.[stars] || 0;
+                                    const total = user?.reputation?.totalReviews || 1;
+                                    const pct = ((count / total) * 100).toFixed(0);
+                                    return (
+                                        <div key={stars} className="flex items-center text-xs text-slate-600">
+                                            <span className="w-12 text-slate-500 font-bold">{stars} Stars</span>
+                                            <div className="flex-1 mx-3 bg-slate-200 h-2 rounded-full overflow-hidden">
+                                                <div 
+                                                    className="bg-amber-400 h-full rounded-full transition-all duration-500" 
+                                                    style={{ width: `${pct}%` }}
+                                                />
+                                            </div>
+                                            <span className="w-8 text-right font-bold text-slate-700">{count}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            /* Client Profile Stats */
+                            <div className="md:col-span-2 bg-slate-50 p-5 rounded-2xl border border-slate-100 grid grid-cols-2 gap-4">
+                                <div className="p-3 bg-white rounded-xl border border-slate-100 text-center shadow-sm">
+                                    <span className="text-2xl font-black text-indigo-600 block">
+                                        {reviews.length > 0 && reviewsAverages.totalReviews > 0
+                                            ? `${((reviewsAverages.wouldRecommendCount / reviewsAverages.totalReviews) * 100).toFixed(0)}%`
+                                            : '100%'
+                                        }
+                                    </span>
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Hire Again %</span>
+                                </div>
+                                <div className="p-3 bg-white rounded-xl border border-slate-100 text-center shadow-sm">
+                                    <span className="text-2xl font-black text-emerald-600 block">95%</span>
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Response Rate</span>
+                                </div>
+                                <div className="p-3 bg-white rounded-xl border border-slate-100 text-center shadow-sm col-span-2">
+                                    <span className="text-2xl font-black text-slate-700 block">
+                                        {user?.reputation?.completedProjects || 0}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Projects Completed</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Reviews List */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Reviews</h3>
+                        {reviewsLoading ? (
+                            <div className="text-center py-6">
+                                <p className="text-slate-500 text-sm">Loading reviews...</p>
+                            </div>
+                        ) : reviews.length === 0 ? (
+                            <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                                <p className="text-slate-500 text-sm">No reviews received yet</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+                                {reviews.map((rev) => (
+                                    <ReviewSummaryCard key={rev._id} review={rev} />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 

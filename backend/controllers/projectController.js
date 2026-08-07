@@ -347,6 +347,7 @@ export const completeProject = async (req, res) => {
         const project = await Project.findById(req.params.id);
 
         if (!project) {
+
             return res.status(404).json({
                 success: false,
                 message: 'Project not found'
@@ -438,6 +439,7 @@ export const completeProject = async (req, res) => {
 
         // Send Notifications to Client and Freelancer
         try {
+
             await createNotification(
                 req.user._id,
                 'payment',
@@ -725,7 +727,9 @@ export const inviteFreelancerToProject = async (req, res) => {
             notification
         });
     } catch (error) {
-        console.error('Invite Freelancer Error:', error);
-        return res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
     }
 };

@@ -30,6 +30,7 @@ const AdminUsers = lazy(() => import('./pages/AdminUsers'));
 const AdminProjects = lazy(() => import('./pages/AdminProjects'));
 const AdminDisputes = lazy(() => import('./pages/AdminDisputes'));
 const AdminSecurity = lazy(() => import('./pages/AdminSecurity'));
+const AdminReviews = lazy(() => import('./pages/AdminReviews'));
 const Wallet = lazy(() => import('./pages/Wallet'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -145,6 +146,12 @@ function AppRoutes() {
           <Route path="/admin/projects" element={
             <ProtectedRoute roles={['admin']}>
               <AdminProjects />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/reviews" element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminReviews />
             </ProtectedRoute>
           } />
 

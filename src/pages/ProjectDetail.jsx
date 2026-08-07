@@ -10,10 +10,11 @@ import SmartBidAnalysisModal from '../components/SmartBidAnalysisModal';
 import RecommendationResultsModal from '../components/RecommendationResultsModal';
 import MilestoneList from '../components/MilestoneList';
 import UserPresence from '../components/UserPresence';
+import ReviewModal from '../components/ReviewModal';
 
 const ProjectDetail = () => {
     const { id } = useParams();
-    const { user, logout, updateUser } = useAuth();
+    const { user, logout, updateUser, refreshUser } = useAuth();
     const { success, error } = useNotification();
     const navigate = useNavigate();
 
@@ -57,6 +58,7 @@ const ProjectDetail = () => {
     const [analyzingBid, setAnalyzingBid] = useState(false);
     const [bidAnalysisResult, setBidAnalysisResult] = useState(null);
     const [showBidAnalysisModal, setShowBidAnalysisModal] = useState(false);
+    const [hasReviewed, setHasReviewed] = useState(false);
 
     // AI Proposal Generator State
     const [generatingProposal, setGeneratingProposal] = useState(false);
@@ -173,6 +175,21 @@ const ProjectDetail = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const checkUserReview = async () => {
+            if (!id || !user?._id || !project || project.status !== 'completed') return;
+            try {
+                const reviewsRes = await api.reviews.getProjectReviews(id);
+                const projectReviews = reviewsRes.data || [];
+                const userHasReviewed = projectReviews.some(r => String(r.reviewer._id || r.reviewer) === String(user._id));
+                setHasReviewed(userHasReviewed);
+            } catch (err) {
+                console.error('Failed to check user review status:', err);
+            }
+        };
+        checkUserReview();
+    }, [id, user?._id, project?.status]);
 
     const fetchBids = async () => {
         try {
@@ -402,7 +419,7 @@ const ProjectDetail = () => {
     const isAssignedFreelancer = user?.role === 'freelancer' && (String(user._id) === String(project.freelancer?._id || project.freelancer));
     const isFreelancer = Boolean(isAssignedFreelancer || (user?.role === 'freelancer' && String(user?._id) === String(project.freelancer?._id || project.freelancer)));
     const canSubmitWork = isAssignedFreelancer && project.status === 'in_progress';
-    const canReview = project.status === 'completed' && (isOwner || (String(user?._id) === String(project.freelancer?._id || project.freelancer)));
+    const canReview = project.status === 'completed' && (isOwner || (String(user?._id) === String(project.freelancer?._id || project.freelancer))) && !hasReviewed;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -1204,6 +1221,18 @@ const ProjectDetail = () => {
                         </form>
                     </div>
                 </div>
+            )}
+            {showReviewModal && (
+                <ReviewModal
+                    isOpen={showReviewModal}
+                    onClose={() => setShowReviewModal(false)}
+                    project={project}
+                    reviewee={isOwner ? project.freelancer : project.client}
+                    onReviewSubmitted={() => {
+                        fetchProjectDetails();
+                        if (refreshUser) refreshUser();
+                    }}
+                />
             )}
         </div>
     );

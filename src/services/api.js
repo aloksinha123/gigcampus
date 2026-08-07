@@ -117,13 +117,16 @@ export const paymentsAPI = {
     dispute: (id, reason) => api.put(`/payments/${id}/dispute`, { reason })
 };
 
-// Reviews API
 export const reviewsAPI = {
     submit: (data) => api.post('/reviews', data),
     getMy: () => api.get('/reviews/my'),
     getUserReviews: (userId, params) => api.get(`/reviews/user/${userId}`, { params }),
     getProjectReviews: (projectId) => api.get(`/reviews/project/${projectId}`),
-    respond: (id, comment) => api.put(`/reviews/${id}/respond`, { comment })
+    respond: (id, comment) => api.put(`/reviews/${id}/respond`, { comment }),
+    delete: (id) => api.delete(`/reviews/${id}`),
+    toggleHide: (id) => api.put(`/reviews/${id}/hide`),
+    getAll: (params) => api.get('/reviews', { params }),
+    update: (id, data) => api.put(`/reviews/${id}`, data)
 };
 
 // Portfolio API

@@ -22,19 +22,24 @@ const reviewSchema = new mongoose.Schema({
         min: 1,
         max: 5
     },
-    comment: {
+    review: {
         type: String,
-        required: true
+        required: true,
+        minlength: 20,
+        maxlength: 1000
     },
-    categories: {
-        communication: { type: Number, min: 1, max: 5 },
-        quality: { type: Number, min: 1, max: 5 },
-        professionalism: { type: Number, min: 1, max: 5 },
-        timeliness: { type: Number, min: 1, max: 5 }
+    communicationRating: { type: Number, min: 1, max: 5, required: true },
+    qualityRating: { type: Number, min: 1, max: 5, required: true },
+    deadlineRating: { type: Number, min: 1, max: 5, required: true },
+    professionalismRating: { type: Number, min: 1, max: 5, required: true },
+    wouldRecommend: {
+        type: Boolean,
+        required: true,
+        default: true
     },
-    response: {
-        comment: String,
-        createdAt: Date
+    isHidden: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
@@ -50,11 +55,23 @@ reviewSchema.post('save', async function () {
     const Review = mongoose.model('Review');
 
     const reviews = await Review.find({ reviewee: this.reviewee });
-    const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+    const totalReviews = reviews.length;
+    const avgRating = totalReviews > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews : 0;
+    
+    const recommendationCount = reviews.filter(r => r.wouldRecommend).length;
+    
+    const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviews.forEach(r => {
+        if (distribution[r.rating] !== undefined) {
+            distribution[r.rating]++;
+        }
+    });
 
     await User.findByIdAndUpdate(this.reviewee, {
         'reputation.score': avgRating,
-        'reputation.totalReviews': reviews.length
+        'reputation.totalReviews': totalReviews,
+        'reputation.recommendationCount': recommendationCount,
+        'reputation.ratingDistribution': distribution
     });
 });
 
