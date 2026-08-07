@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import {
     improveProjectDescription,
     enhanceProjectDescriptionService,
+    recommendFreelancersForProjectService,
     analyzeBidProposal,
     recommendFreelancers
 } from '../services/aiService.js';
@@ -293,55 +294,77 @@ export const analyzeBid = async (req, res) => {
     }
 };
 
-// @desc    Rank and recommend freelancers for a project using Google Gemini AI
-// @route   POST /api/ai/recommend-freelancers
-// @access  Private (Project Owner / Authenticated Users)
+// @desc    Rank and recommend top freelancers for a project using Google Gemini AI
+// @route   POST /api/v1/ai/recommend-freelancers
+// @access  Private (Authenticated Clients / Project Owner)
 export const recommendFreelancersController = async (req, res) => {
+    const startTime = Date.now();
     try {
+        const { projectId } = req.body;
+        const userId = req.user?._id;
+
+        // 1. If projectId provided, perform database-backed AI freelancer recommendation
+        if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+            const project = await Project.findById(projectId);
+            if (!project) {
+                return res.status(404).json({ success: false, message: 'Project not found.' });
+            }
+
+            // Fetch candidate freelancers from MongoDB
+            const freelancers = await User.find({
+                role: { $in: ['freelancer', 'both', 'student'] },
+                isActive: true
+            }).select('-password').limit(10);
+
+            if (!freelancers || freelancers.length === 0) {
+                return res.status(200).json({ success: true, recommendations: [] });
+            }
+
+            const result = await recommendFreelancersForProjectService({ project, freelancers });
+            const generationTimeMs = Date.now() - startTime;
+
+            console.log(`
+[AI FREELANCERS RECOMMENDED]
+Request ID: ${req.requestId || 'N/A'}
+User ID: ${userId || 'Unauthenticated'}
+Project ID: ${projectId}
+Candidate Count: ${freelancers.length}
+Generation Time: ${generationTimeMs}ms
+Model Used: ${result.modelUsed}
+Prompt Tokens: ${result.promptTokens ?? 'N/A'}
+Response Tokens: ${result.responseTokens ?? 'N/A'}
+Timestamp: ${new Date().toISOString()}
+`);
+
+            return res.status(200).json({
+                success: true,
+                recommendations: result.recommendations,
+                meta: {
+                    modelUsed: result.modelUsed,
+                    generationTimeMs,
+                    promptTokens: result.promptTokens,
+                    responseTokens: result.responseTokens
+                }
+            });
+        }
+
+        // 2. Backward compatibility for candidate bids array
         let { projectDescription, requiredSkills, budget, deliveryDays, bids } = req.body;
 
-        if (!projectDescription || typeof projectDescription !== 'string' || !projectDescription.trim()) {
+        if (!projectDescription || !Array.isArray(bids) || bids.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: 'projectDescription is required and must be a valid string.'
-            });
-        }
-
-        if (!Array.isArray(bids) || bids.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'bids must be a non-empty array of candidate bids.'
-            });
-        }
-
-        if (budget === undefined || budget === null || isNaN(Number(budget)) || Number(budget) <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'budget is required and must be a positive number greater than 0.'
-            });
-        }
-
-        if (deliveryDays === undefined || deliveryDays === null || isNaN(Number(deliveryDays)) || Number(deliveryDays) <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'deliveryDays is required and must be a positive number greater than 0.'
+                message: 'projectId or non-empty candidate bids array is required.'
             });
         }
 
         const result = await recommendFreelancers({
             projectDescription: projectDescription.trim(),
             requiredSkills: Array.isArray(requiredSkills) ? requiredSkills : [],
-            budget: Number(budget),
-            deliveryDays: Number(deliveryDays),
+            budget: Number(budget) || 1000,
+            deliveryDays: Number(deliveryDays) || 7,
             bids
         });
-
-        if (!result || !Array.isArray(result.recommendations)) {
-            return res.status(500).json({
-                success: false,
-                message: 'Unable to generate freelancer recommendations.'
-            });
-        }
 
         return res.status(200).json({
             success: true,

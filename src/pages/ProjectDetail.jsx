@@ -135,69 +135,21 @@ const ProjectDetail = () => {
     const [showRecommendationModal, setShowRecommendationModal] = useState(false);
 
     const handleRecommendFreelancers = async () => {
-        if (!bids || bids.length === 0) {
-            error('No freelancer proposals available.');
-            return;
-        }
-
         try {
             setRecommendLoading(true);
 
-            // Format candidate bids array
-            const candidateBids = bids.map((b) => ({
-                freelancerId: (b.freelancer?._id || b.freelancer?.id || b.freelancer || '').toString(),
-                username: b.freelancer?.username || b.freelancer?.name || 'Freelancer',
-                bidText: b.proposal || b.bidText || '',
-                bidAmount: Number(b.price || b.bidAmount || 0),
-                deliveryDays: parseInt((b.timeline || '7').toString().replace(/\D/g, ''), 10) || 7,
-                skills: Array.isArray(b.freelancer?.skills) ? b.freelancer.skills : [],
-                portfolioSummary: b.freelancer?.bio || '',
-                averageRating: Number(b.freelancer?.reputation?.rating) || Number(b.freelancer?.rating) || 4.5,
-                completedProjects: Number(b.freelancer?.reputation?.completedProjects) || Number(b.freelancer?.completedProjects) || 0
-            }));
-
-            // Parse project delivery days
-            let projectDays = 7;
-            if (project.timeline) {
-                const parsed = parseInt(project.timeline.toString().replace(/\D/g, ''), 10);
-                if (!isNaN(parsed) && parsed > 0) projectDays = parsed;
-            }
-
-            const response = await api.post('/ai/recommend-freelancers', {
-                projectDescription: project.description || project.title || '',
-                requiredSkills: Array.isArray(project.skills) ? project.skills : Array.isArray(project.requiredSkills) ? project.requiredSkills : [],
-                budget: Number(project.budget) || 1000,
-                deliveryDays: projectDays,
-                bids: candidateBids
-            });
+            const response = await api.ai.recommendFreelancers(id);
 
             if (response.data?.success && Array.isArray(response.data.recommendations)) {
-                // Enrich recommendation cards with freelancer usernames and ratings
-                const enrichedRecs = response.data.recommendations.map(rec => {
-                    const matchingBid = candidateBids.find(c => c.freelancerId === rec.freelancerId);
-                    return {
-                        ...rec,
-                        username: rec.username || matchingBid?.username || 'Freelancer',
-                        averageRating: rec.averageRating || matchingBid?.averageRating || 4.5,
-                        completedProjects: rec.completedProjects || matchingBid?.completedProjects || 0
-                    };
-                });
-
-                setRecommendationResults(enrichedRecs);
+                setRecommendationResults(response.data);
                 setShowRecommendationModal(true);
-                success('✨ AI Freelancer Recommendation audit complete!');
+                success('✨ AI Freelancer Recommendation complete!');
             } else {
-                error('Unable to generate recommendations.');
+                error('Unable to generate AI freelancer recommendations.');
             }
         } catch (err) {
-            console.error('Recommend Freelancers Error:', err);
-            if (err.response?.status === 401) {
-                error('Session expired. Please login again.');
-            } else if (err.response?.status === 400) {
-                error(err.response?.data?.message || 'Invalid request fields.');
-            } else {
-                error('Unable to generate recommendations.');
-            }
+            console.error('AI Freelancer Recommendation error:', err);
+            error(err.response?.data?.message || 'Unable to generate freelancer recommendations.');
         } finally {
             setRecommendLoading(false);
         }

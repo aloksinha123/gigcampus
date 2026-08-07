@@ -394,9 +394,154 @@ Strict Rules:
     };
 };
 
+/**
+ * Service to rank and recommend platform freelancers for a specific project using Gemini AI
+ * @param {Object} params - { project, freelancers }
+ * @returns {Promise<Object>} { recommendations, modelUsed, promptTokens, responseTokens }
+ */
+export const recommendFreelancersForProjectService = async ({ project, freelancers }) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    const candidatesSummary = freelancers.map(f => ({
+        userId: f._id.toString(),
+        username: f.username || 'freelancer',
+        fullName: f.profile?.fullName || f.username || 'Freelancer',
+        skills: Array.isArray(f.profile?.skills) ? f.profile.skills : (Array.isArray(f.skills) ? f.skills : []),
+        completedProjects: f.reputation?.completedProjects || f.completedProjects || 0,
+        rating: f.reputation?.rating || f.rating || 4.8,
+        bio: f.profile?.bio || f.bio || 'Software Developer',
+        hourlyRate: f.hourlyRate || f.profile?.hourlyRate || 500
+    }));
+
+    const projectTitle = project.title || 'Project';
+    const projectDesc = project.description || '';
+    const projectSkills = Array.isArray(project.skillsRequired) && project.skillsRequired.length > 0 
+        ? project.skillsRequired 
+        : (Array.isArray(project.skills) ? project.skills : []);
+    const category = project.category || 'Development';
+    const budget = project.budget ? (project.budget.max || project.budget.min || project.budget) : 'Negotiable';
+
+    if (apiKey) {
+        const ai = new GoogleGenAI({ apiKey });
+
+        const prompt = `You are an AI talent matchmaker for GigCampus freelance platform.
+Analyze the project requirements and rank candidate freelancers based on:
+1. Skill Match
+2. Experience & Completed Projects
+3. Rating & Performance
+4. Budget Compatibility & Domain Relevance
+
+Project Details:
+- Title: "${projectTitle}"
+- Description: "${projectDesc}"
+- Required Skills: ${JSON.stringify(projectSkills)}
+- Category: "${category}"
+- Budget: ₹${budget}
+
+Candidate Freelancers: ${JSON.stringify(candidatesSummary)}
+
+Return ONLY a 100% valid raw JSON object matching this structure:
+{
+  "recommendations": [
+    {
+      "userId": "exact_user_id_from_candidates",
+      "matchScore": 95,
+      "reason": "Detailed 1-2 sentence explanation why this freelancer is an ideal match for the project."
+    }
+  ]
+}
+
+Strict Rules:
+1. Output MUST be 100% valid raw JSON.
+2. matchScore must be a number between 60 and 99.
+3. userId MUST match one of the candidate userIds provided in the list.`;
+
+        const modelsToTry = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
+
+        for (const modelName of modelsToTry) {
+            try {
+                const response = await ai.models.generateContent({
+                    model: modelName,
+                    contents: prompt,
+                    config: { responseMimeType: 'application/json' }
+                });
+
+                const text = typeof response.text === 'function' ? response.text() : (response.text || '');
+                if (text && text.trim()) {
+                    let cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    const firstBrace = cleaned.indexOf('{');
+                    const lastBrace = cleaned.lastIndexOf('}');
+                    if (firstBrace !== -1 && lastBrace !== -1) {
+                        cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+                    }
+
+                    const parsed = JSON.parse(cleaned);
+                    const usage = response.usageMetadata || {};
+
+                    if (Array.isArray(parsed.recommendations) && parsed.recommendations.length > 0) {
+                        const recs = parsed.recommendations.map(r => {
+                            const found = candidatesSummary.find(c => c.userId === r.userId) || candidatesSummary[0];
+                            return {
+                                userId: found.userId,
+                                username: found.username,
+                                fullName: found.fullName,
+                                matchScore: typeof r.matchScore === 'number' ? r.matchScore : 90,
+                                reason: r.reason || `Strong technical background matching project skills (${projectSkills.slice(0, 3).join(', ')}).`,
+                                rating: found.rating,
+                                completedProjects: found.completedProjects,
+                                skills: found.skills,
+                                bio: found.bio
+                            };
+                        });
+
+                        return {
+                            recommendations: recs,
+                            modelUsed: modelName,
+                            promptTokens: usage.promptTokenCount || null,
+                            responseTokens: usage.candidatesTokenCount || null
+                        };
+                    }
+                }
+            } catch (err) {
+                console.warn(`⚠️ Model [${modelName}] recommendFreelancersForProject failed:`, err.message);
+            }
+        }
+    }
+
+    // Dynamic Deterministic Fallback if Gemini API quota is reached
+    const fallbackRecs = candidatesSummary.map((f, idx) => {
+        const matchingSkills = f.skills.filter(s => 
+            projectSkills.some(ps => ps.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(ps.toLowerCase()))
+        );
+        const matchScore = Math.max(75, Math.min(98, 80 + matchingSkills.length * 5 + (f.completedProjects > 2 ? 5 : 0) - idx * 3));
+
+        return {
+            userId: f.userId,
+            username: f.username,
+            fullName: f.fullName,
+            matchScore,
+            reason: matchingSkills.length > 0
+                ? `Matches key required skills (${matchingSkills.join(', ')}) with ${f.completedProjects} completed gigs.`
+                : `Proven platform freelancer with ${f.rating}★ rating and strong project delivery track record.`,
+            rating: f.rating,
+            completedProjects: f.completedProjects,
+            skills: f.skills,
+            bio: f.bio
+        };
+    }).sort((a, b) => b.matchScore - a.matchScore);
+
+    return {
+        recommendations: fallbackRecs,
+        modelUsed: 'deterministic-fallback',
+        promptTokens: null,
+        responseTokens: null
+    };
+};
+
 export default {
     improveProjectDescription,
     enhanceProjectDescriptionService,
+    recommendFreelancersForProjectService,
     analyzeBidProposal,
     calculateFallbackRecommendations,
     recommendFreelancers
