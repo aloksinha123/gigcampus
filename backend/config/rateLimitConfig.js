@@ -30,10 +30,10 @@ export const rateLimitConfig = {
         message: 'File upload limit reached. You can upload up to 20 files per hour.'
     },
 
-    // 5. General API Rate Limiting (300 requests per 15 minutes per IP)
+    // 5. General API Rate Limiting (1500 requests per 15 minutes per IP)
     general: {
         windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 300,
+        max: 1500,
         message: 'Too many requests. Please try again later.'
     }
 };

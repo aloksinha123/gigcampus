@@ -63,7 +63,9 @@ const NotificationBell = () => {
             setNotifications(notifs.slice(0, 10)); // Show last 10
             setUnreadCount(notifs.filter(n => !n.read).length);
         } catch (err) {
-            console.error('Failed to fetch notifications:', err);
+            if (err.response?.status !== 429) {
+                console.error('Failed to fetch notifications:', err);
+            }
         }
     };
 
