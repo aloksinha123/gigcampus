@@ -65,7 +65,6 @@ const ProjectDetail = () => {
     const handleGenerateAIProposal = async () => {
         try {
             setGeneratingProposal(true);
-            info('Generating AI proposal with Gemini...');
             const res = await api.ai.generateProposal(id, selectedTone);
             if (res.data?.success && res.data?.proposal) {
                 setBidData(prev => ({ ...prev, proposal: res.data.proposal }));

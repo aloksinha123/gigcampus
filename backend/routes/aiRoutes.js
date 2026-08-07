@@ -60,7 +60,7 @@ router.post('/improve-description', protect, improveDescription);
  *                 success: { type: boolean, example: true }
  *                 proposal: { type: string, example: 'Hi there, I am excited to submit my proposal...' }
  */
-router.post('/generate-proposal', protect, freelancer, generateProposalController);
+router.post('/generate-proposal', protect, generateProposalController);
 
 /**
  * @openapi
