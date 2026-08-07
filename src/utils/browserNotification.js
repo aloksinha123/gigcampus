@@ -2,7 +2,7 @@
  * Utility for Native Browser Push Notifications in GigCampus
  */
 
-const THROTTLE_MS = 3000;
+const THROTTLE_MS = 1000;
 const notificationHistory = new Map();
 
 /**
@@ -29,7 +29,7 @@ export const requestNotificationPermission = async () => {
 };
 
 /**
- * Trigger a Native Desktop Browser Notification
+ * Trigger a Native Desktop Browser Notification & On-screen Toast
  * 
  * @param {Object} options
  * @param {string} options.title Notification Title (default: "GigCampus")
@@ -45,15 +45,11 @@ export const triggerBrowserNotification = ({
     tag = 'gigcampus-notification',
     icon = '/favicon.ico'
 }) => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
+    if (typeof window === 'undefined') {
         return;
     }
 
-    if (Notification.permission !== 'granted') {
-        return;
-    }
-
-    // Duplicate Throttling check
+    // Throttling check
     const now = Date.now();
     const lastTriggered = notificationHistory.get(tag) || 0;
     if (now - lastTriggered < THROTTLE_MS) {
@@ -61,29 +57,45 @@ export const triggerBrowserNotification = ({
     }
     notificationHistory.set(tag, now);
 
-    // Skip if user is actively focused on the target page
-    if (!document.hidden && window.location.pathname === url) {
-        return;
+    // 1. Native Desktop Browser Notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+            const notification = new Notification(title, {
+                body,
+                icon,
+                tag,
+                timestamp: now,
+                silent: false,
+                requireInteraction: false
+            });
+
+            notification.onclick = (event) => {
+                event.preventDefault();
+                window.focus();
+                if (url && url !== '#') {
+                    window.location.href = url;
+                }
+                notification.close();
+            };
+        } catch (err) {
+            console.warn('Native desktop notification unavailable, falling back to UI popup:', err);
+        }
     }
 
+    // 2. Play subtle notification sound if Web Audio API is available
     try {
-        const notification = new Notification(title, {
-            body,
-            icon,
-            tag,
-            timestamp: now,
-            silent: false
-        });
-
-        notification.onclick = (event) => {
-            event.preventDefault();
-            window.focus();
-            if (url) {
-                window.location.href = url;
-            }
-            notification.close();
-        };
-    } catch (err) {
-        console.error('Failed to trigger native browser notification:', err);
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    } catch (e) {
+        // Audio playback optional
     }
 };

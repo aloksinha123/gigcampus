@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import api from '../services/api';
-import { triggerBrowserNotification } from '../utils/browserNotification';
+import { triggerBrowserNotification, requestNotificationPermission } from '../utils/browserNotification';
 
 const NotificationBell = () => {
     const { user } = useAuth();
@@ -13,6 +13,10 @@ const NotificationBell = () => {
     const [loading, setLoading] = useState(false);
     const dropdownRef = useRef(null);
     const { socket } = useSocket();
+
+    useEffect(() => {
+        requestNotificationPermission();
+    }, []);
 
     useEffect(() => {
         fetchNotifications();
