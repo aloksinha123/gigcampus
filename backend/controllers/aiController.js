@@ -85,15 +85,20 @@ export const enhanceDescriptionController = async (req, res) => {
         const { title, description, budget, category, timeline } = req.body;
         const userId = req.user?._id;
 
-        // Validation: Description
-        if (!description || typeof description !== 'string' || !description.trim()) {
+        const reqTitle = title ? String(title).trim() : '';
+        const reqDesc = description ? String(description).trim() : '';
+
+        // Validation: Must provide title or description
+        if (!reqTitle && !reqDesc) {
             return res.status(400).json({
                 success: false,
-                message: 'Please provide a valid project description.'
+                message: 'Please provide a project title or description.'
             });
         }
 
-        if (description.trim().length > 5000) {
+        const effectiveDescription = reqDesc || reqTitle;
+
+        if (effectiveDescription.length > 5000) {
             return res.status(400).json({
                 success: false,
                 message: 'Project description exceeds maximum length of 5000 characters.'
@@ -102,8 +107,8 @@ export const enhanceDescriptionController = async (req, res) => {
 
         // Call Gemini Enhancement Service
         const result = await enhanceProjectDescriptionService({
-            title: title ? title.trim() : '',
-            description: description.trim(),
+            title: reqTitle,
+            description: effectiveDescription,
             budget: budget ? String(budget).trim() : '',
             category: category ? String(category).trim() : 'General',
             timeline: timeline ? String(timeline).trim() : ''

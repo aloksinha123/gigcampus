@@ -27,8 +27,9 @@ const MyProjects = () => {
     });
 
     const handleAiImprove = async () => {
-        if (!formData.description || !formData.description.trim()) {
-            error('Please enter a project description first to enhance with AI.');
+        const textToEnhance = (formData.description || formData.title || '').trim();
+        if (!textToEnhance) {
+            error('Please enter a project title or description first to enhance with AI.');
             return;
         }
 
@@ -36,7 +37,7 @@ const MyProjects = () => {
             setAiLoading(true);
             const response = await api.ai.enhanceDescription({
                 title: formData.title,
-                description: formData.description,
+                description: formData.description || formData.title,
                 category: formData.category,
                 budget: formData.budgetMax || formData.budgetMin,
                 timeline: formData.timeline
