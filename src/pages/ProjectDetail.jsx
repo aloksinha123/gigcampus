@@ -220,16 +220,23 @@ const ProjectDetail = () => {
         if (!window.confirm('Mark this project as complete? Payment will be released to the freelancer.')) return;
 
         try {
-            await api.projects.complete(id);
+            const res = await api.projects.complete(id);
             if (refreshUser) refreshUser();
-            success('Payment released successfully.');
+
+            if (res.data?.alreadyCompleted) {
+                success('Project was already completed via milestones — all payments have been released! 🎉');
+            } else {
+                success('Payment released successfully. Project completed!');
+                setShowReviewModal(true);
+            }
+
             fetchProjectDetails();
             fetchPayment();
-            setShowReviewModal(true);
         } catch (err) {
             error(err.response?.data?.message || 'Failed to complete project and release payment.');
         }
     };
+
 
     const handleDeleteProject = async () => {
         if (!window.confirm('Are you sure you want to delete this project? This cannot be undone.')) return;
@@ -388,7 +395,7 @@ const ProjectDetail = () => {
     console.log('User ID:', user?._id);
     console.log('Client ID:', project.client?._id || project.client);
     console.log('--------------------------');
-    const canComplete = isOwner && project.status === 'in_progress';
+    const canComplete = isOwner && (project.status === 'in_progress' || project.status === 'completed');
     const canEdit = isOwner && project.status === 'open';
     const canDelete = isOwner && project.status === 'open';
     const canBid = user?.role === 'freelancer' && project.status === 'open' && !bids.some(b => b.freelancer._id === user._id);
@@ -784,6 +791,7 @@ const ProjectDetail = () => {
                             isFreelancer={isFreelancer}
                             toastError={error}
                             toastSuccess={success}
+                            onUpdate={fetchProjectDetails}
                         />
                     )}
 

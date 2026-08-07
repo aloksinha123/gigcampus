@@ -360,19 +360,32 @@ export const completeProject = async (req, res) => {
             });
         }
 
-        if (project.status !== 'in_progress') {
+        if (project.status !== 'in_progress' && project.status !== 'completed') {
             return res.status(400).json({
                 success: false,
                 message: 'Project must be in progress to complete'
             });
         }
 
-        // Find active escrow payment
-        const payment = await Payment.findOne({ project: project._id, status: 'escrowed' });
+        // If project was already auto-completed by milestone service, return success gracefully
+        if (project.status === 'completed') {
+            return res.status(200).json({
+                success: true,
+                alreadyCompleted: true,
+                message: 'Project was already completed (all milestones released).',
+                project
+            });
+        }
+
+        // Find active escrow payment — accept both 'escrowed' and 'SUCCESS' statuses
+        const payment = await Payment.findOne({
+            project: project._id,
+            status: { $in: ['escrowed', 'SUCCESS'] }
+        });
         if (!payment) {
             return res.status(400).json({
                 success: false,
-                message: 'Payment is not in escrowed status or has already been released.'
+                message: 'No active escrowed payment found for this project.'
             });
         }
 

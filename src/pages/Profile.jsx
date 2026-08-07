@@ -35,7 +35,7 @@ const Profile = () => {
     const fetchTransactions = async () => {
         try {
             const response = await api.wallet.getTransactions();
-            setTransactions(response.data);
+            setTransactions(response.data?.transactions || response.data || []);
         } catch (err) {
             console.error('Failed to fetch transactions:', err);
         }

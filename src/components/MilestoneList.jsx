@@ -5,7 +5,7 @@ import CreateMilestoneModal from './CreateMilestoneModal';
 import SubmitMilestoneModal from './SubmitMilestoneModal';
 import RejectMilestoneModal from './RejectMilestoneModal';
 
-const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSuccess }) => {
+const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSuccess, onUpdate }) => {
     const { user } = useAuth();
     const [milestones, setMilestones] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -68,6 +68,8 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
             if (response.data?.success) {
                 if (toastSuccess) toastSuccess(`✨ Milestone "${milestone.title}" approved! ₹${response.data.freelancerAmount || milestone.amount} released to freelancer wallet.`);
                 fetchMilestones();
+                // Notify parent to re-fetch project (status may have changed to 'completed')
+                if (onUpdate) onUpdate();
             }
         } catch (err) {
             console.error('Approve Milestone Error:', err);
