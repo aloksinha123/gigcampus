@@ -2,6 +2,7 @@ import express from 'express';
 import { protect, admin } from '../middleware/auth.js';
 import {
     getAdminStats,
+    getAdminAnalytics,
     getAllUsers,
     suspendUser,
     activateUser,
@@ -14,6 +15,23 @@ import {
 } from '../controllers/adminController.js';
 
 const router = express.Router();
+
+/**
+ * @openapi
+ * /admin/analytics:
+ *   get:
+ *     summary: Get comprehensive production admin analytics, charts & fraud audits (Admin only)
+ *     tags: [Admin]
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: range
+ *         schema: { type: string, enum: [today, 7days, 30days, year, custom] }
+ *     responses:
+ *       200:
+ *         description: Full platform analytics object.
+ */
+router.get('/analytics', protect, admin, getAdminAnalytics);
 
 /**
  * @openapi

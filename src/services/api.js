@@ -169,6 +169,7 @@ export const notificationsAPI = {
 
 // Admin API
 export const adminAPI = {
+    getAnalytics: (params) => api.get('/admin/analytics', { params }),
     getStats: () => api.get('/admin/stats'),
     getUsers: (params) => api.get('/admin/users', { params }),
     suspendUser: (id) => api.put(`/admin/users/${id}/suspend`),
