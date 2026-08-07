@@ -332,30 +332,7 @@ const ProjectDetail = () => {
         }
     };
 
-    const handleSubmitReview = async (e) => {
-        e.preventDefault();
-        try {
-            const revieweeId = user._id === project.client._id ? project.freelancer._id : project.client._id;
 
-            await api.reviews.submit({
-                project: id,
-                reviewee: revieweeId,
-                rating: parseInt(reviewData.rating),
-                comment: reviewData.comment,
-                categories: {
-                    communication: parseInt(reviewData.communication),
-                    quality: parseInt(reviewData.quality),
-                    professionalism: parseInt(reviewData.professionalism),
-                    timeliness: parseInt(reviewData.timeliness)
-                }
-            });
-            success('Review submitted successfully!');
-            setShowReviewModal(false);
-            // Ideally should refresh a reviews list here, but currently project details doesn't show reviews list
-        } catch (err) {
-            error(err.response?.data?.message || 'Failed to submit review');
-        }
-    };
 
     const getStatusBadge = (status) => {
         const colors = {
@@ -1047,76 +1024,7 @@ const ProjectDetail = () => {
                     projectTitle={project?.title}
                 />
             )}
-            {/* Review Modal */}
-            {showReviewModal && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-lg rounded-[3rem] p-12 shadow-2xl animate-in zoom-in-95 duration-500 max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-10">
-                            <div>
-                                <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase"><span className="text-yellow-500">Rate</span> Project</h3>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">{project?.title}</p>
-                            </div>
-                            <button onClick={() => setShowReviewModal(false)} className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all font-black">X</button>
-                        </div>
 
-                        <form onSubmit={handleSubmitReview} className="space-y-8">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Overall Rating</label>
-                                <div className="flex gap-2 justify-center py-4 bg-gray-50 rounded-[2rem]">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
-                                            key={star}
-                                            type="button"
-                                            onClick={() => setReviewData({ ...reviewData, rating: star })}
-                                            className={`text-3xl transition-all hover:scale-125 ${reviewData.rating >= star ? 'text-yellow-400' : 'text-gray-200'}`}
-                                        >
-                                            ★
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2">Communication</label>
-                                    <input type="number" min="1" max="5" value={reviewData.communication} onChange={e => setReviewData({ ...reviewData, communication: e.target.value })} className="w-full px-4 py-3 bg-gray-50 rounded-xl font-bold text-center border-none focus:ring-2 focus:ring-yellow-200" />
-                                </div>
-                                <div>
-                                    <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2">Quality</label>
-                                    <input type="number" min="1" max="5" value={reviewData.quality} onChange={e => setReviewData({ ...reviewData, quality: e.target.value })} className="w-full px-4 py-3 bg-gray-50 rounded-xl font-bold text-center border-none focus:ring-2 focus:ring-yellow-200" />
-                                </div>
-                                <div>
-                                    <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2">Professionalism</label>
-                                    <input type="number" min="1" max="5" value={reviewData.professionalism} onChange={e => setReviewData({ ...reviewData, professionalism: e.target.value })} className="w-full px-4 py-3 bg-gray-50 rounded-xl font-bold text-center border-none focus:ring-2 focus:ring-yellow-200" />
-                                </div>
-                                <div>
-                                    <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2">Timeliness</label>
-                                    <input type="number" min="1" max="5" value={reviewData.timeliness} onChange={e => setReviewData({ ...reviewData, timeliness: e.target.value })} className="w-full px-4 py-3 bg-gray-50 rounded-xl font-bold text-center border-none focus:ring-2 focus:ring-yellow-200" />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Comment</label>
-                                <textarea
-                                    value={reviewData.comment}
-                                    onChange={(e) => setReviewData({ ...reviewData, comment: e.target.value })}
-                                    required
-                                    rows="4"
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-yellow-200 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
-                                    placeholder="Share your experience working on this project..."
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full bg-yellow-500 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-yellow-100 hover:shadow-yellow-300 hover:-translate-y-1 transition-all active:scale-95"
-                            >
-                                SUBMIT REVIEW
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
 
             {/* Submit Work Modal */}
             {console.log('Rendering Submit Work Modal, show:', showSubmitWorkModal)}
