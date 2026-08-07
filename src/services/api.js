@@ -196,3 +196,5 @@ api.notifications = notificationsAPI;
 api.wallet = walletAPI;
 api.admin = adminAPI;
 api.milestones = milestoneAPI;
+api.ai = aiAPI;
+api.security = securityAPI;
