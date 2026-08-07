@@ -58,6 +58,29 @@ const ProjectDetail = () => {
     const [bidAnalysisResult, setBidAnalysisResult] = useState(null);
     const [showBidAnalysisModal, setShowBidAnalysisModal] = useState(false);
 
+    // AI Proposal Generator State
+    const [generatingProposal, setGeneratingProposal] = useState(false);
+    const [selectedTone, setSelectedTone] = useState('professional');
+
+    const handleGenerateAIProposal = async () => {
+        try {
+            setGeneratingProposal(true);
+            info('Generating AI proposal with Gemini...');
+            const res = await api.ai.generateProposal(id, selectedTone);
+            if (res.data?.success && res.data?.proposal) {
+                setBidData(prev => ({ ...prev, proposal: res.data.proposal }));
+                success('✨ AI Proposal generated successfully! You can edit it before submitting.');
+            } else {
+                error(res.data?.message || 'Failed to generate AI proposal.');
+            }
+        } catch (err) {
+            console.error('AI Proposal Error:', err);
+            error(err.response?.data?.message || 'Failed to generate AI proposal.');
+        } finally {
+            setGeneratingProposal(false);
+        }
+    };
+
     const handleAnalyzeBid = async () => {
         if (!bidData.proposal || !bidData.proposal.trim()) {
             error('Please enter a proposal message to analyze.');
@@ -959,14 +982,45 @@ const ProjectDetail = () => {
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Proposal / Cover Letter</label>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Proposal / Cover Letter</label>
+                                    <div className="flex items-center gap-2">
+                                        <select
+                                            value={selectedTone}
+                                            onChange={(e) => setSelectedTone(e.target.value)}
+                                            className="text-xs bg-gray-100 border border-gray-200 rounded-xl px-3 py-1.5 font-bold text-gray-700 focus:outline-none"
+                                        >
+                                            <option value="professional">Professional</option>
+                                            <option value="persuasive">Persuasive</option>
+                                            <option value="concise">Concise</option>
+                                        </select>
+                                        <button
+                                            type="button"
+                                            onClick={handleGenerateAIProposal}
+                                            disabled={generatingProposal}
+                                            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-xl font-extrabold text-xs tracking-wider shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                                        >
+                                            {generatingProposal ? (
+                                                <>
+                                                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                    <span>Generating Proposal...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>✨</span>
+                                                    <span>Generate AI Proposal</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
                                 <textarea
                                     value={bidData.proposal}
                                     onChange={(e) => setBidData({ ...bidData, proposal: e.target.value })}
                                     required
-                                    rows="4"
+                                    rows="6"
                                     className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-purple-200 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
-                                    placeholder="Why are you the best fit for this gig?"
+                                    placeholder="Why are you the best fit for this gig? Click 'Generate AI Proposal' above to auto-draft!"
                                 />
                             </div>
 

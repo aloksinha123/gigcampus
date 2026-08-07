@@ -61,7 +61,8 @@ export const securityAPI = {
 
 // AI API
 export const aiAPI = {
-    improveDescription: (description) => api.post('/ai/improve-description', { description })
+    improveDescription: (description) => api.post('/ai/improve-description', { description }),
+    generateProposal: (projectId, tone = 'professional') => api.post('/ai/generate-proposal', { projectId, tone })
 };
 
 // Projects API

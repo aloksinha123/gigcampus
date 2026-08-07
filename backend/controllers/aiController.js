@@ -1,4 +1,8 @@
+import mongoose from 'mongoose';
+import Project from '../models/Project.js';
+import User from '../models/User.js';
 import { improveProjectDescription, analyzeBidProposal, recommendFreelancers } from '../services/aiService.js';
+import { generateAIProposal } from '../services/geminiProposalService.js';
 
 // Helper for formatting clean error responses for temporary AI availability issues
 const handleAiError = (res, error, defaultMessage = 'AI service is temporarily unavailable.') => {
@@ -16,7 +20,7 @@ const handleAiError = (res, error, defaultMessage = 'AI service is temporarily u
     if (isTemporaryFailure) {
         return res.status(503).json({
             success: false,
-            message: 'AI recommendation service is temporarily unavailable. Please try again in a few moments.'
+            message: 'AI service is temporarily unavailable. Please try again in a few moments.'
         });
     }
 
@@ -64,6 +68,72 @@ export const improveDescription = async (req, res) => {
         });
     } catch (error) {
         return handleAiError(res, error, 'Unable to generate AI suggestions.');
+    }
+};
+
+// @desc    Generate personalized AI proposal for a project using Google Gemini AI
+// @route   POST /api/v1/ai/generate-proposal
+// @access  Private (Freelancers / Authenticated Users)
+export const generateProposalController = async (req, res) => {
+    const startTime = Date.now();
+    try {
+        const { projectId, tone = 'professional' } = req.body;
+        const userId = req.user?._id;
+
+        // Validation: Project ID
+        if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid projectId is required.'
+            });
+        }
+
+        // Fetch Project from MongoDB
+        const project = await Project.findById(projectId);
+        if (!project) {
+            return res.status(404).json({
+                success: false,
+                message: 'Project not found.'
+            });
+        }
+
+        // Fetch Freelancer User Profile
+        const freelancer = await User.findById(userId).select('-password');
+
+        // Generate AI Proposal via Gemini Service
+        const result = await generateAIProposal({
+            project,
+            freelancer,
+            tone
+        });
+
+        const generationTimeMs = Date.now() - startTime;
+
+        // Structured Logging
+        console.log(`
+[AI PROPOSAL GENERATED]
+Request ID: ${req.requestId || 'N/A'}
+User ID: ${userId || 'Unauthenticated'}
+Project ID: ${projectId}
+Generation Time: ${generationTimeMs}ms
+Model Used: ${result.modelUsed}
+Prompt Tokens: ${result.promptTokens ?? 'N/A'}
+Response Tokens: ${result.responseTokens ?? 'N/A'}
+Timestamp: ${new Date().toISOString()}
+`);
+
+        return res.status(200).json({
+            success: true,
+            proposal: result.proposal,
+            meta: {
+                modelUsed: result.modelUsed,
+                generationTimeMs,
+                promptTokens: result.promptTokens,
+                responseTokens: result.responseTokens
+            }
+        });
+    } catch (error) {
+        return handleAiError(res, error, 'Failed to generate AI proposal.');
     }
 };
 
@@ -208,6 +278,7 @@ export const recommendFreelancersController = async (req, res) => {
 
 export default {
     improveDescription,
+    generateProposalController,
     analyzeBid,
     recommendFreelancersController
 };

@@ -1,6 +1,11 @@
 import express from 'express';
-import { improveDescription, analyzeBid, recommendFreelancersController } from '../controllers/aiController.js';
-import { protect } from '../middleware/auth.js';
+import {
+    improveDescription,
+    generateProposalController,
+    analyzeBid,
+    recommendFreelancersController
+} from '../controllers/aiController.js';
+import { protect, freelancer } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -26,6 +31,36 @@ const router = express.Router();
  *         content: { application/json: { schema: { $ref: '#/components/schemas/AIRecommendation' } } }
  */
 router.post('/improve-description', protect, improveDescription);
+
+/**
+ * @openapi
+ * /ai/generate-proposal:
+ *   post:
+ *     summary: AI Proposal Generator for Freelancers (Google Gemini AI)
+ *     tags: [AI]
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [projectId]
+ *             properties:
+ *               projectId: { type: string, example: '66a1b2c3d4e5f67890987654' }
+ *               tone: { type: string, enum: [professional, persuasive, concise], example: 'professional' }
+ *     responses:
+ *       200:
+ *         description: Generated proposal text ready for editing & submission.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 proposal: { type: string, example: 'Hi there, I am excited to submit my proposal...' }
+ */
+router.post('/generate-proposal', protect, freelancer, generateProposalController);
 
 /**
  * @openapi
