@@ -141,7 +141,7 @@ const ProjectDetail = () => {
             const response = await api.ai.recommendFreelancers(id);
 
             if (response.data?.success && Array.isArray(response.data.recommendations)) {
-                setRecommendationResults(response.data);
+                setRecommendationResults(response.data.recommendations);
                 setShowRecommendationModal(true);
                 success('✨ AI Freelancer Recommendation complete!');
             } else {

@@ -4,9 +4,13 @@ import { useNotification } from '../context/NotificationContext';
 const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitle = '' }) => {
     const { success } = useNotification();
 
-    if (!recommendations || recommendations.length === 0) return null;
+    const list = Array.isArray(recommendations)
+        ? recommendations
+        : (Array.isArray(recommendations?.recommendations) ? recommendations.recommendations : []);
 
-    const topRecommendation = recommendations[0];
+    if (!list || list.length === 0) return null;
+
+    const topRecommendation = list[0];
 
     const handleInvite = (freelancerName) => {
         success(`✉️ Invitation sent to ${freelancerName} to bid on this project!`);
@@ -80,9 +84,9 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
 
                 {/* Ranking Cards List */}
                 <div className="space-y-6 mb-8">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">All Recommended Candidates ({recommendations.length})</h3>
+                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">All Recommended Candidates ({list.length})</h3>
 
-                    {recommendations.map((item, index) => {
+                    {list.map((item, index) => {
                         const isTop = index === 0;
                         const score = item.matchScore || item.score || 90;
                         const name = item.fullName || item.username || 'Freelancer';
