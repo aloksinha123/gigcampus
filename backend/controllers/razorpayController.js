@@ -338,7 +338,7 @@ export const getPaymentDetails = async (req, res) => {
 };
 
 // @desc    Get Payment History for Authenticated User (Student or Freelancer)
-// @route   GET /api/v1/payments/my
+// @route   GET /api/v1/payments/my & /api/v1/payments/history
 // @access  Private
 export const getMyPaymentHistory = async (req, res) => {
     try {
@@ -362,11 +362,7 @@ export const getMyPaymentHistory = async (req, res) => {
             return obj;
         });
 
-        return res.json({
-            success: true,
-            count: sanitizedPayments.length,
-            payments: sanitizedPayments
-        });
+        return res.json(sanitizedPayments);
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
     }

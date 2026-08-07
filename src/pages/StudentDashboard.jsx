@@ -32,11 +32,11 @@ const StudentDashboard = () => {
 
       // Fetch all projects
       const projectsRes = await api.projects.getMy();
-      const projects = projectsRes.data;
+      const projects = Array.isArray(projectsRes.data) ? projectsRes.data : (projectsRes.data?.projects || []);
 
       // Fetch all payments
       const paymentsRes = await api.payments.getMy();
-      const payments = paymentsRes.data;
+      const payments = Array.isArray(paymentsRes.data) ? paymentsRes.data : (paymentsRes.data?.payments || []);
 
       // Calculate statistics
       const totalProjects = projects.length;
