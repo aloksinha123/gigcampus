@@ -1,182 +1,248 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import transporter from '../config/mail.js';
-import { generateWelcomeEmail } from '../templates/welcomeEmail.js';
-import { generateVerificationEmail } from '../templates/verificationEmail.js';
-import { generateResetPasswordEmail } from '../templates/resetPasswordEmail.js';
-import { generateBidAcceptedEmail } from '../templates/bidAcceptedEmail.js';
-import { generateNewBidReceivedEmail } from '../templates/newBidReceivedEmail.js';
-import {
-    generateNewDeviceEmail,
-    generateAccountLockedEmail,
-    generatePasswordChangedEmail
-} from '../templates/securityAlertEmail.js';
+import User from '../models/User.js';
+import EmailLog from '../models/EmailLog.js';
 
-/**
- * Sends Security Alert email to user
- */
-export const sendSecurityAlertEmail = async (email, name, alertType, details = {}) => {
-    let template;
-    if (alertType === 'NEW_DEVICE') {
-        template = generateNewDeviceEmail(name, details);
-    } else if (alertType === 'ACCOUNT_LOCKED') {
-        template = generateAccountLockedEmail(name, details);
-    } else if (alertType === 'PASSWORD_CHANGED') {
-        template = generatePasswordChangedEmail(name);
-    } else {
-        return;
-    }
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-    const fromName = process.env.EMAIL_FROM_NAME || 'GigCampus';
-    const fromAddress = process.env.EMAIL_USER || process.env.EMAIL_FROM_ADDRESS || 'no-reply@gigcampus.com';
-
-    const mailOptions = {
-        from: `"${fromName}" <${fromAddress}>`,
-        to: email,
-        subject: template.subject,
-        text: template.text,
-        html: template.html
-    };
-
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'yourgmail@gmail.com' || process.env.EMAIL_PASS === 'your_app_password') {
-        console.log(`✉️ [SIMULATED EMAIL] Security Alert (${alertType}) for:`, email);
-        return { messageId: `simulated-security-${Date.now()}` };
-    }
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✉️ Security Alert email delivered to %s (Message ID: %s)', email, info.messageId);
-    return info;
+const getFrontendUrl = () => {
+    return process.env.FRONTEND_URL || 'http://localhost:5173';
 };
 
 /**
- * Sends Password Reset Link to user
+ * Load HTML template from backend/emails/templates/ and replace placeholders
  */
-export const sendPasswordResetEmail = async (email, name, resetUrl) => {
-    const template = generateResetPasswordEmail(name, resetUrl);
+const loadTemplate = (templateName, replacements = {}) => {
+    const filePath = path.join(__dirname, '..', 'emails', 'templates', `${templateName}.html`);
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`Email template ${templateName} not found at path: ${filePath}`);
+    }
+    let html = fs.readFileSync(filePath, 'utf8');
+    for (const [key, value] of Object.entries(replacements)) {
+        html = html.replaceAll(`{{${key}}}`, value === undefined || value === null ? '' : String(value));
+    }
+    return html;
+};
+
+/**
+ * Helper to process transactional emails with preference filtering, idempotency check, and error logging
+ */
+export const sendTransactionalEmail = async ({
+    userId,
+    recipientEmail,
+    type,
+    subject,
+    templateName,
+    replacements = {},
+    requestId = null,
+    preferenceKey = null,
+    isSecurityEmail = false
+}) => {
+    // 1. Idempotency check to protect against duplicates
+    if (requestId) {
+        const existingLog = await EmailLog.findOne({ requestId });
+        if (existingLog) {
+            console.log(`✉️ [IDEMPOTENCY] Email with requestId ${requestId} already processed. Skipping.`);
+            return existingLog;
+        }
+    }
+
+    // 2. Notification Preferences check for non-critical alerts
+    if (!isSecurityEmail && preferenceKey) {
+        try {
+            const recipientUser = userId 
+                ? await User.findById(userId) 
+                : await User.findOne({ email: recipientEmail.toLowerCase() });
+
+            if (recipientUser) {
+                const prefs = recipientUser.notificationPreferences || {};
+                const globalEmailEnabled = prefs.emailNotifications !== false;
+                const specificEmailEnabled = prefs[preferenceKey] !== false;
+
+                if (!globalEmailEnabled || !specificEmailEnabled) {
+                    console.log(`✉️ [PREFERENCE SKIPPED] Email type "${type}" skipped for recipient: ${recipientEmail}`);
+                    return null;
+                }
+            }
+        } catch (prefsErr) {
+            console.error('Failed to verify user email preferences:', prefsErr);
+        }
+    }
+
+    // 3. Create EmailLog in QUEUED state
+    let emailLog;
+    try {
+        emailLog = await EmailLog.create({
+            user: userId || null,
+            recipient: recipientEmail,
+            type,
+            status: 'QUEUED',
+            requestId: requestId || undefined
+        });
+    } catch (logErr) {
+        if (logErr.code === 11000) {
+            console.log(`✉️ [IDEMPOTENCY CONCURRENT] Concurrent email with requestId ${requestId} blocked.`);
+            return null;
+        }
+        console.error('Failed to create EmailLog:', logErr);
+    }
+
+    // 4. Compile HTML layout
+    let htmlContent = '';
+    try {
+        const settingsUrl = `${getFrontendUrl()}/settings/notifications`;
+        const defaultReplacements = {
+            settingsUrl,
+            ...replacements
+        };
+        htmlContent = loadTemplate(templateName, defaultReplacements);
+    } catch (tmplErr) {
+        console.error('Failed to compile email template:', tmplErr);
+        if (emailLog) {
+            emailLog.status = 'FAILED';
+            emailLog.failureReason = `Template compile error: ${tmplErr.message}`;
+            await emailLog.save();
+        }
+        return emailLog;
+    }
+
+    // 5. Send mail via transporter
     const fromName = process.env.EMAIL_FROM_NAME || 'GigCampus';
-    const fromAddress = process.env.EMAIL_USER || process.env.EMAIL_FROM_ADDRESS || 'no-reply@gigcampus.com';
+    const fromAddress = process.env.EMAIL_USER || process.env.EMAIL_FROM || 'no-reply@gigcampus.com';
 
     const mailOptions = {
         from: `"${fromName}" <${fromAddress}>`,
-        to: email,
-        subject: template.subject,
-        text: template.text,
-        html: template.html
+        to: recipientEmail,
+        subject,
+        html: htmlContent
     };
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'yourgmail@gmail.com' || process.env.EMAIL_PASS === 'your_app_password') {
-        console.log('✉️ [SIMULATED EMAIL] Password Reset email for:', email);
-        console.log('🔗 Reset URL:', resetUrl);
-        return { messageId: `simulated-reset-${Date.now()}` };
-    }
+    const isSimulated = !process.env.EMAIL_USER || !process.env.EMAIL_PASS || 
+                        process.env.EMAIL_USER === 'yourgmail@gmail.com' || 
+                        process.env.DEV_MODE_EMAILS === 'true';
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✉️ Password Reset email delivered to %s (Message ID: %s)', email, info.messageId);
-    return info;
+    try {
+        if (isSimulated) {
+            console.log(`✉️ [SIMULATED EMAIL - ${type.toUpperCase()}] To: ${recipientEmail}, Subject: "${subject}"`);
+            if (emailLog) {
+                emailLog.status = 'SENT';
+                emailLog.providerMessageId = `simulated-${type}-${Date.now()}`;
+                await emailLog.save();
+            }
+            return emailLog;
+        } else {
+            const info = await transporter.sendMail(mailOptions);
+            if (emailLog) {
+                emailLog.status = 'SENT';
+                emailLog.providerMessageId = info.messageId;
+                await emailLog.save();
+            }
+            console.log(`✉️ Email "${type}" successfully delivered to ${recipientEmail} (ID: ${info.messageId})`);
+            return emailLog;
+        }
+    } catch (sendErr) {
+        console.error(`❌ Email dispatch to ${recipientEmail} failed:`, sendErr.message);
+        if (emailLog) {
+            emailLog.status = 'FAILED';
+            emailLog.failureReason = sendErr.message;
+            await emailLog.save();
+        }
+        // Failure must NEVER crash or fail the main business operation, return log record
+        return emailLog;
+    }
 };
 
 /**
  * Sends Email Verification Link to newly registered or unverified user
  */
 export const sendVerificationEmail = async (email, name, verificationUrl) => {
-    const template = generateVerificationEmail(name, verificationUrl);
-    const fromName = process.env.EMAIL_FROM_NAME || 'GigCampus';
-    const fromAddress = process.env.EMAIL_USER || process.env.EMAIL_FROM_ADDRESS || 'no-reply@gigcampus.com';
-
-    const mailOptions = {
-        from: `"${fromName}" <${fromAddress}>`,
-        to: email,
-        subject: template.subject,
-        text: template.text,
-        html: template.html
-    };
-
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'yourgmail@gmail.com' || process.env.EMAIL_PASS === 'your_app_password') {
-        console.log('✉️ [SIMULATED EMAIL] Verification email for:', email);
-        console.log('🔗 Verification URL:', verificationUrl);
-        return { messageId: `simulated-verify-${Date.now()}` };
-    }
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✉️ Verification email delivered to %s (Message ID: %s)', email, info.messageId);
-    return info;
+    return sendTransactionalEmail({
+        recipientEmail: email,
+        type: 'verification',
+        subject: 'Verify Your Email Address - GigCampus',
+        templateName: 'verification',
+        replacements: {
+            username: name,
+            actionUrl: verificationUrl
+        },
+        isSecurityEmail: true
+    });
 };
 
 /**
- * Sends a REAL welcome email to a new user using Nodemailer SMTP
- * @param {string} email - Recipient email address
- * @param {string} name - Personalized name
+ * Sends welcome email to verified users
  */
 export const sendWelcomeEmail = async (email, name) => {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'yourgmail@gmail.com' || process.env.EMAIL_PASS === 'your_app_password') {
-        throw new Error('Email credentials missing. Please configure EMAIL_USER and EMAIL_PASS in backend/.env with a valid Gmail App Password.');
-    }
-
-    const template = generateWelcomeEmail(name);
-    const fromAddress = process.env.EMAIL_USER;
-
-    const mailOptions = {
-        from: `"GigCampus" <${fromAddress}>`,
-        to: email,
+    return sendTransactionalEmail({
+        recipientEmail: email,
+        type: 'welcome',
         subject: 'Welcome to GigCampus! 🚀',
-        text: template.text,
-        html: template.html
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✉️ Real welcome email delivered to %s (Message ID: %s)', email, info.messageId);
-    return info;
-};
-
-/**
- * Sends Bid Accepted HTML Email notification to Freelancer
- * @param {Object} params - Object containing freelancerEmail, freelancerName, projectTitle, bidAmount, studentName, projectId
- */
-export const sendBidAcceptedEmail = async ({
-    freelancerEmail,
-    freelancerName,
-    projectTitle,
-    bidAmount,
-    studentName,
-    projectId
-}) => {
-    if (!freelancerEmail) {
-        throw new Error('Freelancer email is required to send bid accepted notification.');
-    }
-
-    const template = generateBidAcceptedEmail({
-        freelancerName,
-        projectTitle,
-        bidAmount,
-        studentName,
-        projectId
+        templateName: 'welcome',
+        replacements: {
+            username: name,
+            actionUrl: getFrontendUrl()
+        },
+        preferenceKey: 'emailNotifications'
     });
-
-    const fromName = process.env.EMAIL_FROM_NAME || 'GigCampus';
-    const fromAddress = process.env.EMAIL_USER || process.env.EMAIL_FROM_ADDRESS || 'no-reply@gigcampus.com';
-
-    const mailOptions = {
-        from: `"${fromName}" <${fromAddress}>`,
-        to: freelancerEmail,
-        subject: template.subject,
-        text: template.text,
-        html: template.html
-    };
-
-    // If credentials missing or dummy in dev environment, log simulation safely
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'yourgmail@gmail.com' || process.env.EMAIL_PASS === 'your_app_password') {
-        console.log('✉️ [SIMULATED EMAIL] Bid Accepted email for:', freelancerEmail);
-        return { messageId: `simulated-bid-${Date.now()}` };
-    }
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✉️ Bid Accepted email delivered to %s (Message ID: %s)', freelancerEmail, info.messageId);
-    return info;
 };
 
 /**
- * Sends New Bid Received HTML Email notification to Project Owner (Student)
- * @param {Object} params - Object containing studentEmail, studentName, projectTitle, freelancerName, bidAmount, deliveryDays, proposalMessage, projectId
+ * Sends Password Reset Link to user
  */
-export const sendNewBidReceivedEmail = async ({
+export const sendPasswordResetEmail = async (email, name, resetUrl) => {
+    return sendTransactionalEmail({
+        recipientEmail: email,
+        type: 'passwordReset',
+        subject: 'Reset Your Password - GigCampus',
+        templateName: 'passwordReset',
+        replacements: {
+            username: name,
+            actionUrl: resetUrl
+        },
+        isSecurityEmail: true
+    });
+};
+
+/**
+ * Sends security alert email to user
+ */
+export const sendSecurityAlertEmail = async (email, name, alertType, details = {}) => {
+    let subject = 'Security Alert - GigCampus';
+    let messageContent = '';
+
+    if (alertType === 'NEW_DEVICE') {
+        subject = 'Security Alert: New Device Login';
+        messageContent = `A new login was detected on your account. Device: ${details.device || 'Unknown'}, Location: ${details.location || 'Unknown'}`;
+    } else if (alertType === 'ACCOUNT_LOCKED') {
+        subject = 'Security Alert: Account Temporarily Locked';
+        messageContent = `Your account has been locked due to too many failed login attempts. It will unlock automatically in 15 minutes.`;
+    } else if (alertType === 'PASSWORD_CHANGED') {
+        subject = 'Security Alert: Password Changed';
+        messageContent = `The password for your GigCampus account was recently changed. If you did not make this change, contact support immediately.`;
+    }
+
+    // Reuse verification wrapper for text presentation
+    return sendTransactionalEmail({
+        recipientEmail: email,
+        type: `security-${alertType.toLowerCase()}`,
+        subject,
+        templateName: 'verification',
+        replacements: {
+            username: name,
+            actionUrl: getFrontendUrl(),
+            messageContent
+        },
+        isSecurityEmail: true
+    });
+};
+
+/**
+ * Sends New Bid Received notification to project owner
+ */
+export const sendNewBidEmail = async ({
     studentEmail,
     studentName,
     projectTitle,
@@ -184,67 +250,283 @@ export const sendNewBidReceivedEmail = async ({
     bidAmount,
     deliveryDays,
     proposalMessage,
-    projectId
+    projectId,
+    requestId
 }) => {
-    if (!studentEmail) {
-        throw new Error('Student email is required to send new bid notification.');
-    }
-
-    const template = generateNewBidReceivedEmail({
-        studentName,
-        projectTitle,
-        freelancerName,
-        bidAmount,
-        deliveryDays,
-        proposalMessage,
-        projectId
+    return sendTransactionalEmail({
+        recipientEmail: studentEmail,
+        type: 'newBid',
+        subject: 'New Proposal Received - GigCampus',
+        templateName: 'newBid',
+        replacements: {
+            username: studentName,
+            projectTitle,
+            freelancerName,
+            bidAmount,
+            deliveryDays,
+            proposalMessage,
+            actionUrl: `${getFrontendUrl()}/projects/${projectId}`
+        },
+        preferenceKey: 'bidEmails',
+        requestId
     });
+};
 
-    const fromName = process.env.EMAIL_FROM_NAME || 'GigCampus';
-    const fromAddress = process.env.EMAIL_USER || process.env.EMAIL_FROM_ADDRESS || 'no-reply@gigcampus.com';
+// Aliasing the bid received email for backwards compatibility with the controllers
+export const sendNewBidReceivedEmail = sendNewBidEmail;
 
-    const mailOptions = {
-        from: `"${fromName}" <${fromAddress}>`,
-        to: studentEmail,
-        subject: template.subject,
-        text: template.text,
-        html: template.html
-    };
-
-    // If credentials missing or dummy in dev environment, log simulation safely
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'yourgmail@gmail.com' || process.env.EMAIL_PASS === 'your_app_password') {
-        console.log('✉️ [SIMULATED EMAIL] New Bid Received email for:', studentEmail);
-        return { messageId: `simulated-new-bid-${Date.now()}` };
-    }
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✉️ New Bid Received email delivered to %s (Message ID: %s)', studentEmail, info.messageId);
-    return info;
+/**
+ * Sends Bid Accepted notification to freelancer
+ */
+export const sendBidAcceptedEmail = async ({
+    freelancerEmail,
+    freelancerName,
+    projectTitle,
+    bidAmount,
+    studentName,
+    projectId,
+    requestId
+}) => {
+    return sendTransactionalEmail({
+        recipientEmail: freelancerEmail,
+        type: 'bidAccepted',
+        subject: 'Bid Proposal Accepted! 🎉 - GigCampus',
+        templateName: 'bidAccepted',
+        replacements: {
+            username: freelancerName,
+            projectTitle,
+            bidAmount,
+            studentName,
+            actionUrl: `${getFrontendUrl()}/projects/${projectId}`
+        },
+        preferenceKey: 'bidEmails',
+        requestId
+    });
 };
 
 /**
- * Placeholder for future Payment Receipt Email notification
+ * Sends Bid Rejected notification to other freelancers
  */
-export const sendPaymentReceipt = async (email, details) => {
-    console.log('⚙️ Placeholder: sendPaymentReceipt called for', email);
-    return { success: true, placeholder: true };
+export const sendBidRejectedEmail = async ({
+    freelancerEmail,
+    freelancerName,
+    projectTitle,
+    bidAmount,
+    projectId,
+    requestId
+}) => {
+    return sendTransactionalEmail({
+        recipientEmail: freelancerEmail,
+        type: 'bidRejected',
+        subject: 'Project Proposal Update - GigCampus',
+        templateName: 'bidRejected',
+        replacements: {
+            username: freelancerName,
+            projectTitle,
+            actionUrl: `${getFrontendUrl()}/projects`
+        },
+        preferenceKey: 'bidEmails',
+        requestId
+    });
 };
 
 /**
- * Placeholder for future Project Completed Email notification
+ * Sends New Message notification
  */
-export const sendProjectCompletedEmail = async (email, details) => {
-    console.log('⚙️ Placeholder: sendProjectCompletedEmail called for', email);
-    return { success: true, placeholder: true };
+export const sendNewMessageEmail = async ({
+    recipientEmail,
+    recipientName,
+    senderName,
+    projectTitle,
+    messageContent,
+    projectId,
+    requestId
+}) => {
+    return sendTransactionalEmail({
+        recipientEmail,
+        type: 'newMessage',
+        subject: `New Message from @${senderName} - GigCampus`,
+        templateName: 'newMessage',
+        replacements: {
+            username: recipientName,
+            senderName,
+            projectTitle,
+            messageContent,
+            actionUrl: `${getFrontendUrl()}/messages?project=${projectId}`
+        },
+        preferenceKey: 'messageEmails',
+        requestId
+    });
+};
+
+/**
+ * Sends Payment Successful notification to client
+ */
+export const sendPaymentSuccessEmail = async ({
+    recipientEmail,
+    recipientName,
+    amount,
+    transactionId,
+    paymentType,
+    description,
+    requestId
+}) => {
+    return sendTransactionalEmail({
+        recipientEmail,
+        type: 'paymentSuccess',
+        subject: 'Payment Successful! 💰 - GigCampus',
+        templateName: 'paymentSuccess',
+        replacements: {
+            username: recipientName,
+            amount,
+            transactionId,
+            paymentType,
+            description,
+            actionUrl: `${getFrontendUrl()}/profile`
+        },
+        preferenceKey: 'paymentEmails',
+        requestId
+    });
+};
+
+// Aliasing the payment success for backwards compatibility with the controllers
+export const sendPaymentReceipt = sendPaymentSuccessEmail;
+
+/**
+ * Sends Payment Failed notification to client
+ */
+export const sendPaymentFailedEmail = async ({
+    recipientEmail,
+    recipientName,
+    amount,
+    orderId,
+    failureReason,
+    requestId
+}) => {
+    return sendTransactionalEmail({
+        recipientEmail,
+        type: 'paymentFailed',
+        subject: 'Payment Failed - GigCampus',
+        templateName: 'paymentFailed',
+        replacements: {
+            username: recipientName,
+            amount,
+            orderId,
+            failureReason,
+            actionUrl: `${getFrontendUrl()}/profile`
+        },
+        preferenceKey: 'paymentEmails',
+        requestId
+    });
+};
+
+/**
+ * Sends Project Completed notification to both parties
+ */
+export const sendProjectCompletedEmail = async ({
+    recipientEmail,
+    recipientName,
+    projectTitle,
+    partnerName,
+    amount,
+    projectId,
+    requestId
+}) => {
+    return sendTransactionalEmail({
+        recipientEmail,
+        type: 'projectCompleted',
+        subject: 'Project Completed! 🏆 - GigCampus',
+        templateName: 'projectCompleted',
+        replacements: {
+            username: recipientName,
+            projectTitle,
+            partnerName,
+            amount,
+            actionUrl: `${getFrontendUrl()}/projects/${projectId}`
+        },
+        preferenceKey: 'projectEmails',
+        requestId
+    });
+};
+
+/**
+ * Sends Payout Status / Wallet release notification to freelancer
+ */
+export const sendPayoutStatusEmail = async ({
+    recipientEmail,
+    recipientName,
+    amount,
+    fee,
+    netAmount,
+    transactionId,
+    projectTitle,
+    requestId
+}) => {
+    return sendTransactionalEmail({
+        recipientEmail,
+        type: 'payoutStatus',
+        subject: 'Payout Processed 💰 - GigCampus',
+        templateName: 'payoutStatus',
+        replacements: {
+            username: recipientName,
+            amount,
+            fee,
+            netAmount,
+            transactionId,
+            projectTitle,
+            actionUrl: `${getFrontendUrl()}/profile`
+        },
+        preferenceKey: 'paymentEmails',
+        requestId
+    });
+};
+
+/**
+ * Sends Review Received notification to user
+ */
+export const sendReviewReceivedEmail = async ({
+    recipientEmail,
+    recipientName,
+    reviewerName,
+    projectTitle,
+    rating,
+    reviewContent,
+    projectId,
+    requestId
+}) => {
+    return sendTransactionalEmail({
+        recipientEmail,
+        type: 'reviewReceived',
+        subject: 'New Review Received! ★ - GigCampus',
+        templateName: 'reviewReceived',
+        replacements: {
+            username: recipientName,
+            reviewerName,
+            projectTitle,
+            ratingStars: '★'.repeat(rating) + '☆'.repeat(5 - rating),
+            reviewContent,
+            actionUrl: `${getFrontendUrl()}/profile`
+        },
+        preferenceKey: 'reviewEmails',
+        requestId
+    });
 };
 
 export default {
-    sendSecurityAlertEmail,
-    sendPasswordResetEmail,
+    sendTransactionalEmail,
     sendVerificationEmail,
     sendWelcomeEmail,
-    sendBidAcceptedEmail,
+    sendPasswordResetEmail,
+    sendSecurityAlertEmail,
+    sendNewBidEmail,
     sendNewBidReceivedEmail,
+    sendBidAcceptedEmail,
+    sendBidRejectedEmail,
+    sendNewMessageEmail,
+    sendPaymentSuccessEmail,
     sendPaymentReceipt,
-    sendProjectCompletedEmail
+    sendPaymentFailedEmail,
+    sendProjectCompletedEmail,
+    sendPayoutStatusEmail,
+    sendReviewReceivedEmail
 };

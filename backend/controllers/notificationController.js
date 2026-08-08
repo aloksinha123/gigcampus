@@ -34,7 +34,13 @@ export const getNotificationPreferences = async (req, res) => {
             bidNotifications: true,
             projectNotifications: true,
             aiNotifications: true,
-            marketingNotifications: false
+            marketingNotifications: false,
+            emailNotifications: true,
+            messageEmails: true,
+            bidEmails: true,
+            paymentEmails: true,
+            projectEmails: true,
+            reviewEmails: true
         };
 
         const preferences = { ...defaultPrefs, ...(user?.notificationPreferences?.toObject() || {}) };

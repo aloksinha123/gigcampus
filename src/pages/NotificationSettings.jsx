@@ -117,6 +117,45 @@ const NotificationSettings = () => {
         }
     ];
 
+    const emailSettingItems = [
+        {
+            key: 'emailNotifications',
+            title: 'Global Email Notifications',
+            description: 'Master switch to control all non-critical email alerts.',
+            icon: '✉️'
+        },
+        {
+            key: 'messageEmails',
+            title: 'Message Emails',
+            description: 'Receive copies of direct chat messages and files in your inbox.',
+            icon: '💬'
+        },
+        {
+            key: 'bidEmails',
+            title: 'Bid & Proposal Emails',
+            description: 'Get notified when a new bid is placed, accepted, or rejected.',
+            icon: '📋'
+        },
+        {
+            key: 'paymentEmails',
+            title: 'Payment Receipt Emails',
+            description: 'Receive billing confirmations for deposits, payouts, and releases.',
+            icon: '💰'
+        },
+        {
+            key: 'projectEmails',
+            title: 'Project Update Emails',
+            description: 'Get emails for milestone status changes, delivery files, and completions.',
+            icon: '📁'
+        },
+        {
+            key: 'reviewEmails',
+            title: 'Review Received Emails',
+            description: 'Get notified when a peer leaves a star review or sentiment analysis summary.',
+            icon: '★'
+        }
+    ];
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
             <Navbar />
@@ -196,6 +235,46 @@ const NotificationSettings = () => {
                                                         </span>
                                                     )}
                                                 </div>
+                                                <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed max-w-xl">
+                                                    {item.description}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Toggle Switch */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleToggle(item.key)}
+                                            className={`relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                                prefs[item.key] ? 'bg-blue-600' : 'bg-gray-200'
+                                            }`}
+                                        >
+                                            <span
+                                                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                    prefs[item.key] ? 'translate-x-7' : 'translate-x-0'
+                                                }`}
+                                            />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Email Alerts Preferences */}
+                        <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 space-y-6">
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest pb-4 border-b border-gray-100">
+                                Email Notification Preferences
+                            </h3>
+
+                            <div className="divide-y divide-gray-100">
+                                {emailSettingItems.map(item => (
+                                    <div key={item.key} className="py-5 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-2xl flex-shrink-0">
+                                                {item.icon}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-lg font-black text-gray-900">{item.title}</h4>
                                                 <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed max-w-xl">
                                                     {item.description}
                                                 </p>

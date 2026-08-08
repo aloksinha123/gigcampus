@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Failed - GigCampus</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            padding: 40px 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.025em;
+        }
+        .body {
+            padding: 40px;
+        }
+        .body p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 0 0 24px 0;
+        }
+        .receipt-card {
+            background-color: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .receipt-card h3 {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            font-weight: 800;
+            color: #991b1b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .receipt-card table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .receipt-card table td {
+            padding: 8px 0;
+            font-size: 14px;
+            color: #7f1d1d;
+        }
+        .receipt-card table td.label {
+            font-weight: 700;
+            color: #991b1b;
+            width: 130px;
+        }
+        .receipt-card table td.value {
+            font-weight: 800;
+            color: #7f1d1d;
+        }
+        .cta-container {
+            text-align: center;
+            margin: 32px 0;
+        }
+        .btn {
+            background-color: #ef4444;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            display: inline-block;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
+            transition: all 0.2s ease;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 24px 40px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .footer a {
+            color: #ef4444;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Payment Failed</h1>
+        </div>
+        <div class="body">
+            <p>Hello {{username}},</p>
+            <p>We wanted to let you know that your payment transaction was not successful. Your card or bank account has not been charged, or the verification step was unsuccessful. Here are the details:</p>
+            
+            <div class="receipt-card">
+                <h3>Transaction Details</h3>
+                <table>
+                    <tr>
+                        <td class="label">Amount:</td>
+                        <td class="value">₹{{amount}}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Order ID:</td>
+                        <td class="value">{{orderId}}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Failure Reason:</td>
+                        <td class="value" style="font-weight: normal; font-style: italic;">"{{failureReason}}"</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p>To try again, please review your payment details, ensure sufficient funds are available, or use an alternative payment option.</p>
+
+            <div class="cta-container">
+                <a href="{{actionUrl}}" class="btn" target="_blank">Retry Payment</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>GigCampus Inc. • Campus Freelance Hub</p>
+            <p>To control notification preferences, visit your <a href="{{settingsUrl}}">Settings</a>.</p>
+        </div>
+    </div>
+</body>
+</html>
