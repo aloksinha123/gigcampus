@@ -3,6 +3,8 @@ import Project from '../models/Project.js';
 import User from '../models/User.js';
 import Transaction from '../models/Transaction.js';
 import { createNotification } from './notificationController.js';
+import { sendProjectCompletedEmail, sendPayoutStatusEmail } from '../services/emailService.js';
+import { recordFraudSignal } from '../services/fraudDetectionService.js';
 
 /**
  * Utility helper for structured payment logging
@@ -44,6 +46,11 @@ export const createPayment = async (req, res) => {
         // Check if payment already exists
         const existingPayment = await Payment.findOne({ project });
         if (existingPayment) {
+            await recordFraudSignal(req.user._id, 'DUPLICATE_PAYMENT', req, {
+                project,
+                amount,
+                reason: 'Attempted duplicate payment creation for project'
+            });
             return res.status(400).json({ message: 'Payment already exists for this project' });
         }
 
@@ -196,6 +203,45 @@ export const releasePayment = async (req, res) => {
             );
         } catch (notifyErr) {
             console.warn('Notification failed:', notifyErr.message);
+        }
+
+        // Send email notifications (non-blocking)
+        try {
+            // A. Project completed email to Client
+            await sendProjectCompletedEmail({
+                recipientEmail: req.user.email,
+                recipientName: req.user.username,
+                projectTitle: project.title,
+                partnerName: updatedFreelancer.username,
+                amount: escrowAmount,
+                projectId: project._id,
+                requestId: `complete-client-${project._id}`
+            });
+
+            // B. Project completed email to Freelancer
+            await sendProjectCompletedEmail({
+                recipientEmail: updatedFreelancer.email,
+                recipientName: updatedFreelancer.username,
+                projectTitle: project.title,
+                partnerName: req.user.username,
+                amount: escrowAmount,
+                projectId: project._id,
+                requestId: `complete-free-${project._id}`
+            });
+
+            // C. Payout processed email to Freelancer
+            await sendPayoutStatusEmail({
+                recipientEmail: updatedFreelancer.email,
+                recipientName: updatedFreelancer.username,
+                amount: escrowAmount,
+                fee: platformCommission,
+                netAmount: freelancerAmount,
+                transactionId: transactionId,
+                projectTitle: project.title,
+                requestId: `payout-${transactionId}`
+            });
+        } catch (emailErr) {
+            console.error('⚠️ Escrow release emails dispatch failed:', emailErr.message);
         }
 
         logPaymentEvent('FUNDS RELEASED', req, {

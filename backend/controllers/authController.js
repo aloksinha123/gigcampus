@@ -10,6 +10,7 @@ import {
 } from '../services/emailService.js';
 import { parseUserAgent } from '../utils/uaParser.js';
 import { logSecurityAudit } from '../services/auditService.js';
+import { recordFraudSignal } from '../services/fraudDetectionService.js';
 
 // Generate JWT Token
 const generateToken = (id, tokenId) => {
@@ -170,6 +171,10 @@ export const login = async (req, res) => {
 
         if (!isMatch) {
             user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+
+            if (user.failedLoginAttempts >= 5) {
+                await recordFraudSignal(user._id, 'FAILED_LOGIN_BURST', req, { failedAttempts: user.failedLoginAttempts });
+            }
 
             if (isLockoutEnabled && user.failedLoginAttempts >= 5) {
                 user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes lock

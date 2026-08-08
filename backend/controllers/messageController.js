@@ -1,6 +1,9 @@
 import Message from '../models/Message.js';
 import Project from '../models/Project.js';
+import User from '../models/User.js';
 import { createNotification } from './notificationController.js';
+import { sendNewMessageEmail } from '../services/emailService.js';
+import { recordFraudSignal } from '../services/fraudDetectionService.js';
 
 // @desc    Upload message attachment
 // @route   POST /api/messages/upload
@@ -46,6 +49,37 @@ export const uploadAttachment = async (req, res) => {
 export const sendMessage = async (req, res) => {
     try {
         const { project, receiver, content, files, attachment } = req.body;
+
+        // 1. Message frequency spam check: 10+ messages in 2 minutes
+        const twoMinsAgo = new Date(Date.now() - 2 * 60 * 1000);
+        const recentMsgCount = await Message.countDocuments({
+            sender: req.user._id,
+            createdAt: { $gte: twoMinsAgo }
+        });
+        if (recentMsgCount >= 10) {
+            await recordFraudSignal(req.user._id, 'MESSAGE_SPAM', req, {
+                reason: '10+ messages in 2 minutes',
+                count: recentMsgCount + 1
+            });
+        }
+
+        // 2. Duplicate content check (consecutive matching texts)
+        if (content && content.trim()) {
+            const lastMsgs = await Message.find({
+                sender: req.user._id
+            }).sort({ createdAt: -1 }).limit(2);
+            
+            const isDuplicate = lastMsgs.length === 2 && 
+                lastMsgs[0].content === content.trim() && 
+                lastMsgs[1].content === content.trim();
+                
+            if (isDuplicate) {
+                await recordFraudSignal(req.user._id, 'MESSAGE_SPAM', req, {
+                    reason: 'Duplicate identical messages consecutively',
+                    messageSnippet: content.trim().substring(0, 30) // Only minimum snippet for security
+                });
+            }
+        }
 
         if (!content && !attachment && (!files || files.length === 0)) {
             return res.status(400).json({ message: 'Message content or file attachment is required' });
@@ -100,6 +134,24 @@ export const sendMessage = async (req, res) => {
                 messageId: message._id
             }
         );
+
+        // Send Email notification to receiver (non-blocking)
+        try {
+            const receiverUser = await User.findById(receiver);
+            if (receiverUser && receiverUser.email) {
+                await sendNewMessageEmail({
+                    recipientEmail: receiverUser.email,
+                    recipientName: receiverUser.username,
+                    senderName: req.user.username,
+                    projectTitle: projectDoc.title,
+                    messageContent: content || 'Sent an attachment.',
+                    projectId: projectDoc._id,
+                    requestId: `new-message-${message._id}`
+                });
+            }
+        } catch (emailErr) {
+            console.error('⚠️ Message email dispatch failed:', emailErr.message);
+        }
 
         res.status(201).json(populatedMessage);
     } catch (error) {

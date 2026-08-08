@@ -5,6 +5,8 @@ import Payment from '../models/Payment.js';
 import Project from '../models/Project.js';
 import Transaction from '../models/Transaction.js';
 import WebhookLog from '../models/WebhookLog.js';
+import { sendPaymentSuccessEmail, sendPaymentFailedEmail } from '../services/emailService.js';
+import { recordFraudSignal } from '../services/fraudDetectionService.js';
 
 /**
  * Utility helper for structured payment logging
@@ -81,6 +83,21 @@ export const createOrder = async (req, res) => {
 
             clientObjId = projectObj.student;
             freelancerObjId = projectObj.freelancer;
+        }
+
+        // Check for rapid payment attempts (e.g. 3+ orders in 10 minutes)
+        if (clientObjId) {
+            const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
+            const recentOrdersCount = await Payment.countDocuments({
+                client: clientObjId,
+                createdAt: { $gte: tenMinsAgo }
+            });
+            if (recentOrdersCount >= 3) {
+                await recordFraudSignal(clientObjId, 'RAPID_PAYMENT_ATTEMPTS', req, {
+                    attemptsCount: recentOrdersCount + 1,
+                    timeWindow: '10 mins'
+                });
+            }
         }
 
         // Create Razorpay Order via SDK
@@ -168,6 +185,13 @@ export const verifySignature = async (req, res) => {
                 razorpayPaymentId: razorpay_payment_id
             });
 
+            const userToReport = payment ? (payment.user || payment.client) : (req.user?._id || null);
+            await recordFraudSignal(userToReport, 'DUPLICATE_PAYMENT', req, {
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                reason: 'Signature verification mismatch'
+            });
+
             if (payment) {
                 payment.status = 'FAILED';
                 payment.timeline.push({
@@ -176,6 +200,23 @@ export const verifySignature = async (req, res) => {
                     timestamp: new Date()
                 });
                 await payment.save();
+
+                // Trigger payment failed email (non-blocking)
+                try {
+                    const clientUser = await User.findById(payment.user || payment.client);
+                    if (clientUser && clientUser.email) {
+                        await sendPaymentFailedEmail({
+                            recipientEmail: clientUser.email,
+                            recipientName: clientUser.username,
+                            amount: payment.amount,
+                            orderId: razorpay_order_id,
+                            failureReason: 'Signature verification mismatch.',
+                            requestId: `fail-sig-${razorpay_order_id}`
+                        });
+                    }
+                } catch (emailErr) {
+                    console.error('⚠️ Payment failed email dispatch failed:', emailErr.message);
+                }
             }
 
             return res.status(400).json({
@@ -249,6 +290,24 @@ export const verifySignature = async (req, res) => {
         );
 
         await payment.save();
+
+        // Trigger payment success email (non-blocking)
+        try {
+            const clientUser = await User.findById(payment.client || payment.user || userId);
+            if (clientUser && clientUser.email) {
+                await sendPaymentSuccessEmail({
+                    recipientEmail: clientUser.email,
+                    recipientName: clientUser.username,
+                    amount: paidAmount,
+                    transactionId: razorpay_payment_id,
+                    paymentType: payment.project ? 'escrow_funding' : 'wallet_funding',
+                    description: payment.project ? `Escrow funding for project ID: ${payment.project}` : 'Wallet deposit funding',
+                    requestId: `success-pay-${razorpay_payment_id}`
+                });
+            }
+        } catch (emailErr) {
+            console.error('⚠️ Payment success email dispatch failed:', emailErr.message);
+        }
 
         // Update User Wallet if wallet funding transaction
         if (userId) {
@@ -464,6 +523,21 @@ Status: Duplicate Event Ignored
             case 'payment.failed':
                 newStatus = 'FAILED';
                 timelineMessage = `Payment failed at gateway: ${paymentEntity.error_description || 'Gateway error'}`;
+                if (payment) {
+                    const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
+                    Payment.countDocuments({
+                        client: payment.client,
+                        status: 'FAILED',
+                        updatedAt: { $gte: tenMinsAgo }
+                    }).then(failedCount => {
+                        if (failedCount + 1 >= 3) {
+                            recordFraudSignal(payment.client, 'PAYMENT_FAILURE_BURST', null, {
+                                reason: '3+ failed payments within 10 minutes',
+                                lastError: paymentEntity.error_description || 'Gateway error'
+                            });
+                        }
+                    }).catch(err => console.error('Failed to query payment failure logs:', err.message));
+                }
                 break;
 
             case 'refund.created':

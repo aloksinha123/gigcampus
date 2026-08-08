@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import { createNotification } from './notificationController.js';
 import { sendNewBidReceivedEmail } from '../services/emailService.js';
 import { logActivity } from '../services/activityService.js';
+import { recordFraudSignal } from '../services/fraudDetectionService.js';
 
 // @desc    Submit a bid
 // @route   POST /api/bids
@@ -11,6 +12,19 @@ import { logActivity } from '../services/activityService.js';
 export const submitBid = async (req, res) => {
     try {
         let { project, proposal, price, bidAmount, timeline, deliverables } = req.body;
+
+        // Check for suspicious bidding: 5+ bids in 5 minutes
+        const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const recentBidsCount = await Bid.countDocuments({
+            freelancer: req.user._id,
+            createdAt: { $gte: fiveMinsAgo }
+        });
+        if (recentBidsCount >= 5) {
+            await recordFraudSignal(req.user._id, 'SUSPICIOUS_BIDDING', req, {
+                bidsCount: recentBidsCount + 1,
+                timeWindow: '5 mins'
+            });
+        }
 
         // Map bidAmount to price if price is not provided
         if (bidAmount && !price) {
@@ -94,7 +108,8 @@ export const submitBid = async (req, res) => {
                     bidAmount: price,
                     deliveryDays: timeline,
                     proposalMessage: proposal,
-                    projectId: projectDoc._id
+                    projectId: projectDoc._id,
+                    requestId: `new-bid-${bid._id}`
                 });
             }
         } catch (emailErr) {

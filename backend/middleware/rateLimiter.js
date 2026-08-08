@@ -14,6 +14,21 @@ const createLimitHandler = (customMessage) => {
         // Logging limit breach for security audit
         console.warn(`⚠️ [RATE LIMIT EXCEEDED] Timestamp: ${timestamp} | IP: ${clientIp} | User: ${userId} | Route: ${route}`);
 
+        // Asynchronously record fraud signals to avoid circular dependencies
+        const userIdVal = req.user?._id || null;
+        let signalType = null;
+        if (route.includes('/auth/')) {
+            signalType = 'LOGIN_RATE_LIMIT';
+        } else if (route.includes('/ai/')) {
+            signalType = 'AI_ABUSE';
+        }
+
+        if (signalType) {
+            import('../services/fraudDetectionService.js').then(({ recordFraudSignal }) => {
+                recordFraudSignal(userIdVal, signalType, req, { route });
+            }).catch(err => console.error('Failed to log rate limit fraud signal:', err.message));
+        }
+
         res.status(429).json({
             success: false,
             message: customMessage || options.message || 'Too many requests. Please try again later.'

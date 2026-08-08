@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import Payment from '../models/Payment.js';
 import Transaction from '../models/Transaction.js';
 import payoutService, { isPayoutsEnabled } from '../services/razorpayPayoutService.js';
+import { recordFraudSignal } from '../services/fraudDetectionService.js';
 
 // @desc    Get user's wallet balance + bank details
 // @route   GET /api/v1/wallet/balance
@@ -181,6 +182,40 @@ export const withdrawFunds = async (req, res) => {
     try {
         const { amount } = req.body;
         const userId = req.user._id;
+
+        // 1. Check for rapid withdrawals: 3+ in 30 minutes
+        const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
+        const recentWithdrawalsCount = await Transaction.countDocuments({
+            user: userId,
+            type: 'withdrawal',
+            createdAt: { $gte: thirtyMinsAgo }
+        });
+        if (recentWithdrawalsCount >= 3) {
+            await recordFraudSignal(userId, 'RAPID_WITHDRAWALS', req, {
+                withdrawalsCount: recentWithdrawalsCount + 1,
+                timeWindow: '30 mins'
+            });
+        }
+
+        // 2. Check for unusual withdrawal amount: > 2x recent 30-day average
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const pastWithdrawals = await Transaction.find({
+            user: userId,
+            type: 'withdrawal',
+            status: 'completed',
+            createdAt: { $gte: thirtyDaysAgo }
+        });
+        if (pastWithdrawals.length > 0) {
+            const sum = pastWithdrawals.reduce((acc, t) => acc + Math.abs(t.amount || 0), 0);
+            const avg = sum / pastWithdrawals.length;
+            if (amount > 2 * avg) {
+                await recordFraudSignal(userId, 'UNUSUAL_WITHDRAWAL', req, {
+                    requestedAmount: amount,
+                    averageAmount: avg,
+                    pastWithdrawalsCount: pastWithdrawals.length
+                });
+            }
+        }
 
         // --- Validation ---
         if (!amount || typeof amount !== 'number' || amount < 100) {
