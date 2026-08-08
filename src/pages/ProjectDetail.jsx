@@ -419,20 +419,20 @@ const ProjectDetail = () => {
                 />
             )}
 
-            <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
                 {/* Header Section with Actions */}
-                <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-12">
+                <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8 sm:mb-12">
                     <div>
-                        <Link to="/my-projects" className="inline-flex items-center text-blue-600 font-bold text-sm mb-4 hover:gap-2 transition-all">
+                        <Link to="/my-projects" className="inline-flex items-center text-blue-600 font-bold text-xs sm:text-sm mb-3 hover:gap-2 transition-all">
                             <span>←</span> <span className="ml-2 uppercase tracking-widest">Back to Inventory</span>
                         </Link>
-                        <div className="flex items-center gap-4 mb-2">
-                            <h1 className="text-5xl font-black text-gray-900 tracking-tight">{project.title}</h1>
-                            <span className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm ${getStatusBadge(project.status)}`}>
+                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight leading-tight">{project.title}</h1>
+                            <span className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm ${getStatusBadge(project.status)}`}>
                                 {project.status.replace('_', ' ')}
                             </span>
                         </div>
-                        <p className="text-gray-500 font-medium font-bold">Gig initiated on {new Date(project.createdAt).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
+                        <p className="text-gray-500 text-xs sm:text-sm font-medium font-bold">Gig initiated on {new Date(project.createdAt).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
                     </div>
 
                     {isOwner && (

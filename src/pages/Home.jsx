@@ -59,11 +59,11 @@ const Home = () => {
                     <p className="text-xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
                         Connect students with talented freelancers. Post projects, submit bids, and build your future in our thriving marketplace with secure payments and real-time collaboration.
                     </p>
-                    <div className="flex justify-center gap-4">
-                        <Link to="/projects" className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-8 py-4 rounded-xl hover:from-blue-600 hover:to-cyan-700 transition font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <div className="flex flex-col sm:flex-row justify-center gap-4 max-w-md mx-auto sm:max-w-none">
+                        <Link to="/projects" className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-8 py-4 rounded-xl hover:from-blue-600 hover:to-cyan-700 transition font-semibold text-lg shadow-lg hover:shadow-xl text-center min-h-[44px] flex items-center justify-center">
                             Browse Projects
                         </Link>
-                        <Link to="/register" className="border-2 border-white/30 text-white px-8 py-4 rounded-xl hover:bg-white/10 transition font-semibold text-lg backdrop-blur-sm">
+                        <Link to="/register" className="border-2 border-white/30 text-white px-8 py-4 rounded-xl hover:bg-white/10 transition font-semibold text-lg backdrop-blur-sm text-center min-h-[44px] flex items-center justify-center">
                             Get Started Free
                         </Link>
                     </div>

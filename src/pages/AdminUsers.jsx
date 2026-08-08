@@ -123,8 +123,9 @@ const AdminUsers = () => {
                     </div>
                 ) : (
                     <div className="bg-slate-900/50 rounded-3xl border border-slate-800 overflow-hidden">
-                        <table className="w-full">
-                            <thead className="bg-slate-800/50">
+                        <div className="overflow-x-auto custom-scrollbar-x w-full">
+                            <table className="w-full min-w-[640px]">
+                                <thead className="bg-slate-800/50">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-widest">User</th>
                                     <th className="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-widest">Email</th>
@@ -193,6 +194,7 @@ const AdminUsers = () => {
                             </tbody>
                         </table>
                     </div>
+                </div>
                 )}
 
                 {/* Pagination */}

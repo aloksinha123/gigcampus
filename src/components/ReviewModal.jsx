@@ -81,23 +81,23 @@ const ReviewModal = ({ isOpen, onClose, project, reviewee, onReviewSubmitted }) 
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-            <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100 transform scale-100 transition-all">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100 transform scale-100 transition-all max-h-[90vh] flex flex-col">
                 {/* Header */}
-                <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex justify-between items-center">
+                <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex justify-between items-center flex-shrink-0">
                     <div>
-                        <h3 className="font-bold text-lg">Leave a Review</h3>
-                        <p className="text-xs text-blue-100">For {reviewee.profile?.fullName || reviewee.username} • Project: {project.title}</p>
+                        <h3 className="font-bold text-base sm:text-lg">Leave a Review</h3>
+                        <p className="text-xs text-blue-100 truncate max-w-[240px] sm:max-w-none">For {reviewee.profile?.fullName || reviewee.username} • Project: {project.title}</p>
                     </div>
                     <button 
                         onClick={onClose}
-                        className="text-white hover:text-blue-200 focus:outline-none text-xl font-bold"
+                        className="text-white hover:text-blue-200 focus:outline-none text-2xl font-bold min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
                         &times;
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
                     {/* Overall Rating */}
                     <div className="text-center py-4 bg-slate-50 rounded-xl border border-slate-100">
                         <label className="block text-sm font-bold text-slate-500 mb-2">OVERALL RATING</label>

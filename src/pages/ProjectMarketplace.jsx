@@ -170,22 +170,22 @@ const ProjectMarketplace = () => {
                 </div>
 
                 {/* Filters & Search */}
-                <div className="bg-white p-6 rounded-xl shadow-sm mb-8">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4">
                         <input
                             type="text"
                             name="search"
                             value={filters.search}
                             onChange={handleFilterChange}
                             placeholder="Search projects..."
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="px-4 py-3 sm:py-2 border border-gray-300 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-h-[44px]"
                         />
 
                         <select
                             name="category"
                             value={filters.category}
                             onChange={handleFilterChange}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="px-4 py-3 sm:py-2 border border-gray-300 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-h-[44px]"
                         >
                             <option value="">All Categories</option>
                             {categories.map(cat => (
@@ -198,8 +198,8 @@ const ProjectMarketplace = () => {
                             name="minBudget"
                             value={filters.minBudget}
                             onChange={handleFilterChange}
-                            placeholder="Min Budget ($)"
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Min Budget (₹)"
+                            className="px-4 py-3 sm:py-2 border border-gray-300 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-h-[44px]"
                         />
 
                         <input
@@ -207,8 +207,8 @@ const ProjectMarketplace = () => {
                             name="maxBudget"
                             value={filters.maxBudget}
                             onChange={handleFilterChange}
-                            placeholder="Max Budget ($)"
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Max Budget (₹)"
+                            className="px-4 py-3 sm:py-2 border border-gray-300 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-h-[44px]"
                         />
                     </div>
                 </div>
@@ -221,66 +221,72 @@ const ProjectMarketplace = () => {
                         <CardSkeleton />
                     </div>
                 ) : hasError ? (
-                    <ErrorState onRetry={fetchProjects} />
+                    <ErrorState
+                        title="Failed to Load Projects"
+                        message="We encountered an issue fetching the projects. Please verify your connection."
+                        onRetry={fetchProjects}
+                    />
                 ) : filteredProjects.length === 0 ? (
-                    <div className="bg-white p-12 rounded-xl shadow-sm text-center">
-                        <p className="text-gray-500 text-lg">No projects found matching your criteria</p>
+                    <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+                        <p className="text-gray-500 text-lg">No projects found matching your criteria.</p>
                     </div>
                 ) : (
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {paginatedProjects.map(project => (
-                                <div key={project._id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(project.status)}`}>
-                                            {project.status.replace('_', ' ').toUpperCase()}
-                                        </span>
-                                        <div className="flex items-center gap-3">
-                                            {localStorage.getItem('token') && (
-                                                <button
-                                                    onClick={() => toggleBookmark(project._id)}
-                                                    className="text-gray-400 hover:text-blue-600 transition text-sm cursor-pointer"
-                                                    title={bookmarkedProjectIds.has(project._id) ? "Unbookmark" : "Bookmark"}
-                                                >
-                                                    {bookmarkedProjectIds.has(project._id) ? '💙' : '🤍'}
-                                                </button>
-                                            )}
-                                            <span className="text-xs text-gray-500">
-                                                {new Date(project.createdAt).toLocaleDateString()}
+                                <div key={project._id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-5 sm:p-6 flex flex-col justify-between">
+                                    <div>
+                                        <div className="flex justify-between items-start mb-4 gap-2">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(project.status)}`}>
+                                                {project.status.replace('_', ' ').toUpperCase()}
+                                            </span>
+                                            <div className="flex items-center gap-3">
+                                                {localStorage.getItem('token') && (
+                                                    <button
+                                                        onClick={() => toggleBookmark(project._id)}
+                                                        className="text-gray-400 hover:text-blue-600 transition text-base p-1 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+                                                        title={bookmarkedProjectIds.has(project._id) ? "Unbookmark" : "Bookmark"}
+                                                    >
+                                                        {bookmarkedProjectIds.has(project._id) ? '💙' : '🤍'}
+                                                    </button>
+                                                )}
+                                                <span className="text-xs text-gray-500 whitespace-nowrap">
+                                                    {new Date(project.createdAt).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h3 className="text-xl font-bold mb-2 line-clamp-2">{project.title}</h3>
+                                        <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
+
+                                        <div className="mb-4">
+                                            <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-md font-medium">
+                                                {project.category}
                                             </span>
                                         </div>
-                                    </div>
 
-                                    <h3 className="text-xl font-bold mb-2 line-clamp-2">{project.title}</h3>
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
-
-                                    <div className="mb-4">
-                                        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                                            {project.category}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex justify-between items-center mb-4">
-                                        <div>
-                                            <p className="text-xs text-gray-500">Budget</p>
-                                            <p className={`text-2xl font-bold ${getBudgetColor(project.budget)}`}>
-                                                {renderBudget(project.budget)}
-                                            </p>
+                                        <div className="flex justify-between items-center mb-4 p-3 bg-gray-50 rounded-xl">
+                                            <div>
+                                                <p className="text-xs text-gray-500 font-medium">Budget</p>
+                                                <p className={`text-xl sm:text-2xl font-bold ${getBudgetColor(project.budget)}`}>
+                                                    {renderBudget(project.budget)}
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs text-gray-500 font-medium">Bids</p>
+                                                <p className="text-xl sm:text-2xl font-bold text-gray-700">{project.bidsCount || 0}</p>
+                                            </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-gray-500">Bids</p>
-                                            <p className="text-2xl font-bold text-gray-700">{project.bidsCount || 0}</p>
-                                        </div>
-                                    </div>
 
-                                    <div className="mb-4">
-                                        <p className="text-xs text-gray-500 mb-1">Timeline</p>
-                                        <p className="text-sm font-semibold">{project.timeline}</p>
+                                        <div className="mb-4">
+                                            <p className="text-xs text-gray-500 mb-1">Timeline</p>
+                                            <p className="text-sm font-semibold">{project.timeline}</p>
+                                        </div>
                                     </div>
 
                                     <Link
                                         to={`/projects/${project._id}`}
-                                        className="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition"
+                                        className="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition font-bold shadow-md shadow-blue-500/10 min-h-[44px] flex items-center justify-center"
                                     >
                                         View Details
                                     </Link>

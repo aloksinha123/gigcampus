@@ -378,37 +378,37 @@ const AdvancedSearch = () => {
                         <p className="text-slate-500 font-medium text-sm">Discover projects, find talent, and match capabilities using AI query routing</p>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-row gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
                         <button
                             onClick={() => {
                                 setActiveTab('projects');
                                 setCurrentPage(1);
                             }}
-                            className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition active:scale-95 ${
+                            className={`flex-1 sm:flex-initial px-4 sm:px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition active:scale-95 text-center min-h-[44px] ${
                                 activeTab === 'projects'
                                     ? 'bg-blue-600 text-white shadow-lg'
                                     : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                             }`}
                         >
-                            💼 Find Projects
+                            💼 Projects
                         </button>
                         <button
                             onClick={() => {
                                 setActiveTab('freelancers');
                                 setCurrentPage(1);
                             }}
-                            className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition active:scale-95 ${
+                            className={`flex-1 sm:flex-initial px-4 sm:px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition active:scale-95 text-center min-h-[44px] ${
                                 activeTab === 'freelancers'
                                     ? 'bg-purple-600 text-white shadow-lg'
                                     : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                             }`}
                         >
-                            🚀 Find Freelancers
+                            🚀 Freelancers
                         </button>
                     </div>
                 </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
                     {/* Left Column - Filters Panel */}
                     <div className="space-y-6">
                         <div className="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 shadow-xl space-y-6">

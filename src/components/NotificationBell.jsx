@@ -169,7 +169,7 @@ const NotificationBell = () => {
 
             {/* Dropdown */}
             {showDropdown && (
-                <div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-[600px] flex flex-col">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[80vh] sm:max-h-[600px] flex flex-col -right-12 sm:right-0">
                     {/* Header */}
                     <div className="p-4 border-b border-gray-200 flex justify-between items-center">
                         <h3 className="font-bold text-lg">Notifications</h3>

@@ -142,11 +142,12 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="md:hidden flex items-center gap-4">
+                    <div className="md:hidden flex items-center gap-3">
                         {isAuthenticated && <NotificationBell />}
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className={`p-2 rounded-lg transition-colors ${variant === 'transparent' || variant === 'dark' ? 'text-white hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'}`}
+                            aria-label="Toggle navigation menu"
+                            className={`p-2.5 rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center ${variant === 'transparent' || variant === 'dark' ? 'text-white hover:bg-white/10 active:bg-white/20' : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'}`}
                         >
                             {isMenuOpen ? (
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,33 +165,60 @@ const Navbar = ({ variant = 'light', className = '' }) => {
 
             {/* Mobile Menu Dropdown */}
             {isMenuOpen && (
-                <div className={`md:hidden absolute top-full left-0 right-0 ${mobileMenuBg} backdrop-blur-xl animate-fade-in-down`}>
-                    <div className="px-4 pt-2 pb-6 space-y-2">
+                <div className={`md:hidden absolute top-full left-0 right-0 ${mobileMenuBg} backdrop-blur-2xl shadow-2xl z-50 border-b overflow-y-auto max-h-[calc(100vh-5rem)]`}>
+                    <div className="px-4 pt-3 pb-6 space-y-2">
                         {isAuthenticated && (
-                            <div className="px-4 py-3 border-b border-gray-100/10 mb-2">
-                                <p className={`text-sm font-medium ${mobileTextClasses}`}>Signed in as</p>
-                                <p className={`truncate font-bold ${variant === 'transparent' || variant === 'dark' ? 'text-white' : 'text-gray-900'}`}>{user?.username || 'User'}</p>
+                            <div className="px-4 py-3 border-b border-gray-100/10 mb-2 flex items-center justify-between">
+                                <div>
+                                    <p className={`text-xs font-medium uppercase tracking-wider ${mobileTextClasses}`}>Signed in as</p>
+                                    <p className={`truncate font-bold text-base ${variant === 'transparent' || variant === 'dark' ? 'text-white' : 'text-gray-900'}`}>{user?.username || 'User'}</p>
+                                </div>
+                                <span className="text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                    {user?.role}
+                                </span>
                             </div>
                         )}
 
-                        {links.map((link) => (
-                            <Link
-                                key={link.path}
-                                to={link.path}
-                                onClick={() => setIsMenuOpen(false)}
-                                className={`block px-4 py-3 rounded-xl text-base font-medium transition-colors ${linkClasses}`}
-                            >
-                                {link.name}
-                            </Link>
-                        ))}
+                        {links.map((link) => {
+                            const isActive = location.pathname === link.path;
+                            return (
+                                <Link
+                                    key={link.path}
+                                    to={link.path}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className={`block px-4 py-3 rounded-xl text-base font-medium transition-all ${
+                                        isActive
+                                            ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20'
+                                            : link.isButton
+                                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-center mt-2'
+                                            : `${linkClasses}`
+                                    }`}
+                                >
+                                    {link.name}
+                                </Link>
+                            );
+                        })}
 
                         {isAuthenticated && (
-                            <button
-                                onClick={handleLogout}
-                                className={`w-full text-left block px-4 py-3 rounded-xl text-base font-medium transition-colors ${variant === 'transparent' || variant === 'dark' ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
-                            >
-                                Logout
-                            </button>
+                            <>
+                                <Link
+                                    to="/notification-settings"
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className={`block px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                                        location.pathname === '/notification-settings'
+                                            ? 'bg-blue-600 text-white font-bold'
+                                            : `${linkClasses}`
+                                    }`}
+                                >
+                                    Notification Settings ⚙️
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className={`w-full text-left block px-4 py-3 rounded-xl text-base font-medium transition-colors min-h-[44px] ${variant === 'transparent' || variant === 'dark' ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
+                                >
+                                    Logout
+                                </button>
+                            </>
                         )}
                     </div>
                 </div>

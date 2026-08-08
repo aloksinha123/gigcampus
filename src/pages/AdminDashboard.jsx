@@ -121,56 +121,56 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-[#090d16] text-slate-100 font-sans pb-20">
       <Navbar variant="dark" />
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         {/* Header Bar */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 pb-8 border-b border-slate-800/80">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 sm:mb-10 pb-8 border-b border-slate-800/80">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/10 text-purple-400 rounded-full text-xs font-bold mb-3 border border-purple-500/20">
               <span>🛡️ Executive Command Center</span>
             </div>
-            <h1 className="text-4xl font-black tracking-tight text-white italic">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white italic">
               Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">Analytics</span>
             </h1>
-            <p className="text-slate-400 text-sm font-medium mt-1">
+            <p className="text-slate-400 text-xs sm:text-sm font-medium mt-1">
               Real-time telemetry across revenue, user acquisition, project fulfillment, AI metrics, and security.
             </p>
           </div>
 
           {/* Quick Actions & Security */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
             <Link
               to="/admin/users"
-              className="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition"
+              className="px-4 py-3 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition min-h-[44px] flex items-center justify-center"
             >
               Audit Users
             </Link>
             <Link
               to="/admin/reviews"
-              className="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition"
+              className="px-4 py-3 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition min-h-[44px] flex items-center justify-center"
             >
               Moderate Reviews
             </Link>
             <Link
               to="/admin/reviews/reported"
-              className="px-4 py-2.5 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 text-xs font-black uppercase tracking-wider rounded-xl border border-rose-500/20 transition"
+              className="px-4 py-3 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 text-xs font-black uppercase tracking-wider rounded-xl border border-rose-500/20 transition min-h-[44px] flex items-center justify-center"
             >
               ⚠️ Reported Reviews
             </Link>
             <Link
               to="/admin/disputes"
-              className="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition"
+              className="px-4 py-3 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition min-h-[44px] flex items-center justify-center"
             >
               Disputes ({analytics.projects.cancelled || 0})
             </Link>
             <Link
               to="/admin/security"
-              className="px-5 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition"
+              className="px-4 py-3 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition min-h-[44px] flex items-center justify-center"
             >
               Security Center 🛡️
             </Link>
             <Link
               to="/admin/fraud"
-              className="px-5 py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95"
+              className="px-5 py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 min-h-[44px] flex items-center justify-center"
             >
               Fraud Center 🚨
             </Link>

@@ -116,86 +116,84 @@ const StudentDashboard = () => {
       {/* Navbar */}
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 sm:mb-12">
           <div>
-            <h1 className="text-5xl font-black text-gray-900 mb-2 tracking-tight">
+            <h1 className="text-3xl sm:text-5xl font-black text-gray-900 mb-2 tracking-tight">
               Welcome, <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{user?.username}</span>! 👋
             </h1>
-            <p className="text-lg text-gray-500 font-medium">Manager your projects and talent from one central hub.</p>
+            <p className="text-sm sm:text-lg text-gray-500 font-medium">Manage your projects and talent from one central hub.</p>
           </div>
           <Link
             to="/my-projects"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-1 transition-all flex items-center gap-2 w-fit"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-bold shadow-lg shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 w-full sm:w-fit min-h-[44px]"
           >
             <span className="text-xl">➕</span> Post a New Project
           </Link>
         </div>
 
         {/* Primary Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-10">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all group">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-4xl group-hover:scale-110 transition-transform">📁</span>
+              <span className="text-3xl sm:text-4xl group-hover:scale-110 transition-transform">📁</span>
               <span className="text-xs font-black text-blue-500 uppercase tracking-widest">Global</span>
             </div>
-            <h3 className="text-gray-500 font-bold text-sm uppercase mb-1">Total Projects</h3>
-            <p className="text-4xl font-black text-gray-900">{stats.totalProjects}</p>
+            <h3 className="text-gray-500 font-bold text-xs sm:text-sm uppercase mb-1">Total Projects</h3>
+            <p className="text-3xl sm:text-4xl font-black text-gray-900">{stats.totalProjects}</p>
           </div>
 
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-green-100 transition-all group">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-green-100 transition-all group">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-4xl group-hover:scale-110 transition-transform">⚡</span>
+              <span className="text-3xl sm:text-4xl group-hover:scale-110 transition-transform">⚡</span>
               <span className="text-xs font-black text-green-500 uppercase tracking-widest">Active</span>
             </div>
-            <h3 className="text-gray-500 font-bold text-sm uppercase mb-1">In Progress</h3>
-            <p className="text-4xl font-black text-green-600">{stats.activeProjects}</p>
+            <h3 className="text-gray-500 font-bold text-xs sm:text-sm uppercase mb-1">In Progress</h3>
+            <p className="text-3xl sm:text-4xl font-black text-green-600">{stats.activeProjects}</p>
           </div>
 
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-purple-100 transition-all group">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-purple-100 transition-all group">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-4xl group-hover:scale-110 transition-transform">💎</span>
+              <span className="text-3xl sm:text-4xl group-hover:scale-110 transition-transform">💎</span>
               <span className="text-xs font-black text-purple-500 uppercase tracking-widest">Done</span>
             </div>
-            <h3 className="text-gray-500 font-bold text-sm uppercase mb-1">Completed</h3>
-            <p className="text-4xl font-black text-purple-600">{stats.completedProjects}</p>
+            <h3 className="text-gray-500 font-bold text-xs sm:text-sm uppercase mb-1">Completed</h3>
+            <p className="text-3xl sm:text-4xl font-black text-purple-600">{stats.completedProjects}</p>
           </div>
 
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-yellow-100 transition-all group">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-yellow-100 transition-all group">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-4xl group-hover:scale-110 transition-transform">💰</span>
+              <span className="text-3xl sm:text-4xl group-hover:scale-110 transition-transform">💰</span>
               <span className="text-xs font-black text-yellow-500 uppercase tracking-widest">Balance</span>
             </div>
-            <h3 className="text-gray-500 font-bold text-sm uppercase mb-1">Total Invested</h3>
-            <p className="text-4xl font-black text-yellow-500">${stats.totalSpent.toFixed(2)}</p>
+            <h3 className="text-gray-500 font-bold text-xs sm:text-sm uppercase mb-1">Total Invested</h3>
+            <p className="text-3xl sm:text-4xl font-black text-yellow-500">₹{stats.totalSpent.toFixed(2)}</p>
           </div>
         </div>
 
         {/* Important Alerts Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <div className="bg-gradient-to-br from-orange-400 to-rose-500 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-rose-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-12">
+          <div className="bg-gradient-to-br from-orange-400 to-rose-500 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-rose-200">
             <div className="relative z-10">
               <h3 className="text-rose-100 font-bold text-sm uppercase tracking-widest mb-2">Needs Attention</h3>
-              <p className="text-5xl font-black mb-4">{stats.pendingBids} <span className="text-2xl font-medium">Pending Bids</span></p>
-              <p className="text-rose-100 mb-6 font-medium">Freelancers are waiting for your response. Review their proposals now.</p>
-              <Link to="/my-projects" className="bg-white text-rose-600 px-6 py-3 rounded-2xl font-black hover:bg-rose-50 transition-colors inline-block">
-                Review Proposals →
+              <p className="text-3xl sm:text-5xl font-black mb-4">{stats.pendingBids} <span className="text-xl sm:text-2xl font-medium">Pending Bids</span></p>
+              <p className="text-rose-100 text-sm mb-6">Freelancers are waiting for your response on open proposals.</p>
+              <Link to="/my-projects" className="inline-block bg-white text-rose-600 px-6 py-3 rounded-xl font-bold shadow-md hover:bg-rose-50 transition-all min-h-[44px]">
+                Review Bids →
               </Link>
             </div>
-            <div className="absolute -right-10 -bottom-10 text-[180px] opacity-10 pointer-events-none">📋</div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-blue-200">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-200">
             <div className="relative z-10">
-              <h3 className="text-blue-100 font-bold text-sm uppercase tracking-widest mb-2">Bidding Active</h3>
-              <p className="text-5xl font-black mb-4">{stats.openProjects} <span className="text-2xl font-medium">Open Ads</span></p>
-              <p className="text-blue-100 mb-6 font-medium">Your projects are currently visible in the marketplace and receiving traffic.</p>
-              <Link to="/projects" className="bg-white/20 backdrop-blur-md text-white border border-white/30 px-6 py-3 rounded-2xl font-black hover:bg-white/30 transition-colors inline-block">
-                Optimize Listings →
+              <h3 className="text-blue-200 font-bold text-sm uppercase tracking-widest mb-2">Live Status</h3>
+              <p className="text-3xl sm:text-5xl font-black mb-4">{stats.openProjects} <span className="text-xl sm:text-2xl font-medium">Open Listings</span></p>
+              <p className="text-blue-100 text-sm mb-6">Projects currently receiving new proposals from talent.</p>
+              <Link to="/my-projects" className="inline-block bg-white text-blue-600 px-6 py-3 rounded-xl font-bold shadow-md hover:bg-blue-50 transition-all min-h-[44px]">
+                View Listings →
               </Link>
             </div>
-            <div className="absolute -right-10 -bottom-10 text-[180px] opacity-10 pointer-events-none">📢</div>
           </div>
         </div>
 
@@ -204,44 +202,44 @@ const StudentDashboard = () => {
           <DashboardRecommendationWidget user={user} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
           {/* Recent Projects List */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 lg:p-10 shadow-sm border border-gray-100">
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-black text-gray-900">Active Listings</h2>
-                <Link to="/my-projects" className="text-blue-600 font-bold hover:text-blue-700 underline decoration-2 underline-offset-4">
+                <h2 className="text-2xl sm:text-3xl font-black text-gray-900">Active Listings</h2>
+                <Link to="/my-projects" className="text-blue-600 font-bold hover:text-blue-700 underline decoration-2 underline-offset-4 text-sm sm:text-base">
                   Browse All
                 </Link>
               </div>
 
               {recentProjects.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-                  <div className="text-6xl mb-4">📭</div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">Your slate is clean</h3>
-                  <p className="text-gray-500 mb-6">You haven't posted any projects yet. Ready to start?</p>
-                  <Link to="/my-projects" className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-blue-200">
+                <div className="text-center py-12 sm:py-16 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 p-4">
+                  <div className="text-5xl sm:text-6xl mb-4">📭</div>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">Your slate is clean</h3>
+                  <p className="text-gray-500 mb-6 text-sm">You haven't posted any projects yet. Ready to start?</p>
+                  <Link to="/my-projects" className="inline-block bg-blue-600 text-white px-6 sm:px-8 py-3 rounded-2xl font-bold shadow-lg shadow-blue-200 min-h-[44px]">
                     Post First Project
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {recentProjects.map((project) => (
-                    <div key={project._id} className="group flex flex-col md:flex-row md:items-center justify-between p-6 rounded-3xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer" onClick={() => navigate(`/projects/${project._id}`)}>
-                      <div className="mb-4 md:mb-0">
-                        <div className="flex items-center gap-3 mb-1">
-                          <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors">{project.title}</h3>
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusBadge(project.status)}`}>
+                    <div key={project._id} className="group flex flex-col md:flex-row md:items-center justify-between p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer gap-3" onClick={() => navigate(`/projects/${project._id}`)}>
+                      <div>
+                        <div className="flex items-center gap-2 sm:gap-3 mb-1 flex-wrap">
+                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors">{project.title}</h3>
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusBadge(project.status)}`}>
                             {project.status.replace('_', ' ')}
                           </span>
                         </div>
-                        <div className="flex items-center gap-4 text-sm font-medium text-gray-500">
-                          <span>💰 ${project.budget?.max} max</span>
+                        <div className="flex items-center gap-3 text-xs sm:text-sm font-medium text-gray-500">
+                          <span>💰 ₹{project.budget?.max} max</span>
                           <span>•</span>
                           <span>📊 {project.bidsCount} proposals</span>
                         </div>
                       </div>
-                      <Link to={`/projects/${project._id}`} className="text-blue-600 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                      <Link to={`/projects/${project._id}`} className="text-blue-600 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform text-sm self-end md:self-auto min-h-[44px]">
                         Manage Card <span className="text-xl">→</span>
                       </Link>
                     </div>
@@ -253,8 +251,8 @@ const StudentDashboard = () => {
 
           {/* Financial Timeline */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100 h-full">
-              <h2 className="text-3xl font-black text-gray-900 mb-8">Cash Flow</h2>
+            <div className="bg-white rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 lg:p-10 shadow-sm border border-gray-100 h-full">
+              <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-6 sm:mb-8">Cash Flow</h2>
 
               {recentPayments.length === 0 ? (
                 <div className="text-center py-16">

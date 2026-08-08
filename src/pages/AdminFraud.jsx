@@ -238,7 +238,7 @@ const AdminFraud = () => {
                 </div>
 
                 {/* Stats Cards Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-10">
                     {[
                         { title: 'Total Fraud Alerts', value: stats.total, color: 'text-white', border: 'border-slate-800' },
                         { title: 'Open Alerts', value: stats.OPEN + stats.REVIEWING, color: 'text-blue-400', border: 'border-blue-500/20' },
@@ -246,9 +246,9 @@ const AdminFraud = () => {
                         { title: 'False Positives', value: stats.FALSE_POSITIVE, color: 'text-slate-400', border: 'border-slate-800' },
                         { title: 'Blocked Users', value: stats.BLOCKED, color: 'text-red-500', border: 'border-red-500/20' }
                     ].map((card, idx) => (
-                        <div key={idx} className={`bg-slate-900/60 rounded-2xl p-6 border ${card.border} shadow-xl flex flex-col justify-between h-28`}>
+                        <div key={idx} className={`bg-slate-900/60 rounded-2xl p-5 sm:p-6 border ${card.border} shadow-xl flex flex-col justify-between h-28`}>
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{card.title}</span>
-                            <span className={`text-3xl font-black ${card.color}`}>
+                            <span className={`text-2xl sm:text-3xl font-black ${card.color}`}>
                                 {statsLoading ? '...' : card.value}
                             </span>
                         </div>
@@ -256,33 +256,33 @@ const AdminFraud = () => {
                 </div>
 
                 {/* Filters Section */}
-                <div className="bg-slate-900/80 rounded-2xl p-5 border border-slate-800/85 mb-8 shadow-xl flex flex-wrap items-center justify-between gap-5">
-                    <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[280px]">
+                <div className="bg-slate-900/80 rounded-2xl p-4 sm:p-5 border border-slate-800/85 mb-8 shadow-xl flex flex-wrap items-center justify-between gap-4">
+                    <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[240px]">
                         <div className="relative">
                             <input
                                 type="text"
                                 placeholder="Search by Username, Email, IP Address or Browser..."
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
-                                className="w-full bg-slate-950 text-slate-100 text-xs px-4 py-3 pl-10 rounded-xl border border-slate-850 focus:outline-none focus:border-rose-500 placeholder-slate-500"
+                                className="w-full bg-slate-950 text-slate-100 text-xs px-4 py-3 pl-10 rounded-xl border border-slate-850 focus:outline-none focus:border-rose-500 placeholder-slate-500 min-h-[44px]"
                             />
                             <span className="absolute left-3.5 top-3.5 text-slate-500 text-xs">🔍</span>
                         </div>
                     </form>
 
-                    <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-2">
                             <span className="text-[10px] font-black uppercase text-slate-450">Risk Level:</span>
                             <select
                                 value={levelFilter}
                                 onChange={e => { setLevelFilter(e.target.value); setPage(1); }}
-                                className="bg-slate-950 text-slate-200 text-xs px-3 py-2 rounded-xl border border-slate-850 focus:outline-none focus:border-rose-500 cursor-pointer"
+                                className="bg-slate-950 text-slate-200 text-xs px-3 py-2.5 rounded-xl border border-slate-850 focus:outline-none focus:border-rose-500 cursor-pointer min-h-[44px]"
                             >
                                 <option value="ALL">All Levels</option>
-                                <option value="LOW">Low</option>
-                                <option value="MEDIUM">Medium</option>
-                                <option value="HIGH">High</option>
                                 <option value="CRITICAL">Critical</option>
+                                <option value="HIGH">High</option>
+                                <option value="MEDIUM">Medium</option>
+                                <option value="LOW">Low</option>
                             </select>
                         </div>
 
@@ -291,7 +291,7 @@ const AdminFraud = () => {
                             <select
                                 value={statusFilter}
                                 onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-                                className="bg-slate-950 text-slate-200 text-xs px-3 py-2 rounded-xl border border-slate-850 focus:outline-none focus:border-rose-500 cursor-pointer"
+                                className="bg-slate-950 text-slate-200 text-xs px-3 py-2.5 rounded-xl border border-slate-850 focus:outline-none focus:border-rose-500 cursor-pointer min-h-[44px]"
                             >
                                 <option value="ALL">All Statuses</option>
                                 <option value="OPEN">Open</option>
@@ -306,8 +306,8 @@ const AdminFraud = () => {
 
                 {/* Main Events Table Container */}
                 <div className="bg-slate-900/40 rounded-3xl border border-slate-850 overflow-hidden shadow-xl">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                    <div className="overflow-x-auto custom-scrollbar-x">
+                        <table className="w-full text-left border-collapse min-w-[680px]">
                             <thead>
                                 <tr className="border-b border-slate-850/80 bg-slate-950/60">
                                     <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">User profile</th>

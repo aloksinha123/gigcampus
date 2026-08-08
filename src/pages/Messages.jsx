@@ -304,9 +304,9 @@ const Messages = () => {
 
             <div className="max-w-7xl mx-auto px-4 py-6">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden" style={{ height: 'calc(100vh - 180px)' }}>
-                    <div className="flex h-full">
+                    <div className="flex h-full relative">
                         {/* Conversations List */}
-                        <div className="w-1/3 border-r border-gray-200 flex flex-col">
+                        <div className={`w-full md:w-80 lg:w-96 md:border-r border-gray-200 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
                             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-indigo-500">
                                 <h2 className="text-xl font-bold text-white">Messages</h2>
                                 <p className="text-sm text-blue-100">
@@ -328,7 +328,7 @@ const Messages = () => {
                                         </p>
                                         <Link
                                             to="/my-projects"
-                                            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                                            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 min-h-[44px] flex items-center justify-center"
                                         >
                                             View My Projects
                                         </Link>
@@ -338,7 +338,7 @@ const Messages = () => {
                                         <div
                                             key={conv.projectId}
                                             onClick={() => setSelectedConversation(conv)}
-                                            className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition ${selectedConversation?.projectId === conv.projectId ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                                            className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition active:bg-gray-100 ${selectedConversation?.projectId === conv.projectId ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3">
@@ -389,27 +389,34 @@ const Messages = () => {
                         </div>
 
                         {/* Chat Area */}
-                        <div className="flex-1 flex flex-col">
+                        <div className={`w-full md:flex-1 flex flex-col ${!selectedConversation ? 'hidden md:flex' : 'flex'}`}>
                             {!selectedConversation ? (
-                                <div className="flex-1 flex items-center justify-center bg-gray-50">
+                                <div className="flex-1 flex items-center justify-center bg-gray-50 p-4">
                                     <div className="text-center">
-                                        <div className="text-8xl mb-4">💬</div>
-                                        <h3 className="text-2xl font-bold text-gray-800 mb-2">Select a conversation</h3>
-                                        <p className="text-gray-600">Choose a conversation from the list to start messaging</p>
+                                        <div className="text-6xl sm:text-8xl mb-4">💬</div>
+                                        <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Select a conversation</h3>
+                                        <p className="text-gray-600 text-sm">Choose a conversation from the list to start messaging</p>
                                     </div>
                                 </div>
                             ) : (
                                 <>
                                     {/* Chat Header */}
-                                    <div className="p-4 border-b border-gray-200 bg-white">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                    <div className="p-3 sm:p-4 border-b border-gray-200 bg-white">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <button
+                                                    onClick={() => setSelectedConversation(null)}
+                                                    className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 font-bold min-h-[44px] flex items-center justify-center text-sm"
+                                                    aria-label="Back to conversations list"
+                                                >
+                                                    ← Back
+                                                </button>
+                                                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
                                                     {selectedConversation.otherUser?.username?.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <h3 className="font-semibold text-gray-800">
+                                                        <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
                                                             {selectedConversation.otherUser?.username}
                                                         </h3>
                                                         <UserPresence

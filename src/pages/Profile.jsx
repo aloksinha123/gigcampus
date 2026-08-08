@@ -256,17 +256,17 @@ const Profile = () => {
             {/* Navbar */}
             <Navbar />
 
-            <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
                 {/* Header */}
-                <div className="mb-6 flex justify-between items-center">
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-4xl font-bold mb-2">My Profile</h1>
-                        <p className="text-gray-600">Manage your account settings and preferences</p>
+                        <h1 className="text-3xl sm:text-4xl font-bold mb-1 sm:mb-2">My Profile</h1>
+                        <p className="text-gray-600 text-sm">Manage your account settings and preferences</p>
                     </div>
                     {!isEditing && (
                         <button
                             onClick={() => setIsEditing(true)}
-                            className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition font-semibold"
+                            className="bg-blue-500 text-white px-6 py-3 rounded-xl hover:bg-blue-600 transition font-semibold w-full sm:w-auto min-h-[44px] flex items-center justify-center shadow-md shadow-blue-500/10"
                         >
                             ✎ Edit Profile
                         </button>
@@ -274,18 +274,18 @@ const Profile = () => {
                 </div>
 
                 {/* Profile Card */}
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
                     {/* Header Section */}
-                    <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-32"></div>
-                    <div className="px-8 pb-8">
+                    <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-28 sm:h-32"></div>
+                    <div className="px-4 sm:px-8 pb-6 sm:pb-8">
                         {/* Avatar */}
-                        <div className="flex items-end -mt-16 mb-6">
-                            <div className="w-32 h-32 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-5xl border-4 border-white shadow-lg">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-end text-center sm:text-left -mt-14 sm:-mt-16 mb-6 gap-3 sm:gap-6">
+                            <div className="w-28 h-28 sm:w-32 sm:h-32 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-4xl sm:text-5xl border-4 border-white shadow-lg flex-shrink-0">
                                 {user?.username?.charAt(0).toUpperCase()}
                             </div>
-                            <div className="ml-6 mb-2">
-                                <div className="flex items-center gap-3">
-                                    <h2 className="text-2xl font-bold text-gray-800">
+                            <div className="mb-1 sm:mb-2">
+                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                                         {profileData.fullName || profileData.username}
                                     </h2>
                                     <UserPresence

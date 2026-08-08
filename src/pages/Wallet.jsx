@@ -160,16 +160,16 @@ const Wallet = () => {
         <div className="min-h-screen bg-[#090d16] text-slate-100 font-sans pb-24">
             <Navbar variant="dark" />
 
-            <div className="max-w-5xl mx-auto px-6 py-10">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
                 {/* Header */}
-                <div className="mb-10">
+                <div className="mb-8 sm:mb-10">
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-bold mb-3 border border-emerald-500/20">
                         <span>💰 Earnings Wallet</span>
                     </div>
-                    <h1 className="text-4xl font-black tracking-tight text-white">
+                    <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
                         My <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400">Wallet</span>
                     </h1>
-                    <p className="text-slate-400 text-sm font-medium mt-1">
+                    <p className="text-slate-400 text-xs sm:text-sm font-medium mt-1">
                         Manage your GigCampus earnings, view transaction history, and withdraw to your bank account.
                     </p>
                 </div>
@@ -182,31 +182,31 @@ const Wallet = () => {
                 ) : (
                     <>
                         {/* Balance Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mb-8">
                             {/* Available Balance */}
-                            <div className="bg-gradient-to-br from-emerald-600/20 to-teal-600/20 rounded-[2rem] p-7 border border-emerald-500/20 relative overflow-hidden">
+                            <div className="bg-gradient-to-br from-emerald-600/20 to-teal-600/20 rounded-2xl sm:rounded-[2rem] p-5 sm:p-7 border border-emerald-500/20 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -translate-y-8 translate-x-8"></div>
-                                <p className="text-xs font-black uppercase tracking-widest text-emerald-400 mb-2">Available Balance</p>
-                                <p className="text-4xl font-black text-white">₹{(wallet.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-emerald-400 mb-2">Available Balance</p>
+                                <p className="text-3xl sm:text-4xl font-black text-white">₹{(wallet.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 <button
                                     onClick={() => setActiveTab('withdraw')}
-                                    className="mt-4 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-black uppercase tracking-wider rounded-xl transition active:scale-95 cursor-pointer"
+                                    className="mt-4 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-black uppercase tracking-wider rounded-xl transition active:scale-95 cursor-pointer min-h-[44px]"
                                 >
                                     Withdraw ⬆️
                                 </button>
                             </div>
 
                             {/* Pending */}
-                            <div className="bg-slate-900/60 rounded-[2rem] p-7 border border-slate-800">
-                                <p className="text-xs font-black uppercase tracking-widest text-amber-400 mb-2">Pending Withdrawal</p>
-                                <p className="text-3xl font-black text-white">₹{(wallet.pendingWithdrawal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <div className="bg-slate-900/60 rounded-2xl sm:rounded-[2rem] p-5 sm:p-7 border border-slate-800">
+                                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-400 mb-2">Pending Withdrawal</p>
+                                <p className="text-2xl sm:text-3xl font-black text-white">₹{(wallet.pendingWithdrawal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 <p className="text-xs text-slate-500 mt-4 font-medium">Being processed by Razorpay</p>
                             </div>
 
                             {/* Total Withdrawn */}
-                            <div className="bg-slate-900/60 rounded-[2rem] p-7 border border-slate-800">
-                                <p className="text-xs font-black uppercase tracking-widest text-blue-400 mb-2">Total Withdrawn</p>
-                                <p className="text-3xl font-black text-white">₹{(wallet.totalWithdrawn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <div className="bg-slate-900/60 rounded-2xl sm:rounded-[2rem] p-5 sm:p-7 border border-slate-800">
+                                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-blue-400 mb-2">Total Withdrawn</p>
+                                <p className="text-2xl sm:text-3xl font-black text-white">₹{(wallet.totalWithdrawn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 <p className="text-xs text-slate-500 mt-4 font-medium">All-time lifetime earnings out</p>
                             </div>
                         </div>
@@ -219,14 +219,14 @@ const Wallet = () => {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 text-xs font-black uppercase tracking-wider transition cursor-pointer ${
+                                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3.5 sm:py-4 text-xs font-black uppercase tracking-wider transition cursor-pointer min-h-[44px] ${
                                             activeTab === tab.id
                                                 ? 'text-white border-b-2 border-emerald-500 bg-emerald-500/5'
                                                 : 'text-slate-500 hover:text-slate-300'
                                         }`}
                                     >
                                         <span>{tab.icon}</span>
-                                        <span className="hidden sm:inline">{tab.label}</span>
+                                        <span className="text-[11px] sm:text-xs">{tab.label}</span>
                                     </button>
                                 ))}
                             </div>
