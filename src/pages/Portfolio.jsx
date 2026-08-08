@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
 
 const Portfolio = () => {
+    const { userId } = useParams();
     const { user, logout } = useAuth();
     const { success, error } = useNotification();
 
     const [portfolios, setPortfolios] = useState([]);
     const [myPortfolio, setMyPortfolio] = useState([]);
+    const [targetUser, setTargetUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [viewMode, setViewMode] = useState('browse'); // 'browse' or 'my'
+    const [viewMode, setViewMode] = useState(userId ? 'user' : 'browse'); // 'browse', 'my', 'user'
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -37,11 +39,35 @@ const Portfolio = () => {
     ];
 
     useEffect(() => {
-        fetchPortfolios();
-        if (user) {
-            fetchMyPortfolio();
+        if (userId) {
+            fetchUserPortfolio();
+            if (localStorage.getItem('token') && userId !== user?._id) {
+                api.recommendations.trackView({ entityType: 'freelancer', entityId: userId })
+                    .catch(err => console.error('Failed to log freelancer view:', err));
+            }
+        } else {
+            fetchPortfolios();
+            if (user) {
+                fetchMyPortfolio();
+            }
         }
-    }, [user]);
+    }, [user, userId]);
+
+    const fetchUserPortfolio = async () => {
+        try {
+            setLoading(true);
+            const userRes = await api.users.getOne(userId);
+            setTargetUser(userRes.data);
+            const response = await api.portfolio.getUserPortfolio(userId);
+            const data = Array.isArray(response.data) ? response.data : (response.data?.portfolios || response.data?.data || []);
+            setPortfolios(data);
+        } catch (err) {
+            error('Failed to load portfolio details');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchPortfolios = async () => {
         try {
@@ -119,7 +145,7 @@ const Portfolio = () => {
         }
     };
 
-    const rawPortfolios = viewMode === 'browse' ? portfolios : myPortfolio;
+    const rawPortfolios = viewMode === 'my' ? myPortfolio : portfolios;
     const displayPortfolios = Array.isArray(rawPortfolios) ? rawPortfolios : [];
 
     return (
@@ -132,11 +158,13 @@ const Portfolio = () => {
                 <div className="mb-8 flex justify-between items-center">
                     <div>
                         <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                            Portfolio Showcase
+                            {userId && targetUser ? `@${targetUser.username}'s Showcase` : 'Portfolio Showcase'}
                         </h1>
-                        <p className="text-gray-600">Discover amazing work from talented freelancers</p>
+                        <p className="text-gray-600">
+                            {userId && targetUser ? `Discover amazing work from @${targetUser.username}` : 'Discover amazing work from talented freelancers'}
+                        </p>
                     </div>
-                    {user && (
+                    {user && !userId && (
                         <button
                             onClick={() => setShowAddModal(true)}
                             className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-pink-700 transition shadow-lg"
@@ -147,7 +175,7 @@ const Portfolio = () => {
                 </div>
 
                 {/* View Toggle */}
-                {user && (
+                {user && !userId && (
                     <div className="mb-6 flex gap-2">
                         <button
                             onClick={() => setViewMode('browse')}

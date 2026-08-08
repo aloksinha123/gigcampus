@@ -30,6 +30,13 @@ const AdminDashboard = () => {
     recentProjects: []
   });
 
+  const [emailStats, setEmailStats] = useState({
+    totalSent: 0,
+    totalFailed: 0,
+    totalQueued: 0,
+    statsByType: []
+  });
+
   useEffect(() => {
     if (!user || user.role !== 'admin') {
       navigate('/');
@@ -49,6 +56,21 @@ const AdminDashboard = () => {
       const response = await api.admin.getAnalytics(params);
       if (response.data?.analytics) {
         setAnalytics(response.data.analytics);
+      }
+
+      // Load transactional email metrics
+      try {
+        const mailResponse = await api.admin.getEmailStats();
+        if (mailResponse.data?.success) {
+          setEmailStats({
+            totalSent: mailResponse.data.totalSent,
+            totalFailed: mailResponse.data.totalFailed,
+            totalQueued: mailResponse.data.totalQueued,
+            statsByType: mailResponse.data.statsByType || []
+          });
+        }
+      } catch (mailErr) {
+        console.error('Failed to load email stats:', mailErr);
       }
     } catch (err) {
       console.error('Failed to load admin analytics:', err);
@@ -129,6 +151,12 @@ const AdminDashboard = () => {
               Moderate Reviews
             </Link>
             <Link
+              to="/admin/reviews/reported"
+              className="px-4 py-2.5 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 text-xs font-black uppercase tracking-wider rounded-xl border border-rose-500/20 transition"
+            >
+              ⚠️ Reported Reviews
+            </Link>
+            <Link
               to="/admin/disputes"
               className="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition"
             >
@@ -136,9 +164,15 @@ const AdminDashboard = () => {
             </Link>
             <Link
               to="/admin/security"
-              className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95"
+              className="px-5 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-700 transition"
             >
               Security Center 🛡️
+            </Link>
+            <Link
+              to="/admin/fraud"
+              className="px-5 py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95"
+            >
+              Fraud Center 🚨
             </Link>
           </div>
         </div>
@@ -364,6 +398,76 @@ const AdminDashboard = () => {
                     <span className="font-bold text-rose-400">{analytics.fraud.suspiciousActivityCount}</span>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Transactional Email statistics */}
+            <div className="bg-slate-900/60 rounded-[2.5rem] p-8 border border-slate-800/80">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-slate-800/80">
+                <div>
+                  <h3 className="text-xl font-black text-white flex items-center gap-2">
+                    <span>✉️</span> Transactional Email Logs
+                  </h3>
+                  <p className="text-xs text-slate-500">Live delivery status and failure telemetry</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                    emailStats.totalSent + emailStats.totalFailed === 0
+                      ? 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                      : (emailStats.totalSent / (emailStats.totalSent + emailStats.totalFailed)) > 0.95
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                  }`}>
+                    Delivery Success: {
+                      emailStats.totalSent + emailStats.totalFailed === 0
+                        ? '0%'
+                        : `${((emailStats.totalSent / (emailStats.totalSent + emailStats.totalFailed)) * 100).toFixed(1)}%`
+                    }
+                  </span>
+                </div>
+              </div>
+
+              {/* Stats counts cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">SENT</span>
+                  <p className="text-2xl font-black text-emerald-400 mt-1">{emailStats.totalSent}</p>
+                </div>
+                <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">FAILED</span>
+                  <p className="text-2xl font-black text-rose-400 mt-1">{emailStats.totalFailed}</p>
+                </div>
+                <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">QUEUED</span>
+                  <p className="text-2xl font-black text-blue-400 mt-1">{emailStats.totalQueued}</p>
+                </div>
+              </div>
+
+              {/* Distribution list */}
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">
+                  Distribution by Template Type
+                </h4>
+                {emailStats.statsByType.length === 0 ? (
+                  <p className="text-xs text-slate-500 font-medium">No email transaction logs registered yet.</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {emailStats.statsByType.map((item, idx) => (
+                      <div key={idx} className="p-4 bg-slate-950/40 border border-slate-800/60 rounded-xl flex items-center justify-between">
+                        <div>
+                          <span className="text-xs font-black text-white uppercase tracking-wider">{item._id}</span>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase mt-1">Template Type</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-black text-emerald-400">{item.sent} sent</span>
+                          {item.failed > 0 && (
+                            <p className="text-[10px] font-bold text-rose-400 uppercase mt-0.5">{item.failed} failed</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

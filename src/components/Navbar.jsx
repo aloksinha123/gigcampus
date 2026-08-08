@@ -37,6 +37,7 @@ const Navbar = ({ variant = 'light', className = '' }) => {
         if (!isAuthenticated) {
             return [
                 { name: 'Browse Projects', path: '/projects' },
+                { name: '🔎 Search', path: '/search' },
                 { name: 'Portfolios', path: '/portfolio' },
                 { name: 'Login', path: '/login', isButton: false },
                 { name: 'Sign Up', path: '/register', isButton: true, variant: 'primary' }
@@ -45,6 +46,7 @@ const Navbar = ({ variant = 'light', className = '' }) => {
 
         const commonLinks = [
             { name: 'Marketplace', path: '/projects' },
+            { name: '🔎 Search', path: '/search' },
             { name: 'Messages', path: '/messages' },
         ];
 
@@ -74,6 +76,7 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                 { name: 'Users', path: '/admin/users' },
                 { name: 'Projects', path: '/admin/projects' },
                 { name: 'Disputes', path: '/admin/disputes' },
+                { name: '🔎 Search', path: '/search' }
             ];
         }
 

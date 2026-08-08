@@ -168,6 +168,10 @@ const ProjectDetail = () => {
             setLoading(true);
             const response = await api.projects.getOne(id);
             setProject(response.data);
+            if (localStorage.getItem('token')) {
+                api.recommendations.trackView({ entityType: 'project', entityId: id })
+                    .catch(err => console.error('Failed to log project view history:', err));
+            }
         } catch (err) {
             error('Failed to load project details');
             console.error(err);

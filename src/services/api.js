@@ -126,7 +126,13 @@ export const reviewsAPI = {
     delete: (id) => api.delete(`/reviews/${id}`),
     toggleHide: (id) => api.put(`/reviews/${id}/hide`),
     getAll: (params) => api.get('/reviews', { params }),
-    update: (id, data) => api.put(`/reviews/${id}`, data)
+    update: (id, data) => api.put(`/reviews/${id}`, data),
+    voteHelpful: (id) => api.post(`/reviews/${id}/helpful`),
+    removeHelpful: (id) => api.delete(`/reviews/${id}/helpful`),
+    report: (id, data) => api.post(`/reviews/${id}/report`, data),
+    regenerateSummary: (userId) => api.post(`/reviews/user/${userId}/summarize`),
+    getReported: () => api.get('/reviews/reported'),
+    dismissReports: (id) => api.put(`/reviews/${id}/reports/dismiss`)
 };
 
 // Portfolio API
@@ -187,7 +193,14 @@ export const adminAPI = {
     deleteProject: (id) => api.delete(`/admin/projects/${id}`),
     getDisputes: () => api.get('/admin/disputes'),
     resolveDispute: (id, data) => api.post(`/admin/disputes/${id}/resolve`, data),
-    getBids: (params) => api.get('/admin/bids', { params })
+    getBids: (params) => api.get('/admin/bids', { params }),
+    getEmailStats: () => api.get('/admin/email-stats'),
+    getFraudEvents: (params) => api.get('/admin/fraud/events', { params }),
+    getFraudEventDetails: (id) => api.get(`/admin/fraud/events/${id}`),
+    getFraudStats: () => api.get('/admin/fraud/statistics'),
+    updateFraudStatus: (id, status) => api.put(`/admin/fraud/events/${id}/status`, { status }),
+    resolveFraudEvent: (id, resolution, reason) => api.post(`/admin/fraud/events/${id}/resolve`, { resolution, reason }),
+    blockUser: (id, reason) => api.post(`/admin/fraud/events/${id}/block`, { reason })
 };
 
 // Milestones API
@@ -199,6 +212,38 @@ export const milestoneAPI = {
     submit: (id, data) => api.put(`/milestones/${id}/submit`, data),
     approve: (id) => api.put(`/milestones/${id}/approve`),
     reject: (id, data) => api.put(`/milestones/${id}/reject`, data)
+};
+
+// Search API
+export const searchAPI = {
+    projects: (params) => api.get('/search/projects', { params }),
+    freelancers: (params) => api.get('/search/freelancers', { params }),
+    suggestions: (params) => api.get('/search/suggestions', { params }),
+    getHistory: () => api.get('/search/history'),
+    addHistory: (data) => api.post('/search/history', data),
+    clearHistory: () => api.delete('/search/history'),
+    saveFilter: (data) => api.post('/search/save-filter', data),
+    getSavedFilters: () => api.get('/search/saved-filters'),
+    deleteSavedFilter: (id) => api.delete(`/search/saved-filters/${id}`)
+};
+
+// Favorites API
+export const favoritesAPI = {
+    bookmarkProject: (projectId) => api.post(`/favorites/projects/${projectId}`),
+    unbookmarkProject: (projectId) => api.delete(`/favorites/projects/${projectId}`),
+    getBookmarks: (params) => api.get('/favorites/projects', { params }),
+    favoriteFreelancer: (freelancerId) => api.post(`/favorites/freelancers/${freelancerId}`),
+    unfavoriteFreelancer: (freelancerId) => api.delete(`/favorites/freelancers/${freelancerId}`),
+    getFavorites: (params) => api.get('/favorites/freelancers', { params })
+};
+
+// Recommendations API
+export const recommendationsAPI = {
+    getProjects: () => api.get('/recommendations/projects'),
+    getFreelancers: () => api.get('/recommendations/freelancers'),
+    trackView: (data) => api.post('/recommendations/recently-viewed', data),
+    getViews: (params) => api.get('/recommendations/recently-viewed', { params }), // Wait, GET /recently-viewed route is mapped as `/recommendations/recently-viewed` or `/recently-viewed`? Mapped at `/recommendations/recently-viewed` in our router. Let's make sure it hits `/recommendations/recently-viewed`!
+    clearViews: (params) => api.delete('/recommendations/recently-viewed', { params })
 };
 
 // Add shortcuts to default api export
@@ -216,3 +261,6 @@ api.admin = adminAPI;
 api.milestones = milestoneAPI;
 api.ai = aiAPI;
 api.security = securityAPI;
+api.search = searchAPI;
+api.favorites = favoritesAPI;
+api.recommendations = recommendationsAPI;

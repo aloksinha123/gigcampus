@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
@@ -14,8 +14,12 @@ const VerifyEmail = () => {
     const [resendSuccess, setResendSuccess] = useState('');
     const [resendError, setResendError] = useState('');
 
+    const verificationTriggered = useRef(false);
+
     useEffect(() => {
         if (token) {
+            if (verificationTriggered.current) return;
+            verificationTriggered.current = true;
             handleVerify();
         } else {
             setStatus('error');

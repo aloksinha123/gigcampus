@@ -11,8 +11,17 @@ import {
     deleteProject,
     getDisputedProjects,
     resolveDispute,
-    getAllBids
+    getAllBids,
+    getEmailStats
 } from '../controllers/adminController.js';
+import {
+    getFraudEvents,
+    getFraudEventDetails,
+    getFraudStatistics,
+    updateFraudStatus,
+    resolveFraudEvent,
+    blockUser
+} from '../controllers/adminFraudController.js';
 
 const router = express.Router();
 
@@ -197,5 +206,26 @@ router.post('/disputes/:projectId/resolve', protect, admin, resolveDispute);
  *         description: Bids monitoring list.
  */
 router.get('/bids', protect, admin, getAllBids);
+
+/**
+ * @openapi
+ * /admin/email-stats:
+ *   get:
+ *     summary: Get platform transactional email delivery statistics (Admin only)
+ *     tags: [Admin]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Email logs statistics.
+ */
+router.get('/email-stats', protect, admin, getEmailStats);
+
+// Fraud Operations & Telemetry Routes
+router.get('/fraud/events', protect, admin, getFraudEvents);
+router.get('/fraud/events/:id', protect, admin, getFraudEventDetails);
+router.get('/fraud/statistics', protect, admin, getFraudStatistics);
+router.put('/fraud/events/:id/status', protect, admin, updateFraudStatus);
+router.post('/fraud/events/:id/resolve', protect, admin, resolveFraudEvent);
+router.post('/fraud/events/:id/block', protect, admin, blockUser);
 
 export default router;

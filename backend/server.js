@@ -35,6 +35,9 @@ import emailRoutes from './routes/emailRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import milestoneRoutes from './routes/milestoneRoutes.js';
 import securityRoutes from './routes/securityRoutes.js';
+import searchRoutes from './routes/search.js';
+import favoritesRoutes from './routes/favorites.js';
+import recommendationsRoutes from './routes/recommendations.js';
 import serveSwagger from './docs/swagger.js';
 import requestIdMiddleware from './middleware/requestId.js';
 import { getHealth } from './controllers/healthController.js';
@@ -115,6 +118,9 @@ app.use('/api/v1/email', emailRoutes);
 app.use('/api/v1/ai', aiLimiter, aiRoutes);
 app.use('/api/v1/milestones', milestoneRoutes);
 app.use('/api/v1/security', securityRoutes);
+app.use('/api/v1/search', searchRoutes);
+app.use('/api/v1/favorites', favoritesRoutes);
+app.use('/api/v1/recommendations', recommendationsRoutes);
 app.get('/api/v1/health', getHealth);
 
 // ----------------------------------------------------
@@ -136,6 +142,9 @@ app.use('/api/email', emailRoutes);
 app.use('/api/ai', aiLimiter, aiRoutes);
 app.use('/api/milestones', milestoneRoutes);
 app.use('/api/security', securityRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/favorites', favoritesRoutes);
+app.use('/api/recommendations', recommendationsRoutes);
 app.get('/api/health', getHealth);
 
 // OpenAPI Swagger Documentation UI (/api/docs)

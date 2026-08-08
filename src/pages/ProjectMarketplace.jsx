@@ -24,6 +24,7 @@ const ProjectMarketplace = () => {
         minBudget: '',
         maxBudget: ''
     });
+    const [bookmarkedProjectIds, setBookmarkedProjectIds] = useState(new Set());
 
     const categories = [
         'Web Development',
@@ -40,7 +41,48 @@ const ProjectMarketplace = () => {
 
     useEffect(() => {
         fetchProjects();
+        if (localStorage.getItem('token')) {
+            fetchBookmarks();
+        }
     }, []);
+
+    const fetchBookmarks = async () => {
+        try {
+            const res = await api.favorites.getBookmarks({ limit: 100 });
+            setBookmarkedProjectIds(new Set((res.data.projects || []).map(p => p._id)));
+        } catch (err) {
+            console.error('Failed to fetch bookmarks:', err);
+        }
+    };
+
+    const toggleBookmark = async (projectId) => {
+        if (!localStorage.getItem('token')) {
+            error('Please login to bookmark projects.');
+            return;
+        }
+        try {
+            const isBookmarked = bookmarkedProjectIds.has(projectId);
+            if (isBookmarked) {
+                await api.favorites.unbookmarkProject(projectId);
+                setBookmarkedProjectIds(prev => {
+                    const next = new Set(prev);
+                    next.delete(projectId);
+                    return next;
+                });
+                success('Bookmark removed!');
+            } else {
+                await api.favorites.bookmarkProject(projectId);
+                setBookmarkedProjectIds(prev => {
+                    const next = new Set(prev);
+                    next.add(projectId);
+                    return next;
+                });
+                success('Project bookmarked!');
+            }
+        } catch (err) {
+            error(err.response?.data?.message || 'Action failed.');
+        }
+    };
 
     const fetchProjects = async () => {
         try {
@@ -193,9 +235,20 @@ const ProjectMarketplace = () => {
                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(project.status)}`}>
                                             {project.status.replace('_', ' ').toUpperCase()}
                                         </span>
-                                        <span className="text-xs text-gray-500">
-                                            {new Date(project.createdAt).toLocaleDateString()}
-                                        </span>
+                                        <div className="flex items-center gap-3">
+                                            {localStorage.getItem('token') && (
+                                                <button
+                                                    onClick={() => toggleBookmark(project._id)}
+                                                    className="text-gray-400 hover:text-blue-600 transition text-sm cursor-pointer"
+                                                    title={bookmarkedProjectIds.has(project._id) ? "Unbookmark" : "Bookmark"}
+                                                >
+                                                    {bookmarkedProjectIds.has(project._id) ? '💙' : '🤍'}
+                                                </button>
+                                            )}
+                                            <span className="text-xs text-gray-500">
+                                                {new Date(project.createdAt).toLocaleDateString()}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <h3 className="text-xl font-bold mb-2 line-clamp-2">{project.title}</h3>

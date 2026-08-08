@@ -63,6 +63,22 @@ const userSchema = new mongoose.Schema({
         completedProjects: {
             type: Number,
             default: 0
+        },
+        aiSummary: {
+            type: String
+        },
+        overallSentiment: {
+            type: String
+        },
+        strengths: [{
+            type: String
+        }],
+        weaknesses: [{
+            type: String
+        }],
+        totalHelpfulCount: {
+            type: Number,
+            default: 0
         }
     },
     wallet: {
@@ -138,7 +154,13 @@ const userSchema = new mongoose.Schema({
         bidNotifications: { type: Boolean, default: true },
         projectNotifications: { type: Boolean, default: true },
         aiNotifications: { type: Boolean, default: true },
-        marketingNotifications: { type: Boolean, default: false }
+        marketingNotifications: { type: Boolean, default: false },
+        emailNotifications: { type: Boolean, default: true },
+        messageEmails: { type: Boolean, default: true },
+        bidEmails: { type: Boolean, default: true },
+        paymentEmails: { type: Boolean, default: true },
+        projectEmails: { type: Boolean, default: true },
+        reviewEmails: { type: Boolean, default: true }
     }
 }, {
     timestamps: true
@@ -176,6 +198,13 @@ userSchema.methods.getPublicProfile = function () {
         createdAt: this.createdAt
     };
 };
+
+// Indexes for fast searching and sorting
+userSchema.index({ username: 'text', 'profile.fullName': 'text', 'profile.skills': 'text', 'profile.bio': 'text' });
+userSchema.index({ role: 1, 'reputation.score': -1 });
+userSchema.index({ role: 1, 'profile.hourlyRate': 1 });
+userSchema.index({ role: 1, 'reputation.completedProjects': -1 });
+userSchema.index({ role: 1, 'reputation.totalReviews': -1 });
 
 const User = mongoose.model('User', userSchema);
 export default User;

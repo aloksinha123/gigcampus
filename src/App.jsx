@@ -31,6 +31,9 @@ const AdminProjects = lazy(() => import('./pages/AdminProjects'));
 const AdminDisputes = lazy(() => import('./pages/AdminDisputes'));
 const AdminSecurity = lazy(() => import('./pages/AdminSecurity'));
 const AdminReviews = lazy(() => import('./pages/AdminReviews'));
+const AdminReportedReviews = lazy(() => import('./pages/AdminReportedReviews'));
+const AdminFraud = lazy(() => import('./pages/AdminFraud'));
+const AdvancedSearch = lazy(() => import('./pages/AdvancedSearch'));
 const Wallet = lazy(() => import('./pages/Wallet'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -155,6 +158,12 @@ function AppRoutes() {
             </ProtectedRoute>
           } />
 
+          <Route path="/admin/reviews/reported" element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminReportedReviews />
+            </ProtectedRoute>
+          } />
+
           <Route path="/admin/disputes" element={
             <ProtectedRoute roles={['admin']}>
               <AdminDisputes />
@@ -166,6 +175,14 @@ function AppRoutes() {
               <AdminSecurity />
             </ProtectedRoute>
           } />
+
+          <Route path="/admin/fraud" element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminFraud />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/search" element={<AdvancedSearch />} />
 
           {/* Custom 404 Error Page */}
           <Route path="*" element={<NotFound />} />

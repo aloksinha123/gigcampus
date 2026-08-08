@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import DashboardRecommendationWidget from '../components/DashboardRecommendationWidget';
 
 const FreelancerDashboard = () => {
   const { user, logout } = useAuth();
@@ -38,6 +39,11 @@ const FreelancerDashboard = () => {
               {user?.reputation?.score?.toFixed(1) || '0.0'}
             </p>
           </div>
+        </div>
+
+        {/* Personalized Recommendations & Bookmarks Widget */}
+        <div className="mb-8">
+          <DashboardRecommendationWidget user={user} />
         </div>
 
         {/* Quick Actions */}

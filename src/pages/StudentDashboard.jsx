@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
+import DashboardRecommendationWidget from '../components/DashboardRecommendationWidget';
 
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
@@ -196,6 +197,11 @@ const StudentDashboard = () => {
             </div>
             <div className="absolute -right-10 -bottom-10 text-[180px] opacity-10 pointer-events-none">📢</div>
           </div>
+        </div>
+
+        {/* Personalized Recommendations & Favorites Widget */}
+        <div className="mb-12">
+          <DashboardRecommendationWidget user={user} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">

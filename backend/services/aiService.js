@@ -723,6 +723,205 @@ Strict Rules:
     };
 };
 
+export const fallbackSentimentAnalysis = (text) => {
+    const lower = text.toLowerCase();
+    const positiveWords = ['great', 'excellent', 'phenomenal', 'awesome', 'good', 'perfect', 'love', 'amazing', 'highly', 'professional', 'best', 'smooth', 'recommend'];
+    const negativeWords = ['bad', 'worst', 'horrible', 'abusive', 'disappointed', 'poor', 'slow', 'late', 'delay', 'ruin', 'fail', 'waste', 'unprofessional'];
+
+    let posCount = 0;
+    let negCount = 0;
+
+    positiveWords.forEach(w => {
+        const regex = new RegExp(`\\b${w}\\b`, 'g');
+        const matches = lower.match(regex);
+        if (matches) posCount += matches.length;
+    });
+
+    negativeWords.forEach(w => {
+        const regex = new RegExp(`\\b${w}\\b`, 'g');
+        const matches = lower.match(regex);
+        if (matches) negCount += matches.length;
+    });
+
+    if (posCount > negCount) {
+        return { sentiment: 'Positive', confidence: Math.min(95, 60 + (posCount - negCount) * 10) };
+    } else if (negCount > posCount) {
+        return { sentiment: 'Negative', confidence: Math.min(95, 60 + (negCount - posCount) * 10) };
+    } else {
+        return { sentiment: 'Neutral', confidence: 70 };
+    }
+};
+
+export const fallbackUserReviewsSummary = (reviews) => {
+    if (!reviews || reviews.length === 0) {
+        return {
+            summary: "No reviews summary available yet.",
+            strengths: [],
+            weaknesses: []
+        };
+    }
+
+    const totalReviews = reviews.length;
+    const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews;
+    const recPercent = (reviews.filter(r => r.wouldRecommend).length / totalReviews) * 100;
+
+    // Calculate averages for categories
+    const avgComm = reviews.reduce((sum, r) => sum + (r.communicationRating || 5), 0) / totalReviews;
+    const avgQual = reviews.reduce((sum, r) => sum + (r.qualityRating || 5), 0) / totalReviews;
+    const avgTime = reviews.reduce((sum, r) => sum + (r.deadlineRating || 5), 0) / totalReviews;
+    const avgProf = reviews.reduce((sum, r) => sum + (r.professionalismRating || 5), 0) / totalReviews;
+
+    const strengths = [];
+    const weaknesses = [];
+
+    if (avgComm >= 4.5) strengths.push('Clear Communication');
+    else if (avgComm < 3.5) weaknesses.push('Communication Response Time');
+
+    if (avgQual >= 4.5) strengths.push('Top-Tier Quality Work');
+    else if (avgQual < 3.5) weaknesses.push('Output Quality');
+
+    if (avgTime >= 4.5) strengths.push('Consistent On-Time Delivery');
+    else if (avgTime < 3.5) weaknesses.push('Fulfilling Deadlines');
+
+    if (avgProf >= 4.5) strengths.push('Exceptional Professionalism');
+    else if (avgProf < 3.5) weaknesses.push('Professionalism');
+
+    // Default summaries
+    let summary = `This collaborator has completed ${totalReviews} projects with a rating of ${avgRating.toFixed(1)} stars and a ${recPercent.toFixed(0)}% recommendation rate.`;
+    if (avgRating >= 4.5) {
+        summary = `This user is highly recommended, consistently delivering top-tier work with a ${avgRating.toFixed(1)} star average across ${totalReviews} projects.`;
+    } else if (avgRating < 3.5) {
+        summary = `This user has mixed feedback with a ${avgRating.toFixed(1)} star average, showing areas of concern in project fulfillment.`;
+    }
+
+    return {
+        summary,
+        strengths: strengths.slice(0, 3),
+        weaknesses: weaknesses.slice(0, 3)
+    };
+};
+
+export const analyzeReviewSentiment = async (text) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return fallbackSentimentAnalysis(text);
+    }
+    const ai = new GoogleGenAI({ apiKey });
+
+    const prompt = `You are a sentiment analyzer. Analyze the sentiment of this review text on a freelance platform:
+"${text}"
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "sentiment": "Positive", // Must be exactly 'Positive', 'Neutral', or 'Negative'
+  "confidence": 95 // Integer confidence score from 0 to 100
+}
+
+Strict Rules:
+1. Return ONLY valid raw JSON.
+2. Do NOT use markdown code blocks or explanations.`;
+
+    let responseText = '';
+    const modelsToTry = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest'];
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+        try {
+            const response = await ai.models.generateContent({
+                model: modelName,
+                contents: prompt,
+                config: { responseMimeType: 'application/json' }
+            });
+            responseText = typeof response.text === 'function' ? response.text() : (response.text || '');
+            if (responseText && responseText.trim()) {
+                break;
+            }
+        } catch (err) {
+            lastError = err;
+        }
+    }
+
+    if (!responseText || !responseText.trim()) {
+        return fallbackSentimentAnalysis(text);
+    }
+
+    try {
+        let cleanedText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const firstBrace = cleanedText.indexOf('{');
+        const lastBrace = cleanedText.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+            cleanedText = cleanedText.substring(firstBrace, lastBrace + 1);
+        }
+        return JSON.parse(cleanedText);
+    } catch (e) {
+        return fallbackSentimentAnalysis(text);
+    }
+};
+
+export const generateUserReviewsSummary = async (reviews) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return fallbackUserReviewsSummary(reviews);
+    }
+    const ai = new GoogleGenAI({ apiKey });
+
+    const reviewsTextList = reviews.map((r, i) => `Review ${i+1} (${r.rating} stars): "${r.review}"`).join('\n\n');
+
+    const prompt = `You are an AI assistant summarizing reviews of a freelancer/client on a freelance platform.
+Analyze the following reviews received by this user:
+
+${reviewsTextList}
+
+Generate a concise, professional summary, and list the main strengths and weaknesses mentioned.
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "summary": "This user consistently delivers quality work, communicates well, and meets deadlines.",
+  "strengths": ["Clear communication", "High quality deliverables"],
+  "weaknesses": ["Occasionally slow to respond"]
+}
+
+Strict Rules:
+1. Return ONLY valid raw JSON.
+2. Do NOT use markdown code blocks or explanations.`;
+
+    let responseText = '';
+    const modelsToTry = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest'];
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+        try {
+            const response = await ai.models.generateContent({
+                model: modelName,
+                contents: prompt,
+                config: { responseMimeType: 'application/json' }
+            });
+            responseText = typeof response.text === 'function' ? response.text() : (response.text || '');
+            if (responseText && responseText.trim()) {
+                break;
+            }
+        } catch (err) {
+            lastError = err;
+        }
+    }
+
+    if (!responseText || !responseText.trim()) {
+        return fallbackUserReviewsSummary(reviews);
+    }
+
+    try {
+        let cleanedText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const firstBrace = cleanedText.indexOf('{');
+        const lastBrace = cleanedText.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+            cleanedText = cleanedText.substring(firstBrace, lastBrace + 1);
+        }
+        return JSON.parse(cleanedText);
+    } catch (e) {
+        return fallbackUserReviewsSummary(reviews);
+    }
+};
+
 export default {
     improveProjectDescription,
     enhanceProjectDescriptionService,
@@ -731,5 +930,7 @@ export default {
     recommendFreelancersForProjectService,
     analyzeBidProposal,
     calculateFallbackRecommendations,
-    recommendFreelancers
+    recommendFreelancers,
+    analyzeReviewSentiment,
+    generateUserReviewsSummary
 };

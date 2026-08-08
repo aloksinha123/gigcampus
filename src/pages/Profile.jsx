@@ -28,6 +28,7 @@ const Profile = () => {
     const [reviews, setReviews] = useState([]);
     const [reviewsAverages, setReviewsAverages] = useState({});
     const [reviewsLoading, setReviewsLoading] = useState(true);
+    const [regeneratingAI, setRegeneratingAI] = useState(false);
 
     useEffect(() => {
         if (refreshUser) {
@@ -62,6 +63,20 @@ const Profile = () => {
             console.error('Failed to fetch reviews:', err);
         } finally {
             setReviewsLoading(false);
+        }
+    };
+
+    const handleRegenerateAISummary = async () => {
+        setRegeneratingAI(true);
+        try {
+            await api.reviews.regenerateSummary(user._id);
+            success('AI Review Insights updated!');
+            if (refreshUser) await refreshUser();
+            await fetchReviews();
+        } catch (err) {
+            error(err.response?.data?.message || 'Failed to regenerate AI summary');
+        } finally {
+            setRegeneratingAI(false);
         }
     };
 
@@ -524,9 +539,14 @@ const Profile = () => {
                                     </span>
                                 ))}
                             </div>
-                            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">
-                                {user?.reputation?.totalReviews || 0} Total Reviews
-                            </span>
+                            <div className="flex flex-col gap-1 items-center">
+                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                    {user?.reputation?.totalReviews || 0} Total Reviews
+                                </span>
+                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                    👍 {user?.reputation?.totalHelpfulCount || 0} Helpful Votes
+                                </span>
+                            </div>
                         </div>
 
                         {/* Middle Stat Card (Distribution or Client Profile details) */}
@@ -577,6 +597,78 @@ const Profile = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* AI Review Insights */}
+                    {user?.reputation?.totalReviews >= 5 ? (
+                        <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-purple-50/70 border border-indigo-100 rounded-3xl p-6 mb-8 shadow-sm">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-xl">✨</span>
+                                    <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">AI Reviews Summary & Sentiment</h3>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    {user?.reputation?.overallSentiment && (
+                                        <span className={`px-3 py-1 border text-xs font-bold rounded-lg uppercase tracking-wider flex items-center gap-1 bg-white border-indigo-200 text-indigo-700 shadow-sm`}>
+                                            Overall: {user.reputation.overallSentiment === 'Positive' ? '😊' : user.reputation.overallSentiment === 'Negative' ? '😟' : '😐'} {user.reputation.overallSentiment}
+                                        </span>
+                                    )}
+                                    <button
+                                        onClick={handleRegenerateAISummary}
+                                        disabled={regeneratingAI}
+                                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
+                                    >
+                                        {regeneratingAI ? 'Analyzing...' : '🔄 Regenerate AI Insights'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {user?.reputation?.aiSummary ? (
+                                <p className="text-slate-700 text-sm leading-relaxed mb-5 italic bg-white/60 p-4 rounded-2xl border border-indigo-50">
+                                    "{user.reputation.aiSummary}"
+                                </p>
+                            ) : (
+                                <div className="py-4 text-center text-xs text-slate-400 bg-white/40 border border-dashed border-indigo-100 rounded-2xl mb-5">
+                                    AI insights summary is pending. Click "Regenerate AI Insights" to compile.
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">💡 Most Mentioned Strengths</span>
+                                    {user?.reputation?.strengths?.length > 0 ? (
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {user.reputation.strengths.map((str, i) => (
+                                                <span key={i} className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-100/50">
+                                                    {str}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <span className="text-xs text-slate-400 italic">No strengths cached yet</span>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">🔧 Areas for Improvement / Weaknesses</span>
+                                    {user?.reputation?.weaknesses?.length > 0 ? (
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {user.reputation.weaknesses.map((weak, i) => (
+                                                <span key={i} className="px-2.5 py-1 bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold border border-slate-200/50">
+                                                    {weak}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <span className="text-xs text-slate-400 italic">No areas for improvement cached yet</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-slate-50 border border-slate-100 rounded-3xl p-5 mb-8 text-center text-xs text-slate-400">
+                            💡 Tip: Get at least 5 reviews to unlock AI Summaries, Sentiment analytics, and Strengths/Weaknesses cards.
+                        </div>
+                    )}
 
                     {/* Reviews List */}
                     <div className="space-y-4">
