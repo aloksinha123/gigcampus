@@ -40,6 +40,11 @@ const projectSchema = new mongoose.Schema({
         enum: ['open', 'in_progress', 'completed', 'cancelled', 'disputed'],
         default: 'open'
     },
+    experienceLevel: {
+        type: String,
+        enum: ['entry', 'intermediate', 'expert'],
+        default: 'entry'
+    },
     client: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -113,6 +118,8 @@ projectSchema.index({ category: 1, status: 1 });
 projectSchema.index({ client: 1, status: 1 });
 projectSchema.index({ status: 1, createdAt: -1 });
 projectSchema.index({ freelancer: 1, status: 1 });
+projectSchema.index({ 'budget.min': 1, 'budget.max': 1 });
+projectSchema.index({ experienceLevel: 1 });
 
 const Project = mongoose.model('Project', projectSchema);
 export default Project;

@@ -6,7 +6,7 @@ import Transaction from '../models/Transaction.js';
 import Activity from '../models/Activity.js';
 import Notification from '../models/Notification.js';
 import { createNotification } from './notificationController.js';
-import { sendBidAcceptedEmail } from '../services/emailService.js';
+import { sendBidAcceptedEmail, sendBidRejectedEmail } from '../services/emailService.js';
 import { logActivity } from '../services/activityService.js';
 
 // @desc    Create new project
@@ -270,11 +270,32 @@ export const acceptBid = async (req, res) => {
         bid.status = 'accepted';
         await bid.save();
 
+        // Fetch details of other bids before rejecting
+        const otherBids = await Bid.find({ project: project._id, _id: { $ne: bid._id } }).populate('freelancer', 'username email');
+
         // Reject other bids
         await Bid.updateMany(
             { project: project._id, _id: { $ne: bid._id } },
             { status: 'rejected' }
         );
+
+        // Send Bid Rejected Emails to other freelancers (non-blocking)
+        for (const otherBid of otherBids) {
+            try {
+                if (otherBid.freelancer?.email) {
+                    await sendBidRejectedEmail({
+                        freelancerEmail: otherBid.freelancer.email,
+                        freelancerName: otherBid.freelancer.username || 'Freelancer',
+                        projectTitle: project.title,
+                        bidAmount: otherBid.price,
+                        projectId: project._id,
+                        requestId: `reject-bid-${otherBid._id}`
+                    });
+                }
+            } catch (rejectErr) {
+                console.error(`⚠️ Bid rejection email dispatch failed for bid ${otherBid._id}:`, rejectErr.message);
+            }
+        }
 
         // Create notification for freelancer
         await createNotification(
@@ -318,7 +339,8 @@ export const acceptBid = async (req, res) => {
                     projectTitle: project.title,
                     bidAmount,
                     studentName,
-                    projectId: project._id
+                    projectId: project._id,
+                    requestId: `accept-bid-${bid._id}`
                 });
             }
         } catch (emailErr) {
