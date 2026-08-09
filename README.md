@@ -27,6 +27,7 @@ GigCampus is a feature-rich, high-performance MERN stack application designed to
 
 ### 1. 🔐 Security & Multi-Device Authentication
 - **Role-Based Access Control (RBAC)**: Distinct permissions for `student`, `freelancer`, and `admin` users.
+- **Admin Provisioning Policy**: Public registration supports only `student` and `freelancer`. Administrative accounts are created out-of-band with `backend/create_admin.js` using `ADMIN_EMAIL`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD` secrets.
 - **Multi-Device Session Management**: Track active sessions by IP and User-Agent, with remote single-session or all-session revocation.
 - **Account Lockout & Protection**: Automatic account lockout after 5 consecutive failed login attempts with configurable unlock timers.
 - **Email Verification & Password Reset**: Secure tokenized verification flows backed by HTML email templates.

@@ -379,34 +379,86 @@ export const getWalletTransactions = async (req, res) => {
     }
 };
 
-// @desc    Deposit funds to wallet (Mock / via Razorpay payment widget)
+// @desc    Deposit funds to wallet after Razorpay payment verification
 // @route   POST /api/v1/wallet/deposit
 // @access  Private
 export const depositFunds = async (req, res) => {
     try {
-        const { amount } = req.body;
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-        if (!amount || amount <= 0) {
-            return res.status(400).json({ success: false, message: 'Invalid deposit amount' });
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            return res.status(400).json({
+                success: false,
+                message: 'Payment verification required. Provide razorpay_order_id, razorpay_payment_id, and razorpay_signature.'
+            });
         }
 
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-        user.wallet.balance = (user.wallet?.balance || 0) + amount;
+        // 1. Verify HMAC signature to ensure request integrity
+        const crypto = await import('crypto');
+        const secret = process.env.RAZORPAY_KEY_SECRET;
+        if (!secret) {
+            return res.status(500).json({ success: false, message: 'Payment gateway not configured' });
+        }
+
+        const expectedSignature = crypto.default
+            .createHmac('sha256', secret)
+            .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+            .digest('hex');
+
+        const sigBuffer = Buffer.from(expectedSignature, 'utf-8');
+        const recvBuffer = Buffer.from(razorpay_signature, 'utf-8');
+        const validSignature = sigBuffer.length === recvBuffer.length && crypto.default.timingSafeEqual(sigBuffer, recvBuffer);
+
+        if (!validSignature) {
+            return res.status(400).json({ success: false, message: 'Invalid payment signature' });
+        }
+
+        // 2. Fetch payment from Razorpay to confirm it is actually captured
+        let rzpPayment;
+        try {
+            const razorpayService = (await import('../services/razorpayService.js')).default;
+            rzpPayment = await razorpayService.fetchPayment(razorpay_payment_id);
+        } catch {
+            return res.status(400).json({ success: false, message: 'Could not verify payment with Razorpay' });
+        }
+
+        if (rzpPayment.status !== 'captured') {
+            return res.status(400).json({
+                success: false,
+                message: `Payment not completed. Status: ${rzpPayment.status}`
+            });
+        }
+
+        const paidAmount = rzpPayment.amount / 100;
+
+        // 3. Idempotency — prevent double-crediting
+        const existingTxn = await Transaction.findOne({ transactionId: razorpay_payment_id });
+        if (existingTxn) {
+            return res.status(409).json({ success: false, message: 'This payment has already been processed' });
+        }
+
+        // 4. Credit wallet with the Razorpay-verified amount (not client-supplied)
+        user.wallet.balance = (user.wallet?.balance || 0) + paidAmount;
         await user.save();
 
-        const txnId = `DEP-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
         await Transaction.create({
             user: user._id,
             type: 'deposit',
-            amount,
+            amount: paidAmount,
             balanceAfter: user.wallet.balance,
-            description: `Wallet deposit`,
-            transactionId: txnId
+            description: `Razorpay Wallet Deposit (Order: ${razorpay_order_id})`,
+            transactionId: razorpay_payment_id
         });
 
-        res.json({ success: true, message: 'Funds deposited successfully', amount, newBalance: user.wallet.balance });
+        res.json({
+            success: true,
+            message: 'Funds deposited successfully',
+            amount: paidAmount,
+            newBalance: user.wallet.balance
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

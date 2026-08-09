@@ -212,27 +212,6 @@ const Profile = () => {
         }
     };
 
-    const handleDeposit = async (e) => {
-        e.preventDefault();
-        if (!walletAmount || Number(walletAmount) <= 0) {
-            error('Please enter a valid amount');
-            return;
-        }
-        try {
-            setWalletLoading(true);
-            const response = await api.wallet.deposit({ amount: Number(walletAmount) });
-            success(response.data.message);
-            setUser({ ...user, wallet: { ...user.wallet, balance: response.data.newBalance } });
-            setShowDepositModal(false);
-            setWalletAmount('');
-            fetchTransactions();
-        } catch (err) {
-            error(err.response?.data?.message || 'Deposit failed');
-        } finally {
-            setWalletLoading(false);
-        }
-    };
-
     const handleCancel = () => {
         setIsEditing(false);
         // Reset to original values

@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 
 const Register = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const { register } = useAuth();
   const { success, error } = useNotification();
+
+  const publicRoles = ['student', 'freelancer'];
+  const routeRole = location.state?.role;
+  const initialRole = publicRoles.includes(routeRole) ? routeRole : 'student';
 
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: location.state?.role || 'student'
+    role: initialRole
   });
   const [loading, setLoading] = useState(false);
   const [registeredSuccess, setRegisteredSuccess] = useState(false);
@@ -33,7 +36,9 @@ const Register = () => {
 
     setLoading(true);
 
-    const { confirmPassword, ...registerData } = formData;
+    const registerData = { ...formData };
+    delete registerData.confirmPassword;
+    registerData.role = publicRoles.includes(registerData.role) ? registerData.role : 'student';
     const result = await register(registerData);
 
     if (result.success) {

@@ -22,7 +22,7 @@ const router = express.Router();
  * @openapi
  * /auth/register:
  *   post:
- *     summary: Register a new user account
+ *     summary: Register a new public user account (student or freelancer only)
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -35,7 +35,7 @@ const router = express.Router();
  *               username: { type: string, example: 'john_doe' }
  *               email: { type: string, example: 'john@example.com' }
  *               password: { type: string, example: 'Password@123' }
- *               role: { type: string, enum: [student, freelancer], example: 'freelancer' }
+ *               role: { type: string, enum: [student, freelancer], default: student, example: 'freelancer', description: 'Only student and freelancer are accepted. Admin accounts must be provisioned out-of-band.' }
  *     responses:
  *       201:
  *         description: User registered successfully. Email verification link sent.

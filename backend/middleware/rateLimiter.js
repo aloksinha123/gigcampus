@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { rateLimitConfig } from '../config/rateLimitConfig.js';
 
 /**
@@ -43,8 +43,7 @@ const userKeyGenerator = (req) => {
     if (req.user && req.user._id) {
         return req.user._id.toString();
     }
-    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress || '127.0.0.1';
-    return clientIp;
+    return ipKeyGenerator(req);
 };
 
 // 1. Auth Limiter (5 req / 15 min per IP)

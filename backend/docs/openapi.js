@@ -44,7 +44,7 @@ export const openapiDefinition = {
                 type: 'http',
                 scheme: 'bearer',
                 bearerFormat: 'JWT',
-                description: 'Provide a valid JWT bearer token obtained from /auth/login or /auth/register.'
+                description: 'Provide a valid JWT bearer token obtained from /auth/login.'
             }
         },
         schemas: {

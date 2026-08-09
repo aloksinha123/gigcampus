@@ -12,6 +12,22 @@ import { parseUserAgent } from '../utils/uaParser.js';
 import { logSecurityAudit } from '../services/auditService.js';
 import { recordFraudSignal } from '../services/fraudDetectionService.js';
 
+// Only these roles may be chosen through the public registration endpoint.
+// Administrative accounts must be provisioned through a controlled operator flow.
+export const PUBLIC_REGISTRATION_ROLES = Object.freeze(['student', 'freelancer']);
+
+export const resolvePublicRegistrationRole = (role) => {
+    if (role === undefined) {
+        return { valid: true, role: 'student' };
+    }
+
+    if (typeof role !== 'string' || !PUBLIC_REGISTRATION_ROLES.includes(role)) {
+        return { valid: false };
+    }
+
+    return { valid: true, role };
+};
+
 // Generate JWT Token
 const generateToken = (id, tokenId) => {
     const payload = tokenId ? { id, tokenId } : { id };
@@ -26,6 +42,13 @@ const generateToken = (id, tokenId) => {
 export const register = async (req, res) => {
     try {
         const { username, email, password, role } = req.body;
+        const publicRole = resolvePublicRegistrationRole(role);
+
+        if (!publicRole.valid) {
+            return res.status(400).json({
+                message: 'Invalid role. Public registration only supports student or freelancer accounts.'
+            });
+        }
 
         // Check if user exists
         const userExists = await User.findOne({ $or: [{ email }, { username }] });
@@ -45,7 +68,7 @@ export const register = async (req, res) => {
             username,
             email,
             password,
-            role: role || 'student',
+            role: publicRole.role,
             isEmailVerified: false,
             emailVerificationToken: hashedToken,
             emailVerificationExpires: tokenExpires

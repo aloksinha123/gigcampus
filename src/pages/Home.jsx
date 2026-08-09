@@ -29,6 +29,16 @@ const Home = () => {
         }
     };
 
+    const handleAdminAccess = () => {
+        if (isAuthenticated && user?.role === 'admin') {
+            navigate('/admin');
+            return;
+        }
+
+        // Admin accounts are provisioned out-of-band and sign in through login.
+        navigate('/login');
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
             {/* Animated Background */}
@@ -140,7 +150,7 @@ const Home = () => {
                                     <li className="flex items-center"><span className="text-green-400 mr-2">✓</span> Analytics dashboard</li>
                                 </ul>
                                 <button
-                                    onClick={() => handleGetStarted('admin')}
+                                    onClick={handleAdminAccess}
                                     className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white py-3 px-6 rounded-xl hover:from-purple-600 hover:to-pink-700 transition font-semibold shadow-lg"
                                 >
                                     Admin Access

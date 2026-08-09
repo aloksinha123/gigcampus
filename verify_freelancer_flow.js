@@ -1,6 +1,22 @@
 import axios from 'axios';
+import { createRequire } from 'module';
+import { fileURLToPath, pathToFileURL } from 'url';
+import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Use createRequire to resolve mongoose/dotenv from backend/node_modules
+const require = createRequire(path.join(__dirname, 'backend', 'package.json'));
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+dotenv.config({ path: path.join(__dirname, 'backend', '.env') });
+
+// Import User model via file URL (Windows-compatible)
+const { default: User } = await import(pathToFileURL(path.join(__dirname, 'backend', 'models', 'User.js')).href);
 
 const API_URL = 'http://localhost:5003/api';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/gigcampus';
 
 // Utilities
 const log = (msg) => console.log(`[TEST] ${msg}`);
@@ -9,6 +25,9 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 async function runTest() {
     try {
         log('Starting Freelancer Flow Verification...');
+
+        await mongoose.connect(MONGODB_URI);
+        log('Connected to MongoDB for direct wallet seeding.');
 
         // 1. Register Users
         const studentUser = {
@@ -26,14 +45,53 @@ async function runTest() {
         };
 
         log('Registering Student...');
-        const studentRes = await axios.post(`${API_URL}/auth/register`, studentUser);
-        const studentToken = studentRes.data.token;
-        const studentId = studentRes.data._id;
+        await axios.post(`${API_URL}/auth/register`, studentUser);
+
+        // Test-only: mark the newly registered user as verified
+        await User.findOneAndUpdate(
+            { email: studentUser.email },
+            { $set: { isEmailVerified: true } }
+        );
+
+        log('Logging in Student...');
+        const studentLoginRes = await axios.post(`${API_URL}/auth/login`, {
+            email: studentUser.email,
+            password: studentUser.password
+        });
+
+        const studentToken = studentLoginRes.data.token;
+        const studentId = studentLoginRes.data._id;
+
+        if (!studentToken) {
+            throw new Error('Student login did not return a token!');
+        }
+
+        log('Student login successful.');
+
 
         log('Registering Freelancer...');
-        const freelancerRes = await axios.post(`${API_URL}/auth/register`, freelancerUser);
-        const freelancerToken = freelancerRes.data.token;
-        const freelancerId = freelancerRes.data._id;
+        await axios.post(`${API_URL}/auth/register`, freelancerUser);
+
+        // Test-only: mark the newly registered user as verified
+        await User.findOneAndUpdate(
+            { email: freelancerUser.email },
+            { $set: { isEmailVerified: true } }
+        );
+
+        log('Logging in Freelancer...');
+        const freelancerLoginRes = await axios.post(`${API_URL}/auth/login`, {
+            email: freelancerUser.email,
+            password: freelancerUser.password
+        });
+
+        const freelancerToken = freelancerLoginRes.data.token;
+        const freelancerId = freelancerLoginRes.data._id;
+
+        if (!freelancerToken) {
+            throw new Error('Freelancer login did not return a token!');
+        }
+
+        log('Freelancer login successful.');
 
         // 2. Student Creates Project
         log('Student creating project...');
@@ -64,10 +122,10 @@ async function runTest() {
         log('Bid placed successfully with correct price mapping.');
 
         // 4. Student Accepts Bid (Requires Money in Wallet)
-        log('Adding funds to student wallet (simulation)...');
-        await axios.post(`${API_URL}/wallet/deposit`, {
-            amount: 1000
-        }, { headers: { Authorization: `Bearer ${studentToken}` } });
+        // Seed wallet directly via MongoDB — the HTTP deposit endpoint now requires
+        // Razorpay payment verification, which is not available in integration tests.
+        log('Adding funds to student wallet (direct seed)...');
+        await User.findByIdAndUpdate(studentId, { $set: { 'wallet.balance': 1000 } });
         log('Funds deposited successfully.');
 
         // Attempting to Accept Bid
@@ -97,6 +155,9 @@ async function runTest() {
         // We need an endpoint to get portfolio or check database.
         // Assuming we can't easily check DB, we trust the flow if calls suceeded.
         log('Freelancer flow verification completed successfully!');
+
+        await mongoose.disconnect();
+        log('Disconnected from MongoDB.');
 
     } catch (error) {
         console.log('Test Failed!');

@@ -255,6 +255,46 @@ export const verifySignature = async (req, res) => {
         const methodUsed = rzpPaymentDetails.method || 'razorpay';
         const userId = req.user?._id;
 
+        // ── Validation 1: Verify fetched payment belongs to the submitted order ──
+        if (rzpPaymentDetails.order_id !== razorpay_order_id) {
+            logPaymentEvent('ORDER_ID_MISMATCH', req, {
+                razorpayOrderId: razorpay_order_id,
+                fetchedOrderId: rzpPaymentDetails.order_id,
+                razorpayPaymentId: razorpay_payment_id
+            });
+            return res.status(400).json({
+                success: false,
+                message: 'Payment order ID mismatch. Payment does not belong to this order.'
+            });
+        }
+
+        // ── Validation 2: Verify payment is captured before crediting ──
+        if (rzpPaymentDetails.status !== 'captured') {
+            logPaymentEvent('PAYMENT_NOT_CAPTURED', req, {
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                fetchedStatus: rzpPaymentDetails.status
+            });
+            return res.status(400).json({
+                success: false,
+                message: `Payment not completed. Status: ${rzpPaymentDetails.status}`
+            });
+        }
+
+        // ── Validation 3: For existing Payment record, verify authoritative amount matches ──
+        if (payment && payment.amount !== undefined && paidAmount !== payment.amount) {
+            logPaymentEvent('AMOUNT_MISMATCH', req, {
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                storedAmount: payment.amount,
+                fetchedAmount: paidAmount
+            });
+            return res.status(400).json({
+                success: false,
+                message: `Payment amount mismatch. Expected ₹${payment.amount}, got ₹${paidAmount}`
+            });
+        }
+
         // If payment record didn't exist prior to verification, create it now
         if (!payment) {
             payment = await Payment.create({

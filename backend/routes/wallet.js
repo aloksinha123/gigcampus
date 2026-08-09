@@ -126,7 +126,7 @@ router.get('/withdrawal/:id/status', protect, getWithdrawalStatus);
  * @openapi
  * /wallet/deposit:
  *   post:
- *     summary: Deposit funds into wallet (dev/test)
+ *     summary: Deposit funds into wallet after Razorpay payment verification
  *     tags: [Wallet]
  *     security: [{ bearerAuth: [] }]
  *     requestBody:
@@ -135,12 +135,18 @@ router.get('/withdrawal/:id/status', protect, getWithdrawalStatus);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [amount]
+ *             required: [razorpay_order_id, razorpay_payment_id, razorpay_signature]
  *             properties:
- *               amount: { type: number, example: 500 }
+ *               razorpay_order_id: { type: string }
+ *               razorpay_payment_id: { type: string }
+ *               razorpay_signature: { type: string }
  *     responses:
  *       200:
- *         description: Deposit processed.
+ *         description: Deposit processed after verification.
+ *       400:
+ *         description: Missing verification parameters or payment not captured.
+ *       409:
+ *         description: Payment already processed (duplicate).
  */
 router.post('/deposit', protect, depositFunds);
 
