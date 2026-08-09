@@ -69,8 +69,13 @@ const io = new Server(httpServer, {
 
 global.io = io; // Attach to global for easy access in controllers
 
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestIdMiddleware);
