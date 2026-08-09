@@ -15,7 +15,7 @@ const AdminDashboard = () => {
   const [customEnd, setCustomEnd] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const [analytics, setAnalytics] = useState({
+  const defaultAnalytics = {
     users: { total: 0, students: 0, freelancers: 0, online: 0, newInPeriod: 0, monthlyTrend: [] },
     projects: { total: 0, active: 0, completed: 0, cancelled: 0, open: 0, averageBudget: 0, monthlyTrend: [] },
     payments: { totalRevenue: 0, totalVolume: 0, successful: 0, failed: 0, refunds: 0, monthlyTrend: [] },
@@ -28,7 +28,9 @@ const AdminDashboard = () => {
     recentActivity: [],
     recentPayments: [],
     recentProjects: []
-  });
+  };
+
+  const [analytics, setAnalytics] = useState(defaultAnalytics);
 
   const [emailStats, setEmailStats] = useState({
     totalSent: 0,
@@ -55,7 +57,21 @@ const AdminDashboard = () => {
       }
       const response = await api.admin.getAnalytics(params);
       if (response.data?.analytics) {
-        setAnalytics(response.data.analytics);
+        const apiData = response.data.analytics;
+        setAnalytics({
+          users: { ...defaultAnalytics.users, ...apiData.users },
+          projects: { ...defaultAnalytics.projects, ...apiData.projects },
+          payments: { ...defaultAnalytics.payments, ...apiData.payments },
+          bids: { ...defaultAnalytics.bids, ...apiData.bids },
+          messages: { ...defaultAnalytics.messages, ...apiData.messages },
+          ai: { ...defaultAnalytics.ai, ...apiData.ai },
+          fraud: { ...defaultAnalytics.fraud, ...apiData.fraud },
+          topFreelancers: apiData.topFreelancers ?? defaultAnalytics.topFreelancers,
+          topClients: apiData.topClients ?? defaultAnalytics.topClients,
+          recentActivity: apiData.recentActivity ?? defaultAnalytics.recentActivity,
+          recentPayments: apiData.recentPayments ?? defaultAnalytics.recentPayments,
+          recentProjects: apiData.recentProjects ?? defaultAnalytics.recentProjects
+        });
       }
 
       // Load transactional email metrics
@@ -192,11 +208,10 @@ const AdminDashboard = () => {
                 <button
                   key={tab.id}
                   onClick={() => setDateRange(tab.id)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                    dateRange === tab.id
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${dateRange === tab.id
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -247,9 +262,9 @@ const AdminDashboard = () => {
                   </span>
                 </div>
                 <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Platform Commission</h3>
-                <p className="text-3xl font-black text-white mt-1">₹{analytics.payments.totalRevenue.toLocaleString()}</p>
+                <p className="text-3xl font-black text-white mt-1">₹{(analytics.payments.totalRevenue || 0).toLocaleString()}</p>
                 <p className="text-xs text-slate-500 font-medium mt-2">
-                  Total Volume: ₹{analytics.payments.totalVolume.toLocaleString()}
+                  Total Volume: ₹{(analytics.payments.totalVolume || 0).toLocaleString()}
                 </p>
               </div>
 
@@ -411,13 +426,12 @@ const AdminDashboard = () => {
                   <p className="text-xs text-slate-500">Live delivery status and failure telemetry</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                    emailStats.totalSent + emailStats.totalFailed === 0
-                      ? 'bg-slate-500/10 text-slate-400 border-slate-500/20'
-                      : (emailStats.totalSent / (emailStats.totalSent + emailStats.totalFailed)) > 0.95
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${emailStats.totalSent + emailStats.totalFailed === 0
+                    ? 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                    : (emailStats.totalSent / (emailStats.totalSent + emailStats.totalFailed)) > 0.95
                       ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                       : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                  }`}>
+                    }`}>
                     Delivery Success: {
                       emailStats.totalSent + emailStats.totalFailed === 0
                         ? '0%'
