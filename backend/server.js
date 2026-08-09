@@ -52,9 +52,9 @@ import jwt from 'jsonwebtoken';
 import User from './models/User.js';
 import Message from './models/Message.js';
 
-// Connect to database & verify email service
-connectDB();
-verifyEmailConnection();
+// Connect to database & verify email service (non-blocking async initialization)
+connectDB().catch(err => console.error('MongoDB async connection error:', err));
+verifyEmailConnection().catch(err => console.warn('Email connection async warning:', err.message));
 
 const app = express();
 const httpServer = createServer(app);
@@ -392,5 +392,7 @@ const PORT = process.env.PORT || 5003;
 httpServer.listen(PORT, () => {
   console.log(`🚀 GigCampus server running on port ${PORT}`);
   console.log(`📡 Socket.io enabled for real-time features`);
-  printRegisteredRoutes(app);
+  if (process.env.DEBUG_ROUTES === 'true') {
+    printRegisteredRoutes(app);
+  }
 });

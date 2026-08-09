@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const RAW_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003';
-const API_URL = RAW_API_URL.endsWith('/api/v1') 
-    ? RAW_API_URL 
+const API_URL = RAW_API_URL.endsWith('/api/v1')
+    ? RAW_API_URL
     : (RAW_API_URL.endsWith('/api') ? `${RAW_API_URL}/v1` : `${RAW_API_URL}/api/v1`);
 
 // Create axios instance
@@ -119,6 +119,7 @@ export const paymentsAPI = {
 
 export const reviewsAPI = {
     submit: (data) => api.post('/reviews', data),
+
     getMy: () => api.get('/reviews/my'),
     getUserReviews: (userId, params) => api.get(`/reviews/user/${userId}`, { params }),
     getProjectReviews: (projectId) => api.get(`/reviews/project/${projectId}`),
