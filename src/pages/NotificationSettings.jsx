@@ -182,21 +182,21 @@ const NotificationSettings = () => {
                 ) : (
                     <div className="space-y-8">
                         {/* Browser Permission Banner */}
-                        <div className="bg-gc-navy text-white p-8 rounded-[2.5rem] shadow-xl border border-gc-blue/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div className="bg-gc-soft border border-gc-light text-gray-900 p-8 rounded-[2.5rem] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="text-2xl">🌐</span>
                                     <h3 className="text-xl font-black tracking-tight">Desktop Browser Push</h3>
                                 </div>
-                                <p className="text-xs text-gc-light font-medium max-w-xl leading-relaxed">
+                                <p className="text-xs text-gray-500 font-medium max-w-xl leading-relaxed">
                                     Receive instant native desktop popups even when GigCampus is running in a background tab.
                                 </p>
                                 <div className="mt-3 flex items-center gap-2">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gc-light">Browser Status:</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Browser Status:</span>
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                        browserPermission === 'granted' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
-                                        browserPermission === 'denied' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' :
-                                        'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                        browserPermission === 'granted' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                                        browserPermission === 'denied' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                                        'bg-amber-50 text-amber-600 border border-amber-100'
                                     }`}>
                                         {browserPermission}
                                     </span>
@@ -206,7 +206,7 @@ const NotificationSettings = () => {
                             {browserPermission !== 'granted' && (
                                 <button
                                     onClick={handleEnableBrowserPush}
-                                    className="px-6 py-3.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg transition-all hover:scale-105 cursor-pointer whitespace-nowrap"
+                                    className="px-6 py-3.5 bg-gc-blue hover:bg-gc-navy text-white rounded-2xl font-black text-xs uppercase tracking-wider shadow-md transition-all hover:scale-105 cursor-pointer whitespace-nowrap"
                                 >
                                     Enable Push Alerts 🔔
                                 </button>

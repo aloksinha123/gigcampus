@@ -174,26 +174,22 @@ const StudentDashboard = () => {
 
         {/* Important Alerts Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-12">
-          <div className="bg-gradient-to-br from-orange-400 to-rose-500 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-rose-200">
-            <div className="relative z-10">
-              <h3 className="text-rose-100 font-bold text-sm uppercase tracking-widest mb-2">Needs Attention</h3>
-              <p className="text-3xl sm:text-5xl font-black mb-4">{stats.pendingBids} <span className="text-xl sm:text-2xl font-medium">Pending Bids</span></p>
-              <p className="text-rose-100 text-sm mb-6">Freelancers are waiting for your response on open proposals.</p>
-              <Link to="/my-projects" className="inline-block bg-white text-rose-600 px-6 py-3 rounded-xl font-bold shadow-md hover:bg-rose-50 transition-all min-h-[44px]">
-                Review Bids →
-              </Link>
-            </div>
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all">
+            <h3 className="text-gray-400 font-bold text-sm uppercase tracking-widest mb-2">Needs Attention</h3>
+            <p className="text-3xl sm:text-5xl font-black text-gray-900 mb-4">{stats.pendingBids} <span className="text-xl sm:text-2xl font-medium text-gray-500">Pending Bids</span></p>
+            <p className="text-gray-400 text-sm mb-6">Freelancers are waiting for your response on open proposals.</p>
+            <Link to="/my-projects" className="inline-block bg-gc-blue text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-gc-navy transition-all min-h-[44px]">
+              Review Bids →
+            </Link>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-600 to-gc-navy rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-200">
-            <div className="relative z-10">
-              <h3 className="text-blue-200 font-bold text-sm uppercase tracking-widest mb-2">Live Status</h3>
-              <p className="text-3xl sm:text-5xl font-black mb-4">{stats.openProjects} <span className="text-xl sm:text-2xl font-medium">Open Listings</span></p>
-              <p className="text-blue-100 text-sm mb-6">Projects currently receiving new proposals from talent.</p>
-              <Link to="/my-projects" className="inline-block bg-white text-blue-600 px-6 py-3 rounded-xl font-bold shadow-md hover:bg-blue-50 transition-all min-h-[44px]">
-                View Listings →
-              </Link>
-            </div>
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all">
+            <h3 className="text-gray-400 font-bold text-sm uppercase tracking-widest mb-2">Live Status</h3>
+            <p className="text-3xl sm:text-5xl font-black text-gray-900 mb-4">{stats.openProjects} <span className="text-xl sm:text-2xl font-medium text-gray-500">Open Listings</span></p>
+            <p className="text-gray-400 text-sm mb-6">Projects currently receiving new proposals from talent.</p>
+            <Link to="/my-projects" className="inline-block bg-gc-blue text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-gc-navy transition-all min-h-[44px]">
+              View Listings →
+            </Link>
           </div>
         </div>
 
