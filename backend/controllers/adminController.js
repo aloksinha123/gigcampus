@@ -93,7 +93,9 @@ export const suspendUser = async (req, res) => {
         user.isActive = false;
         await user.save();
 
-        res.json({ message: 'User suspended successfully', user });
+        const safeUser = user.getPublicProfile();
+        safeUser.isActive = user.isActive;
+        res.json({ message: 'User suspended successfully', user: safeUser });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -110,7 +112,9 @@ export const activateUser = async (req, res) => {
         user.isActive = true;
         await user.save();
 
-        res.json({ message: 'User activated successfully', user });
+        const safeUser = user.getPublicProfile();
+        safeUser.isActive = user.isActive;
+        res.json({ message: 'User activated successfully', user: safeUser });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -131,7 +135,9 @@ export const verifyFreelancer = async (req, res) => {
         user.isVerified = true;
         await user.save();
 
-        res.json({ message: 'Freelancer verified successfully', user });
+        const safeUser = user.getPublicProfile();
+        safeUser.isActive = user.isActive;
+        res.json({ message: 'Freelancer verified successfully', user: safeUser });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
