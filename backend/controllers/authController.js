@@ -441,7 +441,12 @@ export const resetPassword = async (req, res) => {
 // @access  Private
 export const getMe = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id).select('-password');
+        const user = await User.findById(req.user._id)
+            .select(
+                '_id username email role profile reputation verified isEmailVerified ' +
+                'isOnline lastSeen notificationPreferences createdAt ' +
+                'wallet.balance wallet.totalWithdrawn wallet.pendingWithdrawal'
+            );
         res.json(user);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -456,14 +461,18 @@ export const updateProfile = async (req, res) => {
         const user = await User.findById(req.user._id);
 
         if (user) {
-            const { profile: nestedProfile, username, email, ...rest } = req.body;
-            user.profile = {
-                ...user.profile,
-                ...rest,
-                ...(nestedProfile || {})
-            };
-            if (username) user.username = username;
-            if (email) user.email = email;
+            const { profile: nestedProfile, currentPassword, newPassword } = req.body;
+            const allowedProfileFields = ['fullName', 'bio', 'skills', 'university', 'avatar', 'hourlyRate', 'location', 'phone'];
+
+            if (nestedProfile) {
+                const sanitisedProfile = {};
+                for (const field of allowedProfileFields) {
+                    if (nestedProfile[field] !== undefined) {
+                        sanitisedProfile[field] = nestedProfile[field];
+                    }
+                }
+                user.profile = { ...user.profile, ...sanitisedProfile };
+            }
 
             const updatedUser = await user.save();
             res.json(updatedUser.getPublicProfile());

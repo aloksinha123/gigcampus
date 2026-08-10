@@ -91,8 +91,8 @@ export const getProjects = async (req, res) => {
 export const getProject = async (req, res) => {
     try {
         const project = await Project.findById(req.params.id)
-            .populate('client', 'username email profile reputation')
-            .populate('freelancer', 'username email profile reputation')
+            .populate('client', 'username profile reputation')
+            .populate('freelancer', 'username profile reputation')
             .populate('selectedBid');
 
         if (!project) {

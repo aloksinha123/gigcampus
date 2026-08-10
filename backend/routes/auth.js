@@ -15,6 +15,7 @@ import {
     terminateAllOtherSessions
 } from '../controllers/sessionController.js';
 import { protect } from '../middleware/auth.js';
+import { authLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
@@ -122,7 +123,7 @@ router.get('/verify-email/:token', verifyEmail);
  *       404:
  *         description: User not found.
  */
-router.post('/resend-verification', resendVerification);
+router.post('/resend-verification', authLimiter, resendVerification);
 
 /**
  * @openapi
@@ -174,7 +175,7 @@ router.post('/forgot-password', forgotPassword);
  *       410:
  *         description: Reset token expired (15-minute limit).
  */
-router.put('/reset-password/:token', resetPassword);
+router.put('/reset-password/:token', authLimiter, resetPassword);
 
 /**
  * @openapi
