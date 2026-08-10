@@ -16,6 +16,17 @@ import { recordFraudSignal } from '../services/fraudDetectionService.js';
 // Administrative accounts must be provisioned through a controlled operator flow.
 export const PUBLIC_REGISTRATION_ROLES = Object.freeze(['student', 'freelancer']);
 
+/**
+ * Strip sensitive token fields from a user object before passing to audit logging.
+ * Prevents emailVerificationToken, emailVerificationExpires, passwordResetToken,
+ * and passwordResetExpires from ever entering the audit pipeline.
+ */
+const sanitizeUserForAudit = (user) => {
+    if (!user) return null;
+    const { emailVerificationToken, emailVerificationExpires, passwordResetToken, passwordResetExpires, ...safe } = user.toObject ? user.toObject() : { ...user };
+    return safe;
+};
+
 export const resolvePublicRegistrationRole = (role) => {
     if (role === undefined) {
         return { valid: true, role: 'student' };
@@ -125,7 +136,7 @@ export const verifyEmail = async (req, res) => {
         }
 
         if (user.emailVerificationExpires && user.emailVerificationExpires.getTime() <= Date.now()) {
-            logSecurityAudit({ user, userEmail: user.email, action: 'EMAIL_VERIFICATION', status: 'FAILURE', req, metadata: { reason: 'Token expired' } });
+            logSecurityAudit({ user: sanitizeUserForAudit(user), userEmail: user.email, action: 'EMAIL_VERIFICATION', status: 'FAILURE', req, metadata: { reason: 'Token expired' } });
             return res.status(410).json({
                 message: 'Verification token has expired. Please request a new verification link.',
                 expired: true,
@@ -139,7 +150,7 @@ export const verifyEmail = async (req, res) => {
         user.emailVerificationExpires = undefined;
         await user.save();
 
-        logSecurityAudit({ user, userEmail: user.email, action: 'EMAIL_VERIFICATION', status: 'SUCCESS', req });
+        logSecurityAudit({ user: sanitizeUserForAudit(user), userEmail: user.email, action: 'EMAIL_VERIFICATION', status: 'SUCCESS', req });
 
         try {
             const displayName = user.profile?.fullName || user.username;
@@ -350,7 +361,7 @@ export const forgotPassword = async (req, res) => {
         user.passwordResetExpires = resetExpires;
         await user.save();
 
-        logSecurityAudit({ user, userEmail: user.email, action: 'PASSWORD_RESET_REQUEST', status: 'SUCCESS', req });
+        logSecurityAudit({ user: sanitizeUserForAudit(user), userEmail: user.email, action: 'PASSWORD_RESET_REQUEST', status: 'SUCCESS', req });
 
         const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
         const resetUrl = `${clientUrl}/reset-password/${unhashedToken}`;
@@ -402,7 +413,7 @@ export const resetPassword = async (req, res) => {
         }
 
         if (user.passwordResetExpires && user.passwordResetExpires.getTime() <= Date.now()) {
-            logSecurityAudit({ user, userEmail: user.email, action: 'PASSWORD_RESET_SUCCESS', status: 'FAILURE', req, metadata: { reason: 'Expired token' } });
+            logSecurityAudit({ user: sanitizeUserForAudit(user), userEmail: user.email, action: 'PASSWORD_RESET_SUCCESS', status: 'FAILURE', req, metadata: { reason: 'Expired token' } });
             return res.status(410).json({
                 message: 'Password reset link has expired. Please request a new link.',
                 expired: true
@@ -416,7 +427,7 @@ export const resetPassword = async (req, res) => {
         user.lockUntil = undefined;
         await user.save();
 
-        logSecurityAudit({ user, userEmail: user.email, action: 'PASSWORD_RESET_SUCCESS', status: 'SUCCESS', req });
+        logSecurityAudit({ user: sanitizeUserForAudit(user), userEmail: user.email, action: 'PASSWORD_RESET_SUCCESS', status: 'SUCCESS', req });
         sendSecurityAlertEmail(user.email, user.profile?.fullName || user.username, 'PASSWORD_CHANGED');
 
         res.status(200).json({ message: 'Password updated successfully.' });
