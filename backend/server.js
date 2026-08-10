@@ -158,6 +158,34 @@ serveSwagger(app);
 // Active sockets tracking map: Map<userIdString, Set<socketId>>
 const userSocketsMap = new Map();
 
+// Per-socket rate-limit state: Map<socketId, Map<eventName, { count, windowStart }>>
+const socketRateLimits = new Map();
+
+function checkRateLimit(socketId, eventName, maxPerMinute) {
+  const now = Date.now();
+  const windowMs = 60_000;
+
+  if (!socketRateLimits.has(socketId)) {
+    socketRateLimits.set(socketId, new Map());
+  }
+  const socketLimits = socketRateLimits.get(socketId);
+
+  if (!socketLimits.has(eventName)) {
+    socketLimits.set(eventName, { count: 1, windowStart: now });
+    return true;
+  }
+
+  const entry = socketLimits.get(eventName);
+  if (now - entry.windowStart > windowMs) {
+    entry.count = 1;
+    entry.windowStart = now;
+    return true;
+  }
+
+  entry.count++;
+  return entry.count <= maxPerMinute;
+}
+
 // Socket Authentication Middleware
 io.use(async (socket, next) => {
   try {
@@ -217,14 +245,16 @@ io.on('connection', async (socket) => {
     console.log(`User ${socket.id} left project ${projectId}`);
   });
 
-  // Send message
+  // Send message (throttled: 30/minute/socket)
   socket.on('sendMessage', (data) => {
+    if (!checkRateLimit(socket.id, 'sendMessage', 30)) return;
     const { projectId, message } = data;
     socket.to(`project_${projectId}`).emit('newMessage', message);
   });
 
-  // Typing indicator - start (room scoped)
+  // Typing indicator - start (throttled: 60/minute/socket)
   socket.on('typing-start', (data) => {
+    if (!checkRateLimit(socket.id, 'typing-start', 60)) return;
     const { conversationId, projectId, senderId, username } = data;
     const targetRoom = projectId || conversationId;
     if (targetRoom) {
@@ -236,8 +266,9 @@ io.on('connection', async (socket) => {
     }
   });
 
-  // Typing indicator - stop (room scoped)
+  // Typing indicator - stop (throttled: 60/minute/socket)
   socket.on('typing-stop', (data) => {
+    if (!checkRateLimit(socket.id, 'typing-stop', 60)) return;
     const { conversationId, projectId, senderId } = data;
     const targetRoom = projectId || conversationId;
     if (targetRoom) {
@@ -248,8 +279,9 @@ io.on('connection', async (socket) => {
     }
   });
 
-  // Backwards compatibility aliases
+  // Backwards compatibility aliases (throttled via same limits)
   socket.on('typing', (data) => {
+    if (!checkRateLimit(socket.id, 'typing-start', 60)) return;
     const { projectId, username } = data;
     socket.to(`project_${projectId}`).emit('typing-start', {
       conversationId: projectId,
@@ -259,6 +291,7 @@ io.on('connection', async (socket) => {
   });
 
   socket.on('stopTyping', (data) => {
+    if (!checkRateLimit(socket.id, 'typing-stop', 60)) return;
     const { projectId } = data;
     socket.to(`project_${projectId}`).emit('typing-stop', {
       conversationId: projectId,
@@ -337,6 +370,7 @@ io.on('connection', async (socket) => {
 
   // Disconnect
   socket.on('disconnect', async () => {
+    socketRateLimits.delete(socket.id);
     console.log('User disconnected:', socket.id);
     if (userId && userSocketsMap.has(userId)) {
       const userSet = userSocketsMap.get(userId);

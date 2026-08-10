@@ -27,7 +27,7 @@ export const addPortfolioItem = async (req, res) => {
 
         res.status(201).json(portfolio);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -48,7 +48,7 @@ export const getUserPortfolio = async (req, res) => {
 
         res.json(portfolio);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -71,7 +71,7 @@ export const getPortfolioItem = async (req, res) => {
 
         res.json(item);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -103,7 +103,7 @@ export const updatePortfolioItem = async (req, res) => {
 
         res.json(updatedItem);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -126,7 +126,7 @@ export const deletePortfolioItem = async (req, res) => {
         await item.deleteOne();
         res.json({ message: 'Portfolio item deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -151,7 +151,7 @@ export const toggleFeatured = async (req, res) => {
 
         res.json(item);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -166,12 +166,18 @@ export const likePortfolioItem = async (req, res) => {
             return res.status(404).json({ message: 'Portfolio item not found' });
         }
 
-        item.likes += 1;
+        const alreadyLiked = item.likedBy.some(id => id.toString() === req.user._id.toString());
+        if (alreadyLiked) {
+            return res.status(400).json({ message: 'You have already liked this portfolio item' });
+        }
+
+        item.likedBy.push(req.user._id);
+        item.likes = item.likedBy.length;
         await item.save();
 
         res.json(item);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -186,7 +192,7 @@ export const getMyPortfolio = async (req, res) => {
 
         res.json(portfolio);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -222,6 +228,6 @@ export const browsePortfolios = async (req, res) => {
             total: count
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

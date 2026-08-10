@@ -176,7 +176,7 @@ export const searchProjects = async (req, res) => {
             total
         });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -350,7 +350,7 @@ export const searchFreelancers = async (req, res) => {
             total
         });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -409,7 +409,7 @@ export const getSearchSuggestions = async (req, res) => {
         const results = Array.from(suggestions).slice(0, 8);
         res.json(results);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -423,7 +423,7 @@ export const getSearchHistory = async (req, res) => {
             .limit(10);
         res.json(history);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -464,7 +464,7 @@ export const addSearchHistory = async (req, res) => {
 
         res.status(201).json(newHistory);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -476,7 +476,7 @@ export const clearSearchHistory = async (req, res) => {
         await SearchHistory.deleteMany({ user: req.user._id });
         res.json({ message: 'Search history cleared successfully.' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -499,7 +499,7 @@ export const saveFilter = async (req, res) => {
 
         res.status(201).json(saved);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -511,7 +511,7 @@ export const getSavedFilters = async (req, res) => {
         const saved = await SavedFilter.find({ user: req.user._id }).sort({ createdAt: -1 });
         res.json(saved);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -526,6 +526,6 @@ export const deleteSavedFilter = async (req, res) => {
         }
         res.json({ message: 'Saved filter deleted successfully.' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

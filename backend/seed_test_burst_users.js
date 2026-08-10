@@ -38,8 +38,8 @@ async function seed() {
         isEmailVerified: true
     });
 
-    console.log(`✅ Seeded admin: ${admin.email} (password: password123)`);
-    console.log(`✅ Seeded student: ${user.email} (password: password123)`);
+    console.log(`✅ Seeded admin: ${admin.email}`);
+    console.log(`✅ Seeded student: ${user.email}`);
 
     mongoose.connection.close();
 }

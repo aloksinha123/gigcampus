@@ -42,7 +42,7 @@ export const getAdminStats = async (req, res) => {
             recentProjects
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -78,7 +78,7 @@ export const getAllUsers = async (req, res) => {
             total: count
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -97,7 +97,7 @@ export const suspendUser = async (req, res) => {
         safeUser.isActive = user.isActive;
         res.json({ message: 'User suspended successfully', user: safeUser });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -116,7 +116,7 @@ export const activateUser = async (req, res) => {
         safeUser.isActive = user.isActive;
         res.json({ message: 'User activated successfully', user: safeUser });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -139,7 +139,7 @@ export const verifyFreelancer = async (req, res) => {
         safeUser.isActive = user.isActive;
         res.json({ message: 'Freelancer verified successfully', user: safeUser });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -174,7 +174,7 @@ export const getAllProjects = async (req, res) => {
             total: count
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -195,7 +195,7 @@ export const deleteProject = async (req, res) => {
 
         res.json({ message: 'Project deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -210,7 +210,7 @@ export const getDisputedProjects = async (req, res) => {
 
         res.json(projects);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -281,7 +281,7 @@ export const resolveDispute = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -309,7 +309,7 @@ export const getAllBids = async (req, res) => {
             total: count
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -630,7 +630,7 @@ export const getAdminAnalytics = async (req, res) => {
         });
     } catch (error) {
         console.error('Admin Analytics Error:', error);
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -672,6 +672,6 @@ export const getEmailStats = async (req, res) => {
             statsByType
         });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };

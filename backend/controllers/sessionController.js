@@ -55,7 +55,7 @@ export const getSessions = async (req, res) => {
 
         res.json(formattedSessions);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -85,7 +85,7 @@ export const terminateSession = async (req, res) => {
 
         res.json({ message: 'Session terminated successfully.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -107,6 +107,6 @@ export const terminateAllOtherSessions = async (req, res) => {
 
         res.json({ message: 'All other active sessions logged out successfully.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

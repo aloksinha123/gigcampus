@@ -1,5 +1,26 @@
 import mongoose from 'mongoose';
 
+const SENSITIVE_METADATA_KEYS = [
+    'password', 'passwd', 'pwd',
+    'token', 'accessToken', 'refreshToken', 'jwt',
+    'emailVerificationToken', 'passwordResetToken',
+    'authorization', 'cookie', 'secret', 'apiKey', 'api_key',
+    'bankAccount', 'accountNumber', 'ifsc', 'cardNumber', 'cvv'
+];
+
+function sanitizeMetadata(value) {
+    if (!value || typeof value !== 'object') return value;
+    const cleaned = Array.isArray(value) ? [...value] : { ...value };
+    for (const key of Object.keys(cleaned)) {
+        if (SENSITIVE_METADATA_KEYS.includes(key.toLowerCase())) {
+            delete cleaned[key];
+        } else if (cleaned[key] && typeof cleaned[key] === 'object') {
+            cleaned[key] = sanitizeMetadata(cleaned[key]);
+        }
+    }
+    return cleaned;
+}
+
 const securityAuditSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -49,7 +70,8 @@ const securityAuditSchema = new mongoose.Schema({
     },
     metadata: {
         type: mongoose.Schema.Types.Mixed,
-        default: {}
+        default: {},
+        set: sanitizeMetadata
     }
 }, {
     timestamps: true

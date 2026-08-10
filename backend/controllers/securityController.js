@@ -14,7 +14,7 @@ export const getMySecurityHistory = async (req, res) => {
 
         res.json(history);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -85,7 +85,7 @@ export const getAdminSecurityLogs = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -123,6 +123,6 @@ export const unlockUserAccount = async (req, res) => {
 
         res.json({ message: `Account for ${user.email} has been unlocked successfully.` });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

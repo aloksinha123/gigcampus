@@ -41,7 +41,7 @@ export const createProject = async (req, res) => {
 
         res.status(201).json(project);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -81,7 +81,7 @@ export const getProjects = async (req, res) => {
             total: count
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -101,7 +101,7 @@ export const getProject = async (req, res) => {
 
         res.json(project);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -142,7 +142,7 @@ export const updateProject = async (req, res) => {
 
         res.json(updatedProject);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -170,7 +170,7 @@ export const deleteProject = async (req, res) => {
         await project.deleteOne();
         res.json({ message: 'Project deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -190,7 +190,7 @@ export const getMyProjects = async (req, res) => {
 
         res.json(projects);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -379,7 +379,7 @@ export const acceptBid = async (req, res) => {
             message: 'Bid accepted successfully. Payment has been escrowed.'
         });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -526,7 +526,7 @@ export const completeProject = async (req, res) => {
             transaction
         });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -577,7 +577,7 @@ export const submitDeliverable = async (req, res) => {
 
         res.status(201).json({ message: 'Deliverable submitted successfully', project });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -614,7 +614,7 @@ export const approveDeliverable = async (req, res) => {
 
         res.json({ message: 'Deliverable approved', project });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -639,7 +639,7 @@ export const rejectBid = async (req, res) => {
 
         res.json({ message: 'Bid rejected', bid });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -678,7 +678,7 @@ export const raiseDispute = async (req, res) => {
 
         res.json({ message: 'Dispute raised successfully. Status set to disputed.', project });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -708,7 +708,7 @@ export const getProjectTimeline = async (req, res) => {
 
         return res.json(activities);
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };
 

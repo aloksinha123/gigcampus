@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import Message from '../models/Message.js';
 import Project from '../models/Project.js';
 import User from '../models/User.js';
@@ -9,24 +11,37 @@ import { recordFraudSignal } from '../services/fraudDetectionService.js';
 // @route   POST /api/messages/upload
 // @access  Private
 export const uploadAttachment = async (req, res) => {
+    const cleanupFile = () => {
+        if (req.file) {
+            const filePath = path.join(process.cwd(), 'uploads', req.file.filename);
+            fs.unlink(filePath, () => {});
+        }
+    };
+
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded or file type/size invalid' });
         }
 
         const projectId = req.body.project || req.body.projectId;
-        if (projectId) {
-            const project = await Project.findById(projectId);
-            if (!project) {
-                return res.status(404).json({ message: 'Project not found' });
-            }
-            const isInvolved =
-                project.client.toString() === req.user._id.toString() ||
-                project.freelancer?.toString() === req.user._id.toString();
+        if (!projectId) {
+            cleanupFile();
+            return res.status(400).json({ message: 'projectId is required' });
+        }
 
-            if (!isInvolved) {
-                return res.status(403).json({ message: 'Not authorized to upload files for this project' });
-            }
+        const project = await Project.findById(projectId);
+        if (!project) {
+            cleanupFile();
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        const isInvolved =
+            project.client.toString() === req.user._id.toString() ||
+            project.freelancer?.toString() === req.user._id.toString();
+
+        if (!isInvolved) {
+            cleanupFile();
+            return res.status(403).json({ message: 'Not authorized to upload files for this project' });
         }
 
         const fileUrl = `/uploads/${req.file.filename}`;
@@ -39,7 +54,8 @@ export const uploadAttachment = async (req, res) => {
 
         res.status(200).json(attachmentData);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        cleanupFile();
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -155,7 +171,7 @@ export const sendMessage = async (req, res) => {
 
         res.status(201).json(populatedMessage);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -197,7 +213,7 @@ export const getProjectMessages = async (req, res) => {
             total: count
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -207,6 +223,20 @@ export const getProjectMessages = async (req, res) => {
 export const markAsRead = async (req, res) => {
     try {
         const { projectId } = req.params;
+
+        const project = await Project.findById(projectId);
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        const isInvolved =
+            project.client.toString() === req.user._id.toString() ||
+            project.freelancer?.toString() === req.user._id.toString();
+
+        if (!isInvolved) {
+            return res.status(403).json({ message: 'Not authorized to access this project' });
+        }
+
         const unreadMessages = await Message.find({
             project: projectId,
             receiver: req.user._id,
@@ -238,7 +268,7 @@ export const markAsRead = async (req, res) => {
 
         res.json({ message: 'Messages marked as read', count: messageIds.length });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -254,7 +284,7 @@ export const getUnreadCount = async (req, res) => {
 
         res.json({ count });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -316,6 +346,6 @@ export const getConversations = async (req, res) => {
 
         res.json(conversations);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

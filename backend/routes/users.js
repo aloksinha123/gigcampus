@@ -131,6 +131,10 @@ router.get('/:id', async (req, res) => {
  */
 router.put('/:id', protect, admin, async (req, res) => {
     try {
+        if (req.params.id === req.user._id.toString()) {
+            return res.status(403).json({ message: 'Admins cannot modify their own account.' });
+        }
+
         const user = await User.findById(req.params.id);
 
         if (!user) {
@@ -168,6 +172,10 @@ router.put('/:id', protect, admin, async (req, res) => {
  */
 router.delete('/:id', protect, admin, async (req, res) => {
     try {
+        if (req.params.id === req.user._id.toString()) {
+            return res.status(403).json({ message: 'Admins cannot delete their own account.' });
+        }
+
         const user = await User.findById(req.params.id);
 
         if (!user) {

@@ -81,7 +81,7 @@ export const trackRecentlyViewed = async (req, res) => {
 
         res.json({ success: true, message: 'View tracked successfully.' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -135,7 +135,7 @@ export const getRecentlyViewed = async (req, res) => {
 
         res.json(sanitizedList);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -164,7 +164,7 @@ export const clearRecentlyViewed = async (req, res) => {
 
         res.json({ success: true, message: 'Recently viewed history cleared.' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -326,7 +326,7 @@ export const getProjectRecommendations = async (req, res) => {
             recommendations: finalResults
         });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -480,6 +480,6 @@ export const getFreelancerRecommendations = async (req, res) => {
             recommendations: finalResults
         });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

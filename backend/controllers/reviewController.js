@@ -205,7 +205,7 @@ export const submitReview = async (req, res) => {
 
         res.status(201).json(populatedReview);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -235,7 +235,7 @@ export const getUserReviews = async (req, res) => {
             total: count
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -249,7 +249,7 @@ export const getProjectReviews = async (req, res) => {
             .populate('reviewee', 'username profile.avatar');
         res.json(reviews);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -303,7 +303,7 @@ export const respondToReview = async (req, res) => {
 
         res.json(populatedReview);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -324,7 +324,7 @@ export const getMyReviews = async (req, res) => {
 
         res.json({ given, received });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -350,7 +350,7 @@ export const deleteReview = async (req, res) => {
 
         res.json({ message: 'Review deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -376,7 +376,7 @@ export const toggleHideReview = async (req, res) => {
 
         res.json({ message: review.isHidden ? 'Review hidden' : 'Review unhidden', review });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -413,7 +413,7 @@ export const getAllReviews = async (req, res) => {
             total: count
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -474,7 +474,7 @@ export const updateReview = async (req, res) => {
 
         res.json(populatedReview);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -514,7 +514,7 @@ export const markHelpful = async (req, res) => {
             userMarkedHelpful: true
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -539,7 +539,7 @@ export const unmarkHelpful = async (req, res) => {
             userMarkedHelpful: false
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -584,7 +584,7 @@ export const reportReview = async (req, res) => {
 
         res.status(201).json({ message: 'Review reported successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -605,7 +605,7 @@ export const getReportedReviews = async (req, res) => {
 
         res.json(reviews);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -628,7 +628,7 @@ export const dismissReports = async (req, res) => {
 
         res.json({ message: 'Reports dismissed successfully', review });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -676,6 +676,6 @@ export const regenerateSummary = async (req, res) => {
             weaknesses: aiSummaryResult.weaknesses
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

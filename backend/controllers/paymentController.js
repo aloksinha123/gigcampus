@@ -82,7 +82,7 @@ export const createPayment = async (req, res) => {
 
         res.status(201).json(payment);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -263,7 +263,7 @@ export const releasePayment = async (req, res) => {
         logPaymentEvent('RELEASE FAILURE', req, { error: error.message });
         return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to release payment.'
+            message: 'Internal server error'
         });
     }
 };
@@ -315,7 +315,7 @@ export const requestRefund = async (req, res) => {
 
         res.json({ success: true, payment });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -362,7 +362,7 @@ export const disputePayment = async (req, res) => {
 
         res.json({ success: true, payment });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -398,7 +398,7 @@ export const getPaymentByProject = async (req, res) => {
 
         res.json({ success: true, payment });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -419,6 +419,6 @@ export const getMyPayments = async (req, res) => {
 
         res.json({ success: true, count: payments.length, payments });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

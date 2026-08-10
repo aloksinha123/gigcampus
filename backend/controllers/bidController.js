@@ -121,7 +121,7 @@ export const submitBid = async (req, res) => {
 
         res.status(201).json(populatedBid);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -154,7 +154,7 @@ export const getProjectBids = async (req, res) => {
 
         res.json(bids);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -176,7 +176,7 @@ export const getMyBids = async (req, res) => {
 
         res.json(bids);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -212,7 +212,7 @@ export const updateBid = async (req, res) => {
 
         res.json(updatedBid);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -247,6 +247,6 @@ export const withdrawBid = async (req, res) => {
 
         res.json({ message: 'Bid withdrawn successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

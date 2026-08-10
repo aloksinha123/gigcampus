@@ -107,7 +107,7 @@ export const register = async (req, res) => {
             res.status(400).json({ message: 'Invalid user data' });
         }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -164,7 +164,7 @@ export const verifyEmail = async (req, res) => {
             isEmailVerified: true
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -289,7 +289,7 @@ export const login = async (req, res) => {
             token: generateToken(user._id, tokenId),
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -330,7 +330,7 @@ export const resendVerification = async (req, res) => {
 
         res.status(200).json({ message: 'A new verification link has been sent to your email.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -375,7 +375,7 @@ export const forgotPassword = async (req, res) => {
 
         res.status(200).json({ message: genericMessage });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -432,7 +432,7 @@ export const resetPassword = async (req, res) => {
 
         res.status(200).json({ message: 'Password updated successfully.' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -449,7 +449,7 @@ export const getMe = async (req, res) => {
             );
         res.json(user);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -480,6 +480,6 @@ export const updateProfile = async (req, res) => {
             res.status(404).json({ message: 'User not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

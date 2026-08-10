@@ -55,7 +55,7 @@ export const bookmarkProject = async (req, res) => {
 
         res.status(201).json({ bookmarked: true, message: 'Project bookmarked successfully.' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -84,7 +84,7 @@ export const unbookmarkProject = async (req, res) => {
 
         res.json({ bookmarked: false, message: 'Bookmark removed successfully.' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -129,7 +129,7 @@ export const getBookmarkedProjects = async (req, res) => {
             total
         });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -175,7 +175,7 @@ export const favoriteFreelancer = async (req, res) => {
 
         res.status(201).json({ favorited: true, message: 'Freelancer added to favorites successfully.' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -204,7 +204,7 @@ export const unfavoriteFreelancer = async (req, res) => {
 
         res.json({ favorited: false, message: 'Freelancer removed from favorites successfully.' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -251,6 +251,6 @@ export const getFavoriteFreelancers = async (req, res) => {
             total
         });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

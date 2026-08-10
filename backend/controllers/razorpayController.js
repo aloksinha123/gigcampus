@@ -38,7 +38,7 @@ export const testRazorpay = async (req, res) => {
             message: "Razorpay production payment engine configured successfully"
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -142,7 +142,7 @@ export const createOrder = async (req, res) => {
         logPaymentEvent('ORDER CREATION FAILURE', req, { error: error.message });
         return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to create Razorpay order'
+            message: 'Internal server error'
         });
     }
 };
@@ -398,7 +398,7 @@ export const verifySignature = async (req, res) => {
         logPaymentEvent('VERIFICATION FAILURE', req, { error: error.message });
         return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to verify Razorpay payment'
+            message: 'Internal server error'
         });
     }
 };
@@ -416,24 +416,38 @@ export const getPaymentDetails = async (req, res) => {
 
         const payment = await Payment.findById(paymentId)
             .populate('project', 'title description budget status')
-            .populate('client', 'username email profile.fullName')
-            .populate('freelancer', 'username email profile.fullName')
-            .populate('user', 'username email profile.fullName');
+            .populate('client', 'username profile.fullName')
+            .populate('freelancer', 'username profile.fullName')
+            .populate('user', 'username profile.fullName');
 
         if (!payment) {
             return res.status(404).json({ success: false, message: 'Payment record not found' });
         }
 
-        // Sanitize sensitive values
+        const userId = req.user._id.toString();
+        const isClient = payment.client && payment.client._id
+            ? payment.client._id.toString() === userId
+            : payment.client && payment.client.toString() === userId;
+        const isFreelancer = payment.freelancer && payment.freelancer._id
+            ? payment.freelancer._id.toString() === userId
+            : payment.freelancer && payment.freelancer.toString() === userId;
+        const isAdmin = req.user.role === 'admin';
+
+        if (!isClient && !isFreelancer && !isAdmin) {
+            return res.status(403).json({ success: false, message: 'Not authorized to access this payment' });
+        }
+
         const paymentObj = payment.toObject();
         delete paymentObj.razorpaySignature;
+        delete paymentObj.razorpayOrderId;
+        delete paymentObj.razorpayPaymentId;
 
         return res.json({
             success: true,
             payment: paymentObj
         });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -464,7 +478,7 @@ export const getMyPaymentHistory = async (req, res) => {
 
         return res.json(sanitizedPayments);
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -656,23 +670,51 @@ Error: ${error.message}
 `);
         return res.status(500).json({
             success: false,
-            message: error.message || 'Webhook processing failed'
+            message: 'Internal server error'
         });
     }
 };
 
 // @desc    Fetch Razorpay Payment Details from Gateway API
 // @route   GET /api/v1/payments/razorpay/:paymentId
-// @access  Private
+// @access  Private (client, freelancer, or admin)
 export const fetchPayment = async (req, res) => {
     try {
-        const payment = await razorpayService.fetchPayment(req.params.paymentId);
+        const { paymentId } = req.params;
+
+        const payment = await Payment.findOne({ razorpayPaymentId: paymentId });
+        if (!payment) {
+            return res.status(404).json({ success: false, message: 'Payment record not found' });
+        }
+
+        const userId = req.user._id.toString();
+        const isClient = payment.client && payment.client.toString() === userId;
+        const isFreelancer = payment.freelancer && payment.freelancer.toString() === userId;
+        const isAdmin = req.user.role === 'admin';
+
+        if (!isClient && !isFreelancer && !isAdmin) {
+            return res.status(403).json({ success: false, message: 'Not authorized to access this payment' });
+        }
+
+        const razorpayPayment = await razorpayService.fetchPayment(paymentId);
+
+        const sanitized = {
+            id: razorpayPayment.id,
+            entity: razorpayPayment.entity,
+            amount: razorpayPayment.amount,
+            currency: razorpayPayment.currency,
+            status: razorpayPayment.status,
+            order_id: razorpayPayment.order_id,
+            method: razorpayPayment.method,
+            created_at: razorpayPayment.created_at
+        };
+
         res.json({
             success: true,
-            payment
+            payment: sanitized
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 

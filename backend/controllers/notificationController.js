@@ -17,7 +17,7 @@ export const getMyNotifications = async (req, res) => {
 
         res.json(notifications);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -46,7 +46,7 @@ export const getNotificationPreferences = async (req, res) => {
         const preferences = { ...defaultPrefs, ...(user?.notificationPreferences?.toObject() || {}) };
         return res.json({ success: true, preferences });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -96,7 +96,7 @@ export const updateNotificationPreferences = async (req, res) => {
             preferences: user.notificationPreferences
         });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -124,7 +124,7 @@ export const markAsRead = async (req, res) => {
 
         res.json(notification);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -152,7 +152,7 @@ export const markAsClicked = async (req, res) => {
 
         return res.json({ success: true, notification });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -177,7 +177,7 @@ export const dismissNotification = async (req, res) => {
 
         return res.json({ success: true, message: 'Notification dismissed' });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -194,7 +194,7 @@ export const markAllAsRead = async (req, res) => {
 
         res.json({ message: 'All notifications marked as read' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -218,7 +218,7 @@ export const deleteNotification = async (req, res) => {
 
         res.json({ message: 'Notification deleted' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 

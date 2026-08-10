@@ -37,7 +37,7 @@ export const getWalletBalance = async (req, res) => {
             payoutsEnabled: isPayoutsEnabled()
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -115,8 +115,7 @@ export const saveBankDetails = async (req, res) => {
         });
     } catch (error) {
         console.error('Save Bank Details Error:', error.response?.data || error.message);
-        const msg = error.response?.data?.description || error.message || 'Failed to save bank details';
-        res.status(500).json({ success: false, message: msg });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -150,7 +149,7 @@ export const getBankDetails = async (req, res) => {
             payoutsEnabled: isPayoutsEnabled()
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -171,7 +170,7 @@ export const deleteBankDetails = async (req, res) => {
 
         res.json({ success: true, message: 'Bank details removed successfully.' });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -301,14 +300,13 @@ export const withdrawFunds = async (req, res) => {
         // Re-credit wallet if payout API failed after deduction
         try {
             await User.findByIdAndUpdate(req.user._id, {
-                $inc: { 'wallet.balance': req.body.amount || 0, 'wallet.pendingWithdrawal': -(req.body.amount || 0) }
+                $inc: { 'wallet.balance': amount || 0, 'wallet.pendingWithdrawal': -(amount || 0) }
             });
         } catch (rollbackErr) {
             console.error('CRITICAL: Wallet rollback failed:', rollbackErr.message);
         }
 
-        const msg = error.response?.data?.description || error.message || 'Withdrawal failed. Please try again.';
-        res.status(500).json({ success: false, message: msg });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -359,7 +357,7 @@ export const getWithdrawalStatus = async (req, res) => {
         });
     } catch (error) {
         console.error('Get Payout Status Error:', error.response?.data || error.message);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -375,7 +373,7 @@ export const getWalletTransactions = async (req, res) => {
 
         res.json({ success: true, transactions });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -460,6 +458,6 @@ export const depositFunds = async (req, res) => {
             newBalance: user.wallet.balance
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };

@@ -71,7 +71,7 @@ export const getFraudEvents = async (req, res) => {
             pages: Math.ceil(total / limitNum)
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -102,7 +102,7 @@ export const getFraudEventDetails = async (req, res) => {
             riskProfile
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -183,7 +183,7 @@ export const getFraudStatistics = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -222,7 +222,7 @@ export const updateFraudStatus = async (req, res) => {
 
         res.json({ success: true, message: `Status updated to ${status}`, event });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -275,7 +275,7 @@ export const resolveFraudEvent = async (req, res) => {
             event
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -331,6 +331,6 @@ export const blockUser = async (req, res) => {
             event
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
