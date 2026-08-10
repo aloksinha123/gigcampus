@@ -5,8 +5,23 @@ import Portfolio from '../models/Portfolio.js';
 // @access  Private
 export const addPortfolioItem = async (req, res) => {
     try {
+        const { title, description, category, projectUrl, tags, skills, project } = req.body;
+
+        // Map frontend projectUrl to model link field
+        const link = projectUrl;
+
+        // Map tags (comma-separated string) to skills array
+        const skillsArray = Array.isArray(skills)
+            ? skills
+            : (tags ? tags.split(',').map(tag => tag.trim()).filter(Boolean) : []);
+
         const portfolio = await Portfolio.create({
-            ...req.body,
+            title,
+            description,
+            category,
+            link,
+            skills: skillsArray,
+            project,
             user: req.user._id
         });
 
@@ -76,7 +91,14 @@ export const updatePortfolioItem = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        Object.assign(item, req.body);
+        const { title, description, category, projectUrl, tags, skills, project } = req.body;
+        if (title !== undefined) item.title = title;
+        if (description !== undefined) item.description = description;
+        if (category !== undefined) item.category = category;
+        if (projectUrl !== undefined) item.link = projectUrl;
+        if (tags !== undefined) item.skills = tags.split(',').map(tag => tag.trim()).filter(Boolean);
+        if (skills !== undefined) item.skills = Array.isArray(skills) ? skills : [];
+        if (project !== undefined) item.project = project;
         const updatedItem = await item.save();
 
         res.json(updatedItem);
