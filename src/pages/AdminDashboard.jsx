@@ -141,11 +141,11 @@ const AdminDashboard = () => {
         {/* Header Bar */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 sm:mb-10 pb-8 border-b border-slate-800/80">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/10 text-purple-400 rounded-full text-xs font-bold mb-3 border border-purple-500/20">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-gc-soft text-gc-blue rounded-full text-xs font-bold mb-3 border border-gc-light">
               <span>🛡️ Executive Command Center</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white italic">
-              Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">Analytics</span>
+              Admin <span className="gc-gradient-text">Analytics</span>
             </h1>
             <p className="text-slate-400 text-xs sm:text-sm font-medium mt-1">
               Real-time telemetry across revenue, user acquisition, project fulfillment, AI metrics, and security.
@@ -285,10 +285,10 @@ const AdminDashboard = () => {
               </div>
 
               {/* Projects */}
-              <div className="bg-slate-900/60 rounded-3xl p-6 border border-slate-800 hover:border-purple-500/40 transition-all relative overflow-hidden group">
+              <div className="bg-slate-900/60 rounded-3xl p-6 border border-slate-800 hover:border-gc-light transition-all relative overflow-hidden group">
                 <div className="flex justify-between items-start mb-4">
-                  <span className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 text-2xl flex items-center justify-center font-bold">📁</span>
-                  <span className="px-2.5 py-1 bg-purple-500/10 text-purple-400 rounded-full text-[10px] font-black uppercase tracking-wider">
+                  <span className="w-12 h-12 rounded-2xl bg-gc-soft text-gc-blue text-2xl flex items-center justify-center font-bold">📁</span>
+                  <span className="px-2.5 py-1 bg-gc-soft text-gc-blue rounded-full text-[10px] font-black uppercase tracking-wider">
                     {analytics.projects.completed} Done
                   </span>
                 </div>
@@ -338,11 +338,11 @@ const AdminDashboard = () => {
                     <h3 className="text-xl font-black text-white">Projects Fulfillment</h3>
                     <p className="text-xs text-slate-500">Listings created vs completed per month</p>
                   </div>
-                  <span className="px-3 py-1 bg-purple-500/10 text-purple-400 rounded-full text-xs font-bold border border-purple-500/20">
+                  <span className="px-3 py-1 bg-gc-soft text-gc-blue rounded-full text-xs font-bold border border-gc-light">
                     Fulfillment Rate 🚀
                   </span>
                 </div>
-                {renderBarChart(analytics.projects.monthlyTrend, 'created', 'month', 'from-purple-600 to-indigo-600')}
+                {renderBarChart(analytics.projects.monthlyTrend, 'created', 'month', 'from-gc-blue to-gc-cyan')}
               </div>
             </div>
 

@@ -172,7 +172,7 @@ const AddMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder="500"
                                 disabled={loading}
-                                className="w-full pl-10 pr-4 py-3 text-2xl font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                                className="w-full pl-10 pr-4 py-3 text-2xl font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-gc-blue disabled:opacity-50"
                                 required
                             />
                         </div>

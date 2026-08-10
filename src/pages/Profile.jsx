@@ -231,7 +231,7 @@ const Profile = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="min-h-screen bg-gc-near">
             {/* Navbar */}
             <Navbar />
 
@@ -255,11 +255,11 @@ const Profile = () => {
                 {/* Profile Card */}
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
                     {/* Header Section */}
-                    <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-28 sm:h-32"></div>
+                    <div className="bg-gc-blue h-28 sm:h-32"></div>
                     <div className="px-4 sm:px-8 pb-6 sm:pb-8">
                         {/* Avatar */}
                         <div className="flex flex-col sm:flex-row items-center sm:items-end text-center sm:text-left -mt-14 sm:-mt-16 mb-6 gap-3 sm:gap-6">
-                            <div className="w-28 h-28 sm:w-32 sm:h-32 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-4xl sm:text-5xl border-4 border-white shadow-lg flex-shrink-0">
+                            <div className="w-28 h-28 sm:w-32 sm:h-32 bg-gc-blue rounded-full flex items-center justify-center text-white font-bold text-4xl sm:text-5xl border-4 border-white shadow-lg flex-shrink-0">
                                 {user?.username?.charAt(0).toUpperCase()}
                             </div>
                             <div className="mb-1 sm:mb-2">
@@ -483,7 +483,7 @@ const Profile = () => {
                                 <p className="text-sm text-gray-600">Rating</p>
                             </div>
                             <div className="text-center">
-                                <p className="text-2xl font-bold text-purple-600">{user?.reputation?.totalReviews || 0}</p>
+                                <p className="text-2xl font-bold text-gc-blue">{user?.reputation?.totalReviews || 0}</p>
                                 <p className="text-sm text-gray-600">Reviews</p>
                             </div>
                         </div>
@@ -579,7 +579,7 @@ const Profile = () => {
 
                     {/* AI Review Insights */}
                     {user?.reputation?.totalReviews >= 5 ? (
-                        <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-purple-50/70 border border-indigo-100 rounded-3xl p-6 mb-8 shadow-sm">
+                        <div className="bg-gc-soft border border-gc-light rounded-3xl p-6 mb-8 shadow-sm">
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                                 <div className="flex items-center space-x-2">
                                     <span className="text-xl">✨</span>

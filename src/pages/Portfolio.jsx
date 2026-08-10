@@ -149,7 +149,7 @@ const Portfolio = () => {
     const displayPortfolios = Array.isArray(rawPortfolios) ? rawPortfolios : [];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="min-h-screen bg-gc-near">
             {/* Navbar */}
             <Navbar />
 
@@ -157,17 +157,17 @@ const Portfolio = () => {
                 {/* Header */}
                 <div className="mb-8 flex justify-between items-center">
                     <div>
-                        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        <h1 className="text-4xl font-black text-gc-navy mb-2">
                             {userId && targetUser ? `@${targetUser.username}'s Showcase` : 'Portfolio Showcase'}
                         </h1>
-                        <p className="text-gray-600">
+                        <p className="text-gc-muted">
                             {userId && targetUser ? `Discover amazing work from @${targetUser.username}` : 'Discover amazing work from talented freelancers'}
                         </p>
                     </div>
                     {user && !userId && (
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-pink-700 transition shadow-lg"
+                            className="bg-gc-blue text-white px-6 py-3 rounded-lg hover:bg-gc-navy transition shadow-lg"
                         >
                             + Add Portfolio Item
                         </button>
@@ -180,8 +180,8 @@ const Portfolio = () => {
                         <button
                             onClick={() => setViewMode('browse')}
                             className={`px-6 py-2 rounded-lg transition ${viewMode === 'browse'
-                                ? 'bg-purple-500 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-gc-blue text-white'
+                                : 'bg-white text-gc-muted hover:bg-gc-surface'
                                 }`}
                         >
                             Browse All
@@ -189,8 +189,8 @@ const Portfolio = () => {
                         <button
                             onClick={() => setViewMode('my')}
                             className={`px-6 py-2 rounded-lg transition ${viewMode === 'my'
-                                ? 'bg-purple-500 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-gc-blue text-white'
+                                : 'bg-white text-gc-muted hover:bg-gc-surface'
                                 }`}
                         >
                             My Portfolio ({myPortfolio.length})
@@ -201,16 +201,16 @@ const Portfolio = () => {
                 {/* Portfolio Grid */}
                 {loading ? (
                     <div className="text-center py-12">
-                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-                        <p className="mt-4 text-gray-600">Loading portfolios...</p>
+                                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gc-blue"></div>
+                        <p className="mt-4 text-gc-muted">Loading portfolios...</p>
                     </div>
                 ) : displayPortfolios.length === 0 ? (
-                    <div className="bg-white p-12 rounded-xl shadow-sm text-center">
+                        <div className="bg-white p-12 rounded-xl shadow-sm text-center">
                         <div className="text-6xl mb-4">🎨</div>
-                        <h3 className="text-xl font-bold mb-2">
+                        <h3 className="text-xl font-bold text-gc-navy mb-2">
                             {viewMode === 'my' ? 'No portfolio items yet' : 'No portfolios found'}
                         </h3>
-                        <p className="text-gray-600 mb-4">
+                        <p className="text-gc-muted mb-4">
                             {viewMode === 'my'
                                 ? 'Start showcasing your work by adding your first portfolio item'
                                 : 'Check back later for amazing work from freelancers'}
@@ -218,7 +218,7 @@ const Portfolio = () => {
                         {user && viewMode === 'my' && (
                             <button
                                 onClick={() => setShowAddModal(true)}
-                                className="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600"
+                                className="bg-gc-blue text-white px-6 py-3 rounded-lg hover:bg-gc-navy"
                             >
                                 Add Your First Item
                             </button>
@@ -227,15 +227,15 @@ const Portfolio = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {displayPortfolios.map(item => (
-                            <div key={item._id} className="bg-white rounded-xl shadow-sm hover:shadow-xl transition overflow-hidden">
+                                <div key={item._id} className="bg-white rounded-xl shadow-sm hover:shadow-xl transition overflow-hidden border border-gc-border">
                                 {/* Image Placeholder */}
-                                <div className="h-48 bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+                                <div className="h-48 bg-gc-soft flex items-center justify-center">
                                     <span className="text-6xl">🎨</span>
                                 </div>
 
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-3">
-                                        <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
+                                        <span className="inline-block bg-gc-soft text-gc-blue text-xs px-2 py-1 rounded">
                                             {item.category}
                                         </span>
                                         {item.featured && (
@@ -244,7 +244,7 @@ const Portfolio = () => {
                                     </div>
 
                                     <h3 className="text-xl font-bold mb-2 line-clamp-2">{item.title}</h3>
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{item.description}</p>
+                                    <p className="text-gc-muted text-sm mb-4 line-clamp-3">{item.description}</p>
 
                                     {/* Tags */}
                                     {item.tags && item.tags.length > 0 && (
@@ -262,7 +262,7 @@ const Portfolio = () => {
                                         <div className="flex items-center gap-4">
                                             <button
                                                 onClick={() => handleLike(item._id)}
-                                                className="flex items-center gap-1 hover:text-pink-600 transition"
+                                                className="flex items-center gap-1 hover:text-gc-blue transition"
                                             >
                                                 ❤️ {item.likes?.length || 0}
                                             </button>
@@ -279,7 +279,7 @@ const Portfolio = () => {
                                                 href={item.projectUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex-1 bg-purple-500 text-white text-center py-2 rounded-lg hover:bg-purple-600 transition text-sm"
+                                                className="flex-1 bg-gc-blue text-white text-center py-2 rounded-lg hover:bg-gc-navy transition text-sm"
                                             >
                                                 View Project
                                             </a>
@@ -314,7 +314,7 @@ const Portfolio = () => {
                                     value={formData.title}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gc-blue"
                                     placeholder="My Awesome Project"
                                 />
                             </div>
@@ -327,7 +327,7 @@ const Portfolio = () => {
                                     onChange={handleChange}
                                     required
                                     rows="4"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gc-blue"
                                     placeholder="Describe your project..."
                                 />
                             </div>
@@ -339,7 +339,7 @@ const Portfolio = () => {
                                     value={formData.category}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gc-blue"
                                 >
                                     <option value="">Select category</option>
                                     {categories.map(cat => (
@@ -355,7 +355,7 @@ const Portfolio = () => {
                                     name="tags"
                                     value={formData.tags}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gc-blue"
                                     placeholder="react, nodejs, mongodb"
                                 />
                             </div>
@@ -367,7 +367,7 @@ const Portfolio = () => {
                                     name="projectUrl"
                                     value={formData.projectUrl}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gc-blue"
                                     placeholder="https://example.com"
                                 />
                             </div>
@@ -375,7 +375,7 @@ const Portfolio = () => {
                             <div className="flex gap-4 pt-4">
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-purple-500 text-white py-3 rounded-lg hover:bg-purple-600 transition"
+                                    className="flex-1 bg-gc-blue text-white py-3 rounded-lg hover:bg-gc-navy transition"
                                 >
                                     Add Portfolio Item
                                 </button>

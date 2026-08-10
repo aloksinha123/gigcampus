@@ -68,16 +68,16 @@ const VerifyEmail = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
+        <div className="min-h-screen bg-gc-soft/40 flex flex-col">
             <Navbar />
 
             <div className="flex-1 flex items-center justify-center p-4">
-                <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-center animate-in fade-in duration-300">
+                <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gc-border p-8 text-center animate-in fade-in duration-300">
                     
                     {/* Verifying State */}
                     {status === 'verifying' && (
                         <div className="py-8">
-                            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+                            <div className="w-16 h-16 border-4 border-gc-blue border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">Verifying Your Email</h2>
                             <p className="text-sm text-gray-600">Please wait while we confirm your email address...</p>
                         </div>
@@ -95,7 +95,7 @@ const VerifyEmail = () => {
                             </p>
                             <Link
                                 to="/login"
-                                className="block w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg transition active:scale-95"
+                                className="block w-full py-4 px-6 bg-gc-blue hover:bg-gc-navy text-white font-bold rounded-2xl shadow-lg transition active:scale-95"
                             >
                                 Proceed to Login →
                             </Link>
@@ -125,7 +125,7 @@ const VerifyEmail = () => {
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="your@email.com"
-                                        className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2.5 bg-white border border-gc-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gc-blue"
                                         required
                                     />
                                 </div>
@@ -145,14 +145,14 @@ const VerifyEmail = () => {
                                 <button
                                     type="submit"
                                     disabled={resendLoading}
-                                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition cursor-pointer"
+                                    className="w-full py-3 bg-gc-blue hover:bg-gc-navy disabled:opacity-50 text-white font-bold text-sm rounded-xl transition cursor-pointer"
                                 >
                                     {resendLoading ? 'Sending...' : '📨 Resend Verification Link'}
                                 </button>
                             </form>
 
                             <div className="mt-6">
-                                <Link to="/login" className="text-sm text-blue-600 hover:underline font-semibold">
+                                <Link to="/login" className="text-sm text-gc-blue hover:underline font-semibold">
                                     Back to Login
                                 </Link>
                             </div>

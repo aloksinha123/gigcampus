@@ -29,9 +29,9 @@ const FreelancerDashboard = () => {
             <h3 className="text-gray-500 text-xs sm:text-sm font-semibold uppercase tracking-wider">Won Projects</h3>
             <p className="text-3xl font-black text-green-600">0</p>
           </div>
-          <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-purple-50">
+          <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-gc-border">
             <h3 className="text-gray-500 text-xs sm:text-sm font-semibold uppercase tracking-wider">Total Earned</h3>
-            <p className="text-3xl font-black text-purple-600">₹{user?.wallet?.balance?.toFixed(2) || '0.00'}</p>
+            <p className="text-3xl font-black text-gc-blue">₹{user?.wallet?.balance?.toFixed(2) || '0.00'}</p>
           </div>
           <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-yellow-50">
             <h3 className="text-gray-500 text-xs sm:text-sm font-semibold uppercase tracking-wider">Rating</h3>
@@ -58,7 +58,7 @@ const FreelancerDashboard = () => {
               <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">💼</div>
               <span className="font-bold text-base sm:text-lg">My Projects</span>
             </Link>
-            <Link to="/portfolio" className="group bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white p-5 sm:p-6 rounded-2xl text-center hover:shadow-lg hover:shadow-purple-200 transition-all active:scale-[0.98] min-h-[44px] flex flex-col items-center justify-center">
+            <Link to="/portfolio" className="group bg-gc-navy text-white p-5 sm:p-6 rounded-2xl text-center hover:shadow-lg hover:shadow-gc transition-all active:scale-[0.98] min-h-[44px] flex flex-col items-center justify-center">
               <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">🎨</div>
               <span className="font-bold text-base sm:text-lg">Manage Portfolio</span>
             </Link>

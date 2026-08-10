@@ -3,7 +3,7 @@ import api from '../services/api';
 
 const ACTION_CONFIG = {
     PROJECT_CREATED: { icon: '🚀', label: 'Project Created', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-    BID_SUBMITTED: { icon: '📩', label: 'Bid Submitted', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+    BID_SUBMITTED: { icon: '📩', label: 'Bid Submitted', color: 'bg-gc-soft text-gc-blue border-gc-light' },
     BID_ACCEPTED: { icon: '🤝', label: 'Bid Accepted', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
     ESCROW_CREATED: { icon: '🔒', label: 'Escrow Funds Created', color: 'bg-amber-100 text-amber-800 border-amber-200' },
     DELIVERABLE_SUBMITTED: { icon: '📦', label: 'Deliverable Submitted', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },

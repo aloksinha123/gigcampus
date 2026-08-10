@@ -31,7 +31,7 @@ const TxnIcon = ({ type }) => {
         deposit: { icon: '⬇️', cls: 'bg-emerald-500/10 text-emerald-400' },
         withdrawal: { icon: '⬆️', cls: 'bg-rose-500/10 text-rose-400' },
         escrow_payment: { icon: '🔒', cls: 'bg-blue-500/10 text-blue-400' },
-        payment_received: { icon: '💰', cls: 'bg-purple-500/10 text-purple-400' },
+        payment_received: { icon: '💰', cls: 'bg-gc-soft text-gc-blue' },
         refund: { icon: '↩️', cls: 'bg-amber-500/10 text-amber-400' },
     };
     const { icon, cls } = icons[type] || { icon: '💳', cls: 'bg-slate-500/10 text-slate-400' };
@@ -157,7 +157,7 @@ const Wallet = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#090d16] text-slate-100 font-sans pb-24">
+        <div className="min-h-screen bg-gc-near text-gc-navy font-sans pb-24">
             <Navbar variant="dark" />
 
             <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
@@ -166,10 +166,10 @@ const Wallet = () => {
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-bold mb-3 border border-emerald-500/20">
                         <span>💰 Earnings Wallet</span>
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+                    <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gc-navy">
                         My <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400">Wallet</span>
                     </h1>
-                    <p className="text-slate-400 text-xs sm:text-sm font-medium mt-1">
+                    <p className="text-gc-muted text-xs sm:text-sm font-medium mt-1">
                         Manage your GigCampus earnings, view transaction history, and withdraw to your bank account.
                     </p>
                 </div>
@@ -197,32 +197,32 @@ const Wallet = () => {
                             </div>
 
                             {/* Pending */}
-                            <div className="bg-slate-900/60 rounded-2xl sm:rounded-[2rem] p-5 sm:p-7 border border-slate-800">
+                            <div className="bg-white rounded-2xl sm:rounded-[2rem] p-5 sm:p-7 border border-gc-border">
                                 <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-400 mb-2">Pending Withdrawal</p>
-                                <p className="text-2xl sm:text-3xl font-black text-white">₹{(wallet.pendingWithdrawal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                                <p className="text-xs text-slate-500 mt-4 font-medium">Being processed by Razorpay</p>
+                                <p className="text-2xl sm:text-3xl font-black text-gc-navy">₹{(wallet.pendingWithdrawal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                <p className="text-xs text-gc-muted mt-4 font-medium">Being processed by Razorpay</p>
                             </div>
 
                             {/* Total Withdrawn */}
-                            <div className="bg-slate-900/60 rounded-2xl sm:rounded-[2rem] p-5 sm:p-7 border border-slate-800">
-                                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-blue-400 mb-2">Total Withdrawn</p>
-                                <p className="text-2xl sm:text-3xl font-black text-white">₹{(wallet.totalWithdrawn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                                <p className="text-xs text-slate-500 mt-4 font-medium">All-time lifetime earnings out</p>
+                            <div className="bg-white rounded-2xl sm:rounded-[2rem] p-5 sm:p-7 border border-gc-border">
+                                <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-gc-blue mb-2">Total Withdrawn</p>
+                                <p className="text-2xl sm:text-3xl font-black text-gc-navy">₹{(wallet.totalWithdrawn || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                <p className="text-xs text-gc-muted mt-4 font-medium">All-time lifetime earnings out</p>
                             </div>
                         </div>
 
                         {/* Tabs */}
-                        <div className="bg-slate-900/80 rounded-2xl border border-slate-800 overflow-hidden">
+                        <div className="bg-white rounded-2xl border border-gc-border overflow-hidden">
                             {/* Tab Bar */}
-                            <div className="flex border-b border-slate-800">
+                            <div className="flex border-b border-gc-border">
                                 {tabs.map(tab => (
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3.5 sm:py-4 text-xs font-black uppercase tracking-wider transition cursor-pointer min-h-[44px] ${
                                             activeTab === tab.id
-                                                ? 'text-white border-b-2 border-emerald-500 bg-emerald-500/5'
-                                                : 'text-slate-500 hover:text-slate-300'
+                                                ? 'text-gc-navy border-b-2 border-emerald-500 bg-emerald-500/5'
+                                                : 'text-gc-muted hover:text-gc-slate'
                                         }`}
                                     >
                                         <span>{tab.icon}</span>
@@ -236,8 +236,8 @@ const Wallet = () => {
                                 {activeTab === 'overview' && (
                                     <div>
                                         <div className="flex items-center justify-between mb-6">
-                                            <h2 className="text-lg font-black text-white">Transaction History</h2>
-                                            <span className="text-xs text-slate-500">{transactions.length} transactions</span>
+                                            <h2 className="text-lg font-black text-gc-navy">Transaction History</h2>
+                                            <span className="text-xs text-gc-muted">{transactions.length} transactions</span>
                                         </div>
 
                                         {loadingTxn ? (
@@ -247,17 +247,17 @@ const Wallet = () => {
                                         ) : transactions.length === 0 ? (
                                             <div className="text-center py-14">
                                                 <p className="text-4xl mb-3">📭</p>
-                                                <p className="text-slate-400 font-bold">No transactions yet</p>
-                                                <p className="text-slate-600 text-xs mt-1">Your earnings and withdrawals will appear here.</p>
+                                                <p className="text-gc-muted font-bold">No transactions yet</p>
+                                                <p className="text-gc-muted text-xs mt-1">Your earnings and withdrawals will appear here.</p>
                                             </div>
                                         ) : (
                                             <div className="space-y-3">
                                                 {transactions.map(txn => (
-                                                    <div key={txn._id} className="flex items-center gap-4 p-4 bg-slate-950/50 rounded-2xl border border-slate-800/60 hover:border-slate-700 transition">
+                                                    <div key={txn._id} className="flex items-center gap-4 p-4 bg-gc-surface rounded-2xl border border-gc-border hover:border-gc-muted transition">
                                                         <TxnIcon type={txn.type} />
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-bold text-white truncate">{txn.description || txn.type}</p>
-                                                            <p className="text-[10px] text-slate-500 font-bold mt-0.5 uppercase">
+                                                            <p className="text-sm font-bold text-gc-navy truncate">{txn.description || txn.type}</p>
+                                                            <p className="text-[10px] text-gc-muted font-bold mt-0.5 uppercase">
                                                                 {new Date(txn.createdAt).toLocaleString()} • {txn.withdrawalMode || txn.type}
                                                             </p>
                                                         </div>
@@ -277,7 +277,7 @@ const Wallet = () => {
                                 {/* ── WITHDRAW TAB ─────────────────────────────────────── */}
                                 {activeTab === 'withdraw' && (
                                     <div className="max-w-lg mx-auto">
-                                        <h2 className="text-lg font-black text-white mb-6">Withdraw Earnings</h2>
+                                            <h2 className="text-lg font-black text-gc-navy mb-6">Withdraw Earnings</h2>
 
                                         {!wallet.hasBankDetails && (
                                             <div className="p-5 bg-amber-500/10 border border-amber-500/30 rounded-2xl mb-6 flex items-start gap-3">
@@ -294,25 +294,25 @@ const Wallet = () => {
 
                                         {/* Current bank info */}
                                         {wallet.hasBankDetails && wallet.bankDetails && (
-                                            <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 mb-6 flex items-center gap-3">
+                                            <div className="p-4 bg-gc-surface rounded-2xl border border-gc-border mb-6 flex items-center gap-3">
                                                 <span className="text-2xl">{wallet.bankDetails.mode === 'UPI' ? '📱' : '🏦'}</span>
                                                 <div>
-                                                    <p className="text-xs font-black text-white">{wallet.bankDetails.mode === 'UPI' ? wallet.bankDetails.upiId : wallet.bankDetails.bankName || 'Bank Account'}</p>
-                                                    <p className="text-[10px] text-slate-500 font-bold">
+                                                    <p className="text-xs font-black text-gc-navy">{wallet.bankDetails.mode === 'UPI' ? wallet.bankDetails.upiId : wallet.bankDetails.bankName || 'Bank Account'}</p>
+                                                    <p className="text-[10px] text-gc-muted font-bold">
                                                         {wallet.bankDetails.mode === 'UPI' ? 'UPI Transfer' : `IFSC: ${wallet.bankDetails.ifscCode} • ${wallet.bankDetails.accountNumberMasked}`}
                                                         {wallet.bankDetails.isVerified && <span className="text-emerald-400 ml-2">✓ Verified</span>}
                                                     </p>
                                                 </div>
-                                                <button onClick={() => setActiveTab('bank')} className="ml-auto text-[10px] text-slate-500 hover:text-slate-300 cursor-pointer">Change</button>
+                                                <button onClick={() => setActiveTab('bank')} className="ml-auto text-[10px] text-gc-muted hover:text-gc-navy cursor-pointer">Change</button>
                                             </div>
                                         )}
 
                                         <form onSubmit={handleWithdraw} className="space-y-6">
                                             {/* Amount Input */}
                                             <div>
-                                                <label className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Withdrawal Amount (₹)</label>
+                                                        <label className="text-xs font-black uppercase tracking-widest text-gc-muted block mb-2">Withdrawal Amount (₹)</label>
                                                 <div className="relative">
-                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black text-lg">₹</span>
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gc-muted font-black text-lg">₹</span>
                                                     <input
                                                         type="number"
                                                         min="100"
@@ -321,11 +321,11 @@ const Wallet = () => {
                                                         value={withdrawAmount}
                                                         onChange={e => setWithdrawAmount(e.target.value)}
                                                         placeholder="0.00"
-                                                        className="w-full bg-slate-950 text-white text-2xl font-black pl-10 pr-4 py-4 rounded-2xl border border-slate-800 focus:outline-none focus:border-emerald-500 transition"
+                                                        className="w-full bg-gc-surface text-gc-navy text-2xl font-black pl-10 pr-4 py-4 rounded-2xl border border-gc-border focus:outline-none focus:border-emerald-500 transition"
                                                     />
                                                 </div>
                                                 <div className="flex justify-between mt-2">
-                                                    <span className="text-[10px] text-slate-500 font-bold">Minimum: ₹100</span>
+                                                    <span className="text-[10px] text-gc-muted font-bold">Minimum: ₹100</span>
                                                     <button type="button" onClick={() => setWithdrawAmount(String(wallet.balance))} className="text-[10px] text-emerald-400 font-black cursor-pointer hover:text-emerald-300">Max ₹{wallet.balance}</button>
                                                 </div>
                                             </div>
@@ -338,7 +338,7 @@ const Wallet = () => {
                                                         key={amt}
                                                         onClick={() => setWithdrawAmount(String(Math.min(amt, wallet.balance)))}
                                                         disabled={wallet.balance < amt}
-                                                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-black transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                                        className="px-3 py-1.5 bg-gc-surface hover:bg-gc-border text-gc-navy rounded-xl text-xs font-black transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                                                     >
                                                         ₹{amt.toLocaleString()}
                                                     </button>
@@ -383,9 +383,9 @@ const Wallet = () => {
                                         {lastPayout && (
                                             <div className="mt-6 p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
                                                 <p className="text-sm font-black text-emerald-400 mb-2">✅ Withdrawal Initiated!</p>
-                                                <div className="space-y-1 text-xs text-slate-400">
-                                                    <div className="flex justify-between"><span>Payout ID:</span><span className="text-slate-200 font-mono">{lastPayout.id}</span></div>
-                                                    <div className="flex justify-between"><span>Mode:</span><span className="text-slate-200">{lastPayout.mode}</span></div>
+                                                <div className="space-y-1 text-xs text-gc-muted">
+                                                    <div className="flex justify-between"><span>Payout ID:</span><span className="text-gc-navy font-mono">{lastPayout.id}</span></div>
+                                                    <div className="flex justify-between"><span>Mode:</span><span className="text-gc-navy">{lastPayout.mode}</span></div>
                                                     <div className="flex justify-between"><span>Status:</span><StatusBadge status={lastPayout.status} /></div>
                                                     <div className="flex justify-between"><span>ETA:</span><span className="text-emerald-400">{lastPayout.estimatedTime}</span></div>
                                                 </div>
@@ -398,7 +398,7 @@ const Wallet = () => {
                                 {activeTab === 'bank' && (
                                     <div className="max-w-lg mx-auto">
                                         <div className="flex items-center justify-between mb-6">
-                                            <h2 className="text-lg font-black text-white">Bank / UPI Details</h2>
+                                            <h2 className="text-lg font-black text-gc-navy">Bank / UPI Details</h2>
                                             {wallet.hasBankDetails && (
                                                 <button
                                                     onClick={handleDeleteBank}
@@ -412,31 +412,31 @@ const Wallet = () => {
 
                                         {/* Current Bank Details Display */}
                                         {wallet.hasBankDetails && wallet.bankDetails && (
-                                            <div className="p-5 bg-slate-950/60 rounded-2xl border border-slate-800 mb-6">
-                                                <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Saved Account</p>
+                                            <div className="p-5 bg-gc-surface rounded-2xl border border-gc-border mb-6">
+                                                <p className="text-xs font-black uppercase tracking-widest text-gc-muted mb-3">Saved Account</p>
                                                 <div className="space-y-2 text-sm">
                                                     <div className="flex justify-between">
-                                                        <span className="text-slate-400">Mode:</span>
-                                                        <span className="text-white font-bold">{wallet.bankDetails.mode}</span>
+                                                        <span className="text-gc-muted">Mode:</span>
+                                                        <span className="text-gc-navy font-bold">{wallet.bankDetails.mode}</span>
                                                     </div>
                                                     {wallet.bankDetails.mode === 'UPI' ? (
                                                         <div className="flex justify-between">
-                                                            <span className="text-slate-400">UPI ID:</span>
-                                                            <span className="text-white font-bold">{wallet.bankDetails.upiId}</span>
+                                                            <span className="text-gc-muted">UPI ID:</span>
+                                                            <span className="text-gc-navy font-bold">{wallet.bankDetails.upiId}</span>
                                                         </div>
                                                     ) : (
                                                         <>
                                                             <div className="flex justify-between">
-                                                                <span className="text-slate-400">Bank:</span>
-                                                                <span className="text-white font-bold">{wallet.bankDetails.bankName || 'Bank Account'}</span>
+                                                                <span className="text-gc-muted">Bank:</span>
+                                                                <span className="text-gc-navy font-bold">{wallet.bankDetails.bankName || 'Bank Account'}</span>
                                                             </div>
                                                             <div className="flex justify-between">
-                                                                <span className="text-slate-400">Account:</span>
-                                                                <span className="text-white font-bold">{wallet.bankDetails.accountNumberMasked}</span>
+                                                                <span className="text-gc-muted">Account:</span>
+                                                                <span className="text-gc-navy font-bold">{wallet.bankDetails.accountNumberMasked}</span>
                                                             </div>
                                                             <div className="flex justify-between">
-                                                                <span className="text-slate-400">IFSC:</span>
-                                                                <span className="text-white font-mono font-bold">{wallet.bankDetails.ifscCode}</span>
+                                                                <span className="text-gc-muted">IFSC:</span>
+                                                                <span className="text-gc-navy font-mono font-bold">{wallet.bankDetails.ifscCode}</span>
                                                             </div>
                                                         </>
                                                     )}
@@ -450,7 +450,7 @@ const Wallet = () => {
 
                                         {/* Mode Selector */}
                                         <div className="mb-6">
-                                            <label className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-3">Transfer Mode</label>
+                                            <label className="text-xs font-black uppercase tracking-widest text-gc-muted block mb-3">Transfer Mode</label>
                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                                 {['NEFT', 'IMPS', 'RTGS', 'UPI'].map(m => (
                                                     <button
@@ -460,14 +460,14 @@ const Wallet = () => {
                                                         className={`py-3 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
                                                             bankMode === m
                                                                 ? 'bg-emerald-600 border-emerald-500 text-white'
-                                                                : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                                                                : 'bg-gc-surface border-gc-border text-gc-muted hover:text-gc-navy'
                                                         }`}
                                                     >
                                                         {m === 'UPI' ? '📱 ' : '🏦 '}{m}
                                                     </button>
                                                 ))}
                                             </div>
-                                            <p className="text-[10px] text-slate-500 mt-2">
+                                            <p className="text-[10px] text-gc-muted mt-2">
                                                 {{
                                                     NEFT: 'National Electronic Fund Transfer — 2–4 hrs during banking hours',
                                                     IMPS: 'Immediate Payment Service — 5–10 min, 24/7',
@@ -481,43 +481,43 @@ const Wallet = () => {
                                         <form onSubmit={handleSaveBankDetails} className="space-y-4">
                                             {bankMode === 'UPI' ? (
                                                 <div>
-                                                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">UPI ID</label>
+                                                    <label className="text-xs font-black uppercase tracking-widest text-gc-muted block mb-2">UPI ID</label>
                                                     <input
                                                         type="text"
                                                         value={bankForm.upiId}
                                                         onChange={e => setBankForm({ ...bankForm, upiId: e.target.value })}
                                                         placeholder="yourname@upi"
                                                         required
-                                                        className="w-full bg-slate-950 text-white px-4 py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500 transition text-sm font-medium"
+                                                        className="w-full bg-gc-surface text-gc-navy px-4 py-3 rounded-xl border border-gc-border focus:outline-none focus:border-emerald-500 transition text-sm font-medium"
                                                     />
-                                                    <p className="text-[10px] text-slate-600 mt-1">e.g. 9876543210@ybl, name@okicici, name@paytm</p>
+                                                    <p className="text-[10px] text-gc-muted mt-1">e.g. 9876543210@ybl, name@okicici, name@paytm</p>
                                                 </div>
                                             ) : (
                                                 <>
                                                     <div>
-                                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Account Holder Name</label>
+                                                        <label className="text-xs font-black uppercase tracking-widest text-gc-muted block mb-2">Account Holder Name</label>
                                                         <input
                                                             type="text"
                                                             value={bankForm.accountHolderName}
                                                             onChange={e => setBankForm({ ...bankForm, accountHolderName: e.target.value })}
                                                             placeholder="As on bank records"
                                                             required
-                                                            className="w-full bg-slate-950 text-white px-4 py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500 transition text-sm font-medium"
+                                                            className="w-full bg-gc-surface text-gc-navy px-4 py-3 rounded-xl border border-gc-border focus:outline-none focus:border-emerald-500 transition text-sm font-medium"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Account Number</label>
+                                                        <label className="text-xs font-black uppercase tracking-widest text-gc-muted block mb-2">Account Number</label>
                                                         <input
                                                             type="text"
                                                             value={bankForm.accountNumber}
                                                             onChange={e => setBankForm({ ...bankForm, accountNumber: e.target.value })}
                                                             placeholder="Enter your account number"
                                                             required
-                                                            className="w-full bg-slate-950 text-white px-4 py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500 transition text-sm font-medium font-mono"
+                                                            className="w-full bg-gc-surface text-gc-navy px-4 py-3 rounded-xl border border-gc-border focus:outline-none focus:border-emerald-500 transition text-sm font-medium font-mono"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">IFSC Code</label>
+                                                        <label className="text-xs font-black uppercase tracking-widest text-gc-muted block mb-2">IFSC Code</label>
                                                         <input
                                                             type="text"
                                                             value={bankForm.ifscCode}
@@ -525,17 +525,17 @@ const Wallet = () => {
                                                             placeholder="e.g. HDFC0001234"
                                                             maxLength={11}
                                                             required
-                                                            className="w-full bg-slate-950 text-white px-4 py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500 transition text-sm font-mono uppercase"
+                                                            className="w-full bg-gc-surface text-gc-navy px-4 py-3 rounded-xl border border-gc-border focus:outline-none focus:border-emerald-500 transition text-sm font-mono uppercase"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Bank Name (optional)</label>
+                                                        <label className="text-xs font-black uppercase tracking-widest text-gc-muted block mb-2">Bank Name (optional)</label>
                                                         <input
                                                             type="text"
                                                             value={bankForm.bankName}
                                                             onChange={e => setBankForm({ ...bankForm, bankName: e.target.value })}
                                                             placeholder="e.g. HDFC Bank, SBI, Axis"
-                                                            className="w-full bg-slate-950 text-white px-4 py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500 transition text-sm font-medium"
+                                                            className="w-full bg-gc-surface text-gc-navy px-4 py-3 rounded-xl border border-gc-border focus:outline-none focus:border-emerald-500 transition text-sm font-medium"
                                                         />
                                                     </div>
                                                 </>
@@ -549,7 +549,7 @@ const Wallet = () => {
                                             <button
                                                 type="submit"
                                                 disabled={savingBank}
-                                                className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-sm uppercase tracking-wider rounded-2xl transition active:scale-95 disabled:opacity-40 cursor-pointer shadow-lg"
+                                                className="w-full py-4 bg-gc-blue hover:bg-gc-navy text-white font-black text-sm uppercase tracking-wider rounded-2xl transition active:scale-95 disabled:opacity-40 cursor-pointer shadow-lg"
                                             >
                                                 {savingBank ? (
                                                     <span className="flex items-center justify-center gap-2">

@@ -29,24 +29,24 @@ const SmartBidAnalysisModal = ({ analysis, onClose, onReanalyze, isAnalyzing }) 
 
                 {/* Header */}
                 <div className="mb-6 pr-12">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-bold mb-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-gc-soft text-gc-blue rounded-full text-xs font-bold mb-2">
                         <span>✨ AI Bid Quality Audit</span>
                     </div>
                     <h3 className="text-2xl font-black text-gray-900 tracking-tight italic uppercase">
-                        Proposal <span className="text-purple-600">Analysis Results</span>
+                        Proposal <span className="text-gc-blue">Analysis Results</span>
                     </h3>
                 </div>
 
                 {/* Summary Score Banner */}
-                <div className="bg-gradient-to-br from-slate-900 to-purple-950 text-white p-6 rounded-3xl mb-6 shadow-xl border border-purple-800/40 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="bg-gc-navy text-white p-6 rounded-3xl mb-6 shadow-xl border border-gc-navy/40 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-purple-600/30 border border-purple-500/50 flex flex-col items-center justify-center">
+                        <div className="w-16 h-16 rounded-2xl bg-gc-blue/20 border border-gc-blue/50 flex flex-col items-center justify-center">
                             <span className="text-2xl font-black text-yellow-400">{score}</span>
-                            <span className="text-[9px] font-bold text-purple-200 uppercase">Score</span>
+                            <span className="text-[9px] font-bold text-gc-light uppercase">Score</span>
                         </div>
                         <div>
                             <h4 className="text-lg font-black text-white">Proposal Quality</h4>
-                            <p className="text-xs text-purple-200 font-medium">Evaluated against project requirements</p>
+                            <p className="text-xs text-gc-light font-medium">Evaluated against project requirements</p>
                         </div>
                     </div>
 
@@ -94,14 +94,14 @@ const SmartBidAnalysisModal = ({ analysis, onClose, onReanalyze, isAnalyzing }) 
 
                     {/* Suggestions */}
                     {suggestions.length > 0 && (
-                        <div className="bg-purple-50/60 p-4 rounded-2xl border border-purple-100">
-                            <h4 className="text-xs font-black text-purple-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <div className="bg-gc-soft/60 p-4 rounded-2xl border border-gc-light">
+                            <h4 className="text-xs font-black text-gc-navy uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                 <span>💡</span> Actionable Suggestions ({suggestions.length})
                             </h4>
                             <ul className="space-y-1.5">
                                 {suggestions.map((item, idx) => (
-                                    <li key={idx} className="text-xs font-medium text-purple-950 flex items-start gap-2">
-                                        <span className="text-purple-500 font-black">•</span>
+                                    <li key={idx} className="text-xs font-medium text-gc-navy flex items-start gap-2">
+                                        <span className="text-gc-blue font-black">•</span>
                                         <span>{item}</span>
                                     </li>
                                 ))}
@@ -115,7 +115,7 @@ const SmartBidAnalysisModal = ({ analysis, onClose, onReanalyze, isAnalyzing }) 
                     <button
                         onClick={onReanalyze}
                         disabled={isAnalyzing}
-                        className="w-full sm:w-auto px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-md cursor-pointer disabled:opacity-50"
+                        className="w-full sm:w-auto px-6 py-3 bg-gc-blue hover:bg-gc-navy text-white rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-md cursor-pointer disabled:opacity-50"
                     >
                         {isAnalyzing ? 'Re-analyzing...' : 'Re-Analyze Proposal 🔄'}
                     </button>

@@ -11,6 +11,125 @@
   body {
     overflow-x: hidden;
     max-width: 100vw;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 3px;
+  }
+
+  ::selection {
+    background-color: #0077B6;
+    color: white;
+  }
+}
+
+@layer components {
+  /* Button System */
+  .gc-btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-gc font-medium text-sm transition-all duration-200 cursor-pointer min-h-[44px];
+  }
+
+  .gc-btn-primary {
+    @apply gc-btn bg-gc-blue text-white hover:bg-gc-navy shadow-gc hover:shadow-gc-md active:scale-[0.98];
+  }
+
+  .gc-btn-secondary {
+    @apply gc-btn bg-gc-soft text-gc-navy hover:bg-gc-light border border-gc-border;
+  }
+
+  .gc-btn-ghost {
+    @apply gc-btn bg-transparent text-gc-slate hover:bg-gc-surface border border-transparent hover:border-gc-border;
+  }
+
+  .gc-btn-danger {
+    @apply gc-btn bg-red-500 text-white hover:bg-red-600 shadow-gc;
+  }
+
+  /* Input System */
+  .gc-input {
+    @apply w-full px-4 py-3 bg-white border border-gc-border rounded-gc text-gc-slate placeholder:text-gc-muted focus:outline-none focus:border-gc-blue focus:ring-2 focus:ring-gc-blue/20 transition-all text-sm;
+  }
+
+  .gc-input-dark {
+    @apply w-full px-4 py-3 bg-gc-navy/5 border border-gc-navy/20 rounded-gc text-white placeholder:text-gc-muted focus:outline-none focus:border-gc-cyan focus:ring-2 focus:ring-gc-cyan/20 transition-all text-sm;
+  }
+
+  /* Card System */
+  .gc-card {
+    @apply bg-white border border-gc-border rounded-gc-xl shadow-gc;
+  }
+
+  .gc-card-glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/60 rounded-gc-xl shadow-gc-glass;
+  }
+
+  .gc-card-dark {
+    @apply bg-gc-navy/5 border border-gc-navy/10 rounded-gc-xl;
+  }
+
+  /* Badge System */
+  .gc-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+
+  .gc-badge-success {
+    @apply gc-badge bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+
+  .gc-badge-warning {
+    @apply gc-badge bg-amber-50 text-amber-700 border border-amber-200;
+  }
+
+  .gc-badge-danger {
+    @apply gc-badge bg-red-50 text-red-700 border border-red-200;
+  }
+
+  .gc-badge-info {
+    @apply gc-badge bg-gc-soft text-gc-blue border border-gc-light;
+  }
+
+  /* Tab System */
+  .gc-tab {
+    @apply px-4 py-2.5 text-sm font-medium transition-all cursor-pointer border-b-2 border-transparent text-gc-muted hover:text-gc-slate hover:border-gc-border;
+  }
+
+  .gc-tab-active {
+    @apply gc-tab text-gc-blue border-gc-blue;
+  }
+
+  /* Table System */
+  .gc-table {
+    @apply w-full text-sm text-left;
+  }
+
+  .gc-table th {
+    @apply px-4 py-3 bg-gc-surface text-gc-slate font-semibold border-b border-gc-border;
+  }
+
+  .gc-table td {
+    @apply px-4 py-3 border-b border-gc-border;
+  }
+
+  .gc-table tr:hover td {
+    @apply bg-gc-surface/50;
   }
 }
 
@@ -33,4 +152,9 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 9999px;
   }
-}
+
+  /* Gradient text utility */
+  .gc-gradient-text {
+    @apply bg-gradient-to-r from-gc-blue to-gc-cyan bg-clip-text text-transparent;
+  }
+}

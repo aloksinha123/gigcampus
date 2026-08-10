@@ -56,14 +56,14 @@ const MyBids = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50">
+        <div className="min-h-screen bg-gc-near">
             {/* Navbar */}
             <Navbar />
 
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Header */}
                 <div className="mb-12">
-                    <h1 className="text-5xl font-black text-gray-900 mb-2 tracking-tight">Your <span className="text-indigo-600">Proposals</span></h1>
+                    <h1 className="text-5xl font-black text-gc-navy mb-2 tracking-tight">Your <span className="text-gc-blue">Proposals</span></h1>
                     <p className="text-lg text-gray-500 font-medium">Track your active bids, accepted contracts, and project history.</p>
                 </div>
 
@@ -81,16 +81,16 @@ const MyBids = () => {
                         <p className="text-gray-400 font-black text-xs uppercase tracking-widest mb-1">Total Value</p>
                         <p className="text-4xl font-black text-gray-900">${bids.reduce((sum, b) => sum + (b.price || 0), 0)}</p>
                     </div>
-                    <Link to="/projects" className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl p-8 text-white shadow-xl shadow-indigo-100 flex flex-col justify-center items-center hover:-translate-y-1 transition-all group">
+                    <Link to="/projects" className="bg-gc-blue rounded-3xl p-8 text-white shadow-xl shadow-gc-blue/20 flex flex-col justify-center items-center hover:-translate-y-1 transition-all group">
                         <span className="text-2xl mb-1 font-black">Find More →</span>
-                        <span className="text-xs font-bold text-indigo-100">Marketplace</span>
+                        <span className="text-xs font-bold text-gc-light">Marketplace</span>
                     </Link>
                 </div>
 
                 {/* Proposals List */}
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-20">
-                        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600 mb-4"></div>
+                        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gc-blue mb-4"></div>
                         <p className="text-gray-500 font-black uppercase tracking-widest text-xs">Fetching Proposals...</p>
                     </div>
                 ) : bids.length === 0 ? (
@@ -100,14 +100,14 @@ const MyBids = () => {
                         <p className="text-xl text-gray-500 mb-10 max-w-lg mx-auto font-medium">
                             You haven't bid on any projects. Start exploring the marketplace to find work that matches your skills.
                         </p>
-                        <Link to="/projects" className="bg-indigo-600 text-white px-10 py-5 rounded-[2rem] font-bold text-lg shadow-xl shadow-indigo-200 hover:shadow-indigo-400 transition-all">
+                        <Link to="/projects" className="bg-gc-blue text-white px-10 py-5 rounded-[2rem] font-bold text-lg shadow-xl shadow-gc-blue/20 hover:shadow-gc-blue/30 transition-all">
                             Browse Marketplace
                         </Link>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-6">
                         {bids.map(bid => (
-                            <div key={bid._id} className="group bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-indigo-100 transition-all">
+                            <div key={bid._id} className="group bg-white rounded-[2.5rem] p-8 border border-gc-border shadow-sm hover:shadow-2xl hover:border-gc-muted transition-all">
                                 <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center">
                                     <div className="flex-1 w-full">
                                         <div className="flex items-center gap-3 mb-4">
@@ -120,7 +120,7 @@ const MyBids = () => {
                                         </div>
 
                                         <div className="flex items-center gap-2 mb-2">
-                                            <h3 className="text-2xl font-black text-gray-900 group-hover:text-indigo-600 transition-colors">
+                                            <h3 className="text-2xl font-black text-gc-navy group-hover:text-gc-blue transition-colors">
                                                 {bid.project?.title || 'Unknown Project'}
                                             </h3>
                                         </div>
@@ -145,8 +145,8 @@ const MyBids = () => {
                                             </div>
                                         </div>
 
-                                        <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100/30">
-                                            <p className="text-sm font-bold text-indigo-900 mb-2 uppercase tracking-widest opacity-60">Your Proposal Preview</p>
+                                        <div className="bg-gc-soft p-6 rounded-2xl border border-gc-light/30">
+                                            <p className="text-sm font-bold text-gc-blue mb-2 uppercase tracking-widest opacity-60">Your Proposal Preview</p>
                                             <p className="text-gray-600 font-medium italic line-clamp-2">"{bid.proposal}"</p>
                                         </div>
                                     </div>
@@ -154,7 +154,7 @@ const MyBids = () => {
                                     <div className="flex flex-col gap-3 w-full lg:w-48">
                                         <Link
                                             to={`/projects/${bid.project?._id}`}
-                                            className="bg-indigo-600 text-white py-4 rounded-2xl font-black text-center shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95"
+                                            className="bg-gc-blue text-white py-4 rounded-2xl font-black text-center shadow-lg shadow-gc-blue/10 hover:bg-gc-navy transition-all active:scale-95"
                                         >
                                             View Project
                                         </Link>

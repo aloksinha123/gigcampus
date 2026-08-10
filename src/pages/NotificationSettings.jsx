@@ -182,17 +182,17 @@ const NotificationSettings = () => {
                 ) : (
                     <div className="space-y-8">
                         {/* Browser Permission Banner */}
-                        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-8 rounded-[2.5rem] shadow-xl border border-indigo-800/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div className="bg-gc-navy text-white p-8 rounded-[2.5rem] shadow-xl border border-gc-blue/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="text-2xl">🌐</span>
                                     <h3 className="text-xl font-black tracking-tight">Desktop Browser Push</h3>
                                 </div>
-                                <p className="text-xs text-indigo-200 font-medium max-w-xl leading-relaxed">
+                                <p className="text-xs text-gc-light font-medium max-w-xl leading-relaxed">
                                     Receive instant native desktop popups even when GigCampus is running in a background tab.
                                 </p>
                                 <div className="mt-3 flex items-center gap-2">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300">Browser Status:</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-gc-light">Browser Status:</span>
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
                                         browserPermission === 'granted' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
                                         browserPermission === 'denied' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' :
@@ -305,7 +305,7 @@ const NotificationSettings = () => {
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="px-10 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-wider shadow-xl shadow-blue-100 hover:shadow-blue-300 hover:-translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer"
+                                className="px-10 py-5 bg-gc-blue text-white rounded-2xl font-black text-sm uppercase tracking-wider shadow-xl shadow-gc-blue/10 hover:shadow-gc-blue/20 hover:-translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer"
                             >
                                 {saving ? 'Saving Preferences...' : 'Save Settings ✨'}
                             </button>

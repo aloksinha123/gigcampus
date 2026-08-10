@@ -78,7 +78,7 @@ const AdminSecurity = () => {
             case 'WARNING':
                 return <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full">WARNING</span>;
             case 'BLOCKED':
-                return <span className="px-2.5 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-extrabold rounded-full">BLOCKED</span>;
+                return <span className="px-2.5 py-0.5 bg-red-50 text-red-700 text-[10px] font-extrabold rounded-full border border-red-200">BLOCKED</span>;
             default:
                 return <span className="px-2.5 py-0.5 bg-gray-100 text-gray-800 text-[10px] font-extrabold rounded-full">{status}</span>;
         }
@@ -89,18 +89,18 @@ const AdminSecurity = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
-            <Navbar />
+        <div className="min-h-screen bg-gc-near flex flex-col">
+            <Navbar variant="dark" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
                 
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-                            🛡️ Enterprise Security Audit Dashboard
+                        <h1 className="text-3xl font-black text-gc-navy tracking-tight flex items-center gap-3">
+                            Enterprise Security Audit Dashboard
                         </h1>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gc-muted mt-1">
                             Monitor authentication events, security alerts, failed login attempts, and account locks in real time.
                         </p>
                     </div>
@@ -108,49 +108,49 @@ const AdminSecurity = () => {
 
                 {/* Metrics Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div className="bg-white p-6 rounded-3xl border border-gc-border shadow-gc flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Locked Accounts</p>
+                            <p className="text-xs font-semibold text-gc-muted uppercase tracking-wider">Locked Accounts</p>
                             <h3 className="text-3xl font-black text-rose-600 mt-1">{stats.lockedAccountsCount}</h3>
                         </div>
-                        <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-2xl">
-                            🔒
+                        <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div className="bg-white p-6 rounded-3xl border border-gc-border shadow-gc flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Failed Logins</p>
+                            <p className="text-xs font-semibold text-gc-muted uppercase tracking-wider">Failed Logins</p>
                             <h3 className="text-3xl font-black text-amber-600 mt-1">{stats.failedLoginsCount}</h3>
                         </div>
-                        <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl">
-                            ⚠️
+                        <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div className="bg-white p-6 rounded-3xl border border-gc-border shadow-gc flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">New Devices Logins</p>
-                            <h3 className="text-3xl font-black text-blue-600 mt-1">{stats.newDeviceLoginsCount}</h3>
+                            <p className="text-xs font-semibold text-gc-muted uppercase tracking-wider">New Devices Logins</p>
+                            <h3 className="text-3xl font-black text-gc-blue mt-1">{stats.newDeviceLoginsCount}</h3>
                         </div>
-                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl">
-                            📱
+                        <div className="w-12 h-12 bg-blue-50 text-gc-blue rounded-2xl flex items-center justify-center">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div className="bg-white p-6 rounded-3xl border border-gc-border shadow-gc flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Audit Events</p>
-                            <h3 className="text-3xl font-black text-indigo-600 mt-1">{stats.totalAuditLogs}</h3>
+                            <p className="text-xs font-semibold text-gc-muted uppercase tracking-wider">Total Audit Events</p>
+                            <h3 className="text-3xl font-black text-gc-navy mt-1">{stats.totalAuditLogs}</h3>
                         </div>
-                        <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl">
-                            📜
+                        <div className="w-12 h-12 bg-gc-soft text-gc-navy rounded-2xl flex items-center justify-center">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         </div>
                     </div>
                 </div>
 
                 {/* Filters & Search */}
-                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 mb-8">
+                <div className="bg-white rounded-3xl border border-gc-border shadow-gc p-6 mb-8">
                     <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row items-center gap-4">
                         <div className="flex-1 w-full relative">
                             <input
@@ -158,16 +158,16 @@ const AdminSecurity = () => {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search by email, action, IP, or device..."
-                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                                className="w-full gc-input pl-10"
                             />
-                            <span className="absolute left-3.5 top-3.5 text-gray-400">🔍</span>
+                            <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-gc-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         </div>
 
                         <div className="flex items-center gap-3 w-full md:w-auto">
                             <select
                                 value={actionFilter}
                                 onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
-                                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="gc-input text-xs font-semibold"
                             >
                                 <option value="ALL">All Actions</option>
                                 <option value="LOGIN_SUCCESS">Login Success</option>
@@ -186,7 +186,7 @@ const AdminSecurity = () => {
                             <select
                                 value={statusFilter}
                                 onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="gc-input text-xs font-semibold"
                             >
                                 <option value="ALL">All Statuses</option>
                                 <option value="SUCCESS">Success</option>
@@ -197,7 +197,7 @@ const AdminSecurity = () => {
 
                             <button
                                 type="submit"
-                                className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-2xl transition shadow-sm cursor-pointer whitespace-nowrap"
+                                className="px-5 py-3 bg-gc-blue hover:bg-gc-navy text-white font-bold text-xs rounded-2xl transition shadow-sm cursor-pointer whitespace-nowrap"
                             >
                                 Search Logs
                             </button>
@@ -206,26 +206,26 @@ const AdminSecurity = () => {
                 </div>
 
                 {/* Audit Logs Table */}
-                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                        <h3 className="text-lg font-bold text-gray-900">Security Event Log Trail</h3>
-                        <span className="text-xs font-medium text-gray-500">Showing Page {page} of {totalPages}</span>
+                <div className="bg-white rounded-3xl border border-gc-border shadow-gc overflow-hidden">
+                    <div className="p-6 border-b border-gc-border flex items-center justify-between">
+                        <h3 className="text-lg font-bold text-gc-navy">Security Event Log Trail</h3>
+                        <span className="text-xs font-medium text-gc-muted">Showing Page {page} of {totalPages}</span>
                     </div>
 
                     {loading ? (
                         <div className="py-16 text-center">
-                            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                            <p className="text-xs text-gray-500 font-medium">Fetching audit logs...</p>
+                            <div className="w-10 h-10 border-4 border-gc-blue border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                            <p className="text-xs text-gc-muted font-medium">Fetching audit logs...</p>
                         </div>
                     ) : logs.length === 0 ? (
-                        <div className="py-16 text-center text-gray-500">
+                        <div className="py-16 text-center text-gc-muted">
                             <p className="text-sm font-semibold">No security audit events match your filters.</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-gray-50 text-[11px] font-extrabold uppercase text-gray-400 border-b border-gray-100 tracking-wider">
+                                    <tr className="bg-gc-surface text-[11px] font-extrabold uppercase text-gc-muted border-b border-gc-border tracking-wider">
                                         <th className="py-4 px-6">Timestamp</th>
                                         <th className="py-4 px-6">User / Target Email</th>
                                         <th className="py-4 px-6">Event Action</th>
@@ -235,36 +235,36 @@ const AdminSecurity = () => {
                                         <th className="py-4 px-6 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 text-xs">
+                                <tbody className="divide-y divide-gc-border text-xs">
                                     {logs.map((log) => {
                                         const isLockedUser = log.user?.lockUntil && new Date(log.user.lockUntil).getTime() > Date.now();
                                         return (
-                                            <tr key={log._id} className="hover:bg-slate-50/60 transition-colors">
-                                                <td className="py-4 px-6 whitespace-nowrap text-gray-500 font-medium">
+                                            <tr key={log._id} className="hover:bg-gc-surface/50 transition-colors">
+                                                <td className="py-4 px-6 whitespace-nowrap text-gc-muted font-medium">
                                                     {new Date(log.createdAt).toLocaleString()}
                                                 </td>
-                                                <td className="py-4 px-6 font-bold text-gray-900">
+                                                <td className="py-4 px-6 font-bold text-gc-navy">
                                                     <div>{log.userEmail || 'Unauthenticated'}</div>
                                                     {log.user?.role && (
-                                                        <span className="text-[10px] font-normal text-gray-400 uppercase">
+                                                        <span className="text-[10px] font-normal text-gc-muted uppercase">
                                                             Role: {log.user.role}
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="py-4 px-6 font-bold text-blue-900">
-                                                    <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg border border-blue-100">
+                                                <td className="py-4 px-6 font-bold text-gc-navy">
+                                                    <span className="bg-gc-soft text-gc-blue px-2.5 py-1 rounded-lg border border-gc-border">
                                                         {formatActionName(log.action)}
                                                     </span>
                                                 </td>
                                                 <td className="py-4 px-6">
                                                     {getStatusBadge(log.status)}
                                                 </td>
-                                                <td className="py-4 px-6 text-gray-600">
-                                                    <div className="font-semibold text-gray-800">{log.browser}</div>
-                                                    <div className="text-[11px] text-gray-400">{log.operatingSystem}</div>
+                                                <td className="py-4 px-6 text-gc-slate">
+                                                    <div className="font-semibold text-gc-navy">{log.browser}</div>
+                                                    <div className="text-[11px] text-gc-muted">{log.operatingSystem}</div>
                                                 </td>
                                                 <td className="py-4 px-6">
-                                                    <code className="bg-gray-100 px-2 py-1 rounded text-[11px] text-gray-800 font-mono">
+                                                    <code className="bg-gc-surface px-2 py-1 rounded text-[11px] text-gc-navy font-mono border border-gc-border">
                                                         {log.ipAddress}
                                                     </code>
                                                 </td>
@@ -274,9 +274,9 @@ const AdminSecurity = () => {
                                                             type="button"
                                                             onClick={() => handleUnlockUser(log.user._id, log.userEmail)}
                                                             disabled={unlockingUserId === log.user._id}
-                                                            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
+                                                            className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white font-bold text-[11px] rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
                                                         >
-                                                            {unlockingUserId === log.user._id ? 'Unlocking...' : '🔓 Unlock Account'}
+                                                            {unlockingUserId === log.user._id ? 'Unlocking...' : 'Unlock Account'}
                                                         </button>
                                                     )}
                                                 </td>
@@ -289,21 +289,21 @@ const AdminSecurity = () => {
                     )}
 
                     {/* Pagination */}
-                    <div className="p-6 border-t border-gray-100 flex items-center justify-between">
+                    <div className="p-6 border-t border-gc-border flex items-center justify-between">
                         <button
                             disabled={page <= 1}
                             onClick={() => setPage(page - 1)}
-                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-40 text-gray-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                            className="px-4 py-2 bg-gc-surface hover:bg-gc-border disabled:opacity-40 text-gc-navy font-bold text-xs rounded-xl transition cursor-pointer border border-gc-border"
                         >
-                            ← Previous
+                            Previous
                         </button>
-                        <span className="text-xs font-bold text-gray-600">Page {page} of {totalPages}</span>
+                        <span className="text-xs font-bold text-gc-slate">Page {page} of {totalPages}</span>
                         <button
                             disabled={page >= totalPages}
                             onClick={() => setPage(page + 1)}
-                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-40 text-gray-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                            className="px-4 py-2 bg-gc-surface hover:bg-gc-border disabled:opacity-40 text-gc-navy font-bold text-xs rounded-xl transition cursor-pointer border border-gc-border"
                         >
-                            Next →
+                            Next
                         </button>
                     </div>
                 </div>

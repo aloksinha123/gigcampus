@@ -298,7 +298,7 @@ const Messages = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="min-h-screen bg-gc-near">
             {/* Navbar */}
             <Navbar />
 
@@ -307,7 +307,7 @@ const Messages = () => {
                     <div className="flex h-full relative">
                         {/* Conversations List */}
                         <div className={`w-full md:w-80 lg:w-96 md:border-r border-gray-200 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
-                            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-indigo-500">
+                            <div className="p-4 border-b border-gc-border bg-gc-blue">
                                 <h2 className="text-xl font-bold text-white">Messages</h2>
                                 <p className="text-sm text-blue-100">
                                     {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
@@ -338,11 +338,11 @@ const Messages = () => {
                                         <div
                                             key={conv.projectId}
                                             onClick={() => setSelectedConversation(conv)}
-                                            className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition active:bg-gray-100 ${selectedConversation?.projectId === conv.projectId ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                                            className={`p-4 border-b border-gc-border cursor-pointer hover:bg-gc-surface transition active:bg-gc-border ${selectedConversation?.projectId === conv.projectId ? 'bg-gc-soft border-l-4 border-l-gc-blue' : ''
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                                                <div className="w-12 h-12 bg-gc-blue rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                                                     {conv.otherUser?.username?.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -411,7 +411,7 @@ const Messages = () => {
                                                 >
                                                     ← Back
                                                 </button>
-                                                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                                                <div className="w-10 h-10 bg-gc-blue rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
                                                     {selectedConversation.otherUser?.username?.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
@@ -472,7 +472,7 @@ const Messages = () => {
                                                             <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                                                                 <div className={`max-w-[70%] ${isOwn ? 'order-2' : 'order-1'}`}>
                                                                     <div className={`rounded-2xl px-4 py-2 ${isOwn
-                                                                        ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                                                                        ? 'bg-gc-blue text-white'
                                                                         : 'bg-white text-gray-800 shadow-sm'
                                                                         }`}>
                                                                         {message.content && <p className="text-sm break-words">{message.content}</p>}
@@ -557,13 +557,13 @@ const Messages = () => {
                                                 value={newMessage}
                                                 onChange={handleInputChange}
                                                 placeholder="Type a message..."
-                                                className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="flex-1 px-4 py-3 border border-gc-border rounded-full focus:outline-none focus:ring-2 focus:ring-gc-blue focus:border-transparent"
                                                 disabled={sending}
                                             />
                                             <button
                                                 type="submit"
                                                 disabled={(!newMessage.trim() && !pendingFile) || sending}
-                                                className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-full hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold flex-shrink-0"
+                                                className="bg-gc-blue text-white px-6 py-3 rounded-full hover:bg-gc-navy disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold flex-shrink-0"
                                             >
                                                 {sending ? '...' : '📤 Send'}
                                             </button>

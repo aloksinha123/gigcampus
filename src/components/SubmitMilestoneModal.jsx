@@ -47,11 +47,11 @@ const SubmitMilestoneModal = ({ milestone, onClose, onSuccess, toastError, toast
                 </button>
 
                 <div className="mb-8 pr-12">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-bold mb-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-gc-soft text-gc-blue rounded-full text-xs font-bold mb-2">
                         <span>📤 Freelancer Submission</span>
                     </div>
                     <h3 className="text-3xl font-black text-gray-900 tracking-tight italic uppercase">
-                        <span className="text-purple-600">Submit</span> Milestone
+                        <span className="text-gc-blue">Submit</span> Milestone
                     </h3>
                     <p className="text-xs font-bold text-gray-500 mt-1">
                         Milestone: <span className="text-gray-900 font-black">{milestone.title}</span> (₹{milestone.amount})
@@ -67,7 +67,7 @@ const SubmitMilestoneModal = ({ milestone, onClose, onSuccess, toastError, toast
                             onChange={(e) => setDeliverableUrl(e.target.value)}
                             required
                             placeholder="https://github.com/user/project or https://drive.google.com/..."
-                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-purple-200 rounded-2xl text-gray-900 font-bold text-sm transition-all focus:outline-none"
+                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-gc-light rounded-2xl text-gray-900 font-bold text-sm transition-all focus:outline-none"
                         />
                     </div>
 
@@ -78,7 +78,7 @@ const SubmitMilestoneModal = ({ milestone, onClose, onSuccess, toastError, toast
                             onChange={(e) => setFeedback(e.target.value)}
                             rows="3"
                             placeholder="Summarize key features completed or instructions for the student to test..."
-                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-purple-200 rounded-2xl text-gray-900 font-medium text-sm transition-all focus:outline-none"
+                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-gc-light rounded-2xl text-gray-900 font-medium text-sm transition-all focus:outline-none"
                         />
                     </div>
 
@@ -93,7 +93,7 @@ const SubmitMilestoneModal = ({ milestone, onClose, onSuccess, toastError, toast
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg shadow-purple-200 transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                            className="flex-1 py-4 bg-gc-blue hover:bg-gc-navy text-white rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg shadow-gc-light transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                         >
                             {loading ? (
                                 <>

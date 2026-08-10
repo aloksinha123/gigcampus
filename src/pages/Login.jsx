@@ -62,34 +62,32 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-      </div>
-
-      <div className="relative z-10 w-full max-w-md px-2 sm:px-0">
-        <div className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl p-5 sm:p-8 border border-white/20">
+    <div className="min-h-screen bg-gc-soft/40 flex items-center justify-center p-4">
+      <div className="w-full max-w-md px-2 sm:px-0">
+        <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-8 border border-gc-border">
           <div className="text-center mb-8">
             <Link to="/" className="inline-block mb-4">
-              <span className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                🚀 GigCampus
+              <span className="text-3xl font-bold text-gc-navy flex items-center justify-center gap-2">
+                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>
+                </svg>
+                GigCampus
               </span>
             </Link>
-            <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-            <p className="text-white/70">Login to your account</p>
+            <h2 className="text-3xl font-bold text-gc-navy mb-2">Welcome Back</h2>
+            <p className="text-gc-muted">Login to your account</p>
           </div>
 
           {unverifiedEmail && (
-            <div className="mb-6 p-4 bg-amber-500/20 border border-amber-400/40 rounded-2xl text-amber-100 text-xs animate-in fade-in duration-200">
-              <div className="flex items-center gap-2 font-bold text-amber-300 mb-1 text-sm">
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-700 text-xs animate-in fade-in duration-200">
+              <div className="flex items-center gap-2 font-bold text-amber-800 mb-1 text-sm">
                 <span>⚠️</span> Email Not Verified
               </div>
-              <p className="mb-3 leading-relaxed text-white/80">
+              <p className="mb-3 leading-relaxed text-amber-600">
                 Please verify your email address to access GigCampus.
               </p>
               {resendMsg ? (
-                <p className="text-emerald-300 font-semibold bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/30">
+                <p className="text-emerald-700 font-semibold bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
                   ✓ {resendMsg}
                 </p>
               ) : (
@@ -97,7 +95,7 @@ const Login = () => {
                   type="button"
                   onClick={handleResend}
                   disabled={resendLoading}
-                  className="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 font-bold rounded-xl transition cursor-pointer"
+                  className="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-bold rounded-xl transition cursor-pointer"
                 >
                   {resendLoading ? 'Sending link...' : '📨 Resend Verification Link'}
                 </button>
@@ -107,22 +105,22 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-white/80 mb-2 font-medium">Email</label>
+              <label className="block text-gc-navy mb-2 font-medium">Email</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-white border border-gc-border rounded-xl text-gc-navy placeholder-gc-muted focus:outline-none focus:ring-2 focus:ring-gc-blue focus:border-transparent"
                 placeholder="your@email.com"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-white/80 font-medium">Password</label>
-                <Link to="/forgot-password" className="text-xs text-blue-400 hover:text-blue-300 font-semibold">
+                <label className="block text-gc-navy font-medium">Password</label>
+                <Link to="/forgot-password" className="text-xs text-gc-blue hover:text-gc-navy font-semibold">
                   Forgot Password?
                 </Link>
               </div>
@@ -132,7 +130,7 @@ const Login = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-white border border-gc-border rounded-xl text-gc-navy placeholder-gc-muted focus:outline-none focus:ring-2 focus:ring-gc-blue focus:border-transparent"
                 placeholder="••••••••"
               />
             </div>
@@ -140,23 +138,23 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-xl hover:from-blue-600 hover:to-purple-700 transition font-semibold shadow-lg disabled:opacity-50"
+              className="w-full bg-gc-blue hover:bg-gc-navy text-white py-3 px-6 rounded-xl transition font-semibold shadow-lg disabled:opacity-50"
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-white/70">
+            <p className="text-gc-muted">
               Don't have an account?{' '}
-              <Link to="/register" className="text-blue-400 hover:text-blue-300 font-semibold">
+              <Link to="/register" className="text-gc-blue hover:text-gc-navy font-semibold">
                 Sign up
               </Link>
             </p>
           </div>
 
           <div className="mt-6 text-center">
-            <Link to="/" className="text-white/60 hover:text-white/80 text-sm">
+            <Link to="/" className="text-gc-muted hover:text-gc-navy text-sm">
               ← Back to Home
             </Link>
           </div>

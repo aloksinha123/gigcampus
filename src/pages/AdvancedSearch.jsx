@@ -366,16 +366,16 @@ const AdvancedSearch = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0f172a] text-slate-200">
+        <div className="min-h-screen bg-gc-near">
             <Navbar variant="dark" />
 
             <div className="max-w-7xl mx-auto px-6 py-12">
-                <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-slate-800">
+                <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-gc-border">
                     <div>
-                        <h1 className="text-4xl font-black text-white mb-2 italic">
-                            Advanced <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">Search Engine</span>
+                        <h1 className="text-4xl font-black text-gc-navy mb-2">
+                            Advanced <span className="gc-gradient-text">Search Engine</span>
                         </h1>
-                        <p className="text-slate-500 font-medium text-sm">Discover projects, find talent, and match capabilities using AI query routing</p>
+                        <p className="text-gc-muted font-medium text-sm">Discover projects, find talent, and match capabilities using AI query routing</p>
                     </div>
 
                     <div className="flex flex-row gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
@@ -384,10 +384,10 @@ const AdvancedSearch = () => {
                                 setActiveTab('projects');
                                 setCurrentPage(1);
                             }}
-                            className={`flex-1 sm:flex-initial px-4 sm:px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition active:scale-95 text-center min-h-[44px] ${
+                            className={`flex-1 sm:flex-initial px-4 sm:px-5 py-3 rounded-gc font-black text-xs uppercase tracking-wider transition active:scale-95 text-center min-h-[44px] ${
                                 activeTab === 'projects'
-                                    ? 'bg-blue-600 text-white shadow-lg'
-                                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                                    ? 'bg-gc-blue text-white shadow-lg'
+                                    : 'bg-gc-surface text-gc-muted hover:text-gc-slate'
                             }`}
                         >
                             💼 Projects
@@ -397,10 +397,10 @@ const AdvancedSearch = () => {
                                 setActiveTab('freelancers');
                                 setCurrentPage(1);
                             }}
-                            className={`flex-1 sm:flex-initial px-4 sm:px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition active:scale-95 text-center min-h-[44px] ${
+                            className={`flex-1 sm:flex-initial px-4 sm:px-5 py-3 rounded-gc font-black text-xs uppercase tracking-wider transition active:scale-95 text-center min-h-[44px] ${
                                 activeTab === 'freelancers'
-                                    ? 'bg-purple-600 text-white shadow-lg'
-                                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                                    ? 'bg-gc-blue text-white shadow-lg'
+                                    : 'bg-gc-surface text-gc-muted hover:text-gc-slate'
                             }`}
                         >
                             🚀 Freelancers
@@ -411,13 +411,13 @@ const AdvancedSearch = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
                     {/* Left Column - Filters Panel */}
                     <div className="space-y-6">
-                        <div className="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 shadow-xl space-y-6">
-                            <div className="flex justify-between items-center pb-4 border-b border-slate-800">
-                                <h3 className="font-bold text-sm text-slate-300 uppercase tracking-wider">Filters Panel</h3>
+                        <div className="bg-white p-6 rounded-gc-xl border border-gc-border shadow-gc space-y-6">
+                            <div className="flex justify-between items-center pb-4 border-b border-gc-border">
+                                <h3 className="font-bold text-sm text-gc-navy uppercase tracking-wider">Filters Panel</h3>
                                 {isAuthenticated && (
                                     <button
                                         onClick={() => setShowSaveModal(true)}
-                                        className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300"
+                                        className="text-[10px] font-black text-gc-blue uppercase tracking-widest hover:text-gc-navy"
                                     >
                                         💾 Save Current
                                     </button>
@@ -428,12 +428,12 @@ const AdvancedSearch = () => {
                                 /* Project Filters Form */
                                 <div className="space-y-4 text-xs">
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Category</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Category</label>
                                         <select
                                             name="category"
                                             value={projectFilters.category}
                                             onChange={handleProjectFilterChange}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-blue-500"
+                                            className="gc-input"
                                         >
                                             <option value="">All Categories</option>
                                             {categories.map(cat => (
@@ -443,12 +443,12 @@ const AdvancedSearch = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Experience Level</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Experience Level</label>
                                         <select
                                             name="experienceLevel"
                                             value={projectFilters.experienceLevel}
                                             onChange={handleProjectFilterChange}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-blue-500"
+                                            className="gc-input"
                                         >
                                             <option value="">Any Level</option>
                                             <option value="entry">Entry Level</option>
@@ -458,61 +458,61 @@ const AdvancedSearch = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Skills Required</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Skills Required</label>
                                         <input
                                             type="text"
                                             name="skills"
                                             value={projectFilters.skills}
                                             onChange={handleProjectFilterChange}
                                             placeholder="React, Node.js (comma-separated)"
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-blue-500"
+                                            className="gc-input"
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="block text-slate-500 font-bold mb-1.5 uppercase">Min Budget (₹)</label>
+                                            <label className="block text-gc-muted font-bold mb-1.5 uppercase">Min Budget (₹)</label>
                                             <input
                                                 type="number"
                                                 name="minBudget"
                                                 value={projectFilters.minBudget}
                                                 onChange={handleProjectFilterChange}
                                                 placeholder="1000"
-                                                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-blue-500"
+                                                className="gc-input"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-slate-500 font-bold mb-1.5 uppercase">Max Budget (₹)</label>
+                                            <label className="block text-gc-muted font-bold mb-1.5 uppercase">Max Budget (₹)</label>
                                             <input
                                                 type="number"
                                                 name="maxBudget"
                                                 value={projectFilters.maxBudget}
                                                 onChange={handleProjectFilterChange}
                                                 placeholder="25000"
-                                                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-blue-500"
+                                                className="gc-input"
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Timeline / Duration</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Timeline / Duration</label>
                                         <input
                                             type="text"
                                             name="timeline"
                                             value={projectFilters.timeline}
                                             onChange={handleProjectFilterChange}
                                             placeholder="e.g. 7 Days"
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-blue-500"
+                                            className="gc-input"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Posted Within</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Posted Within</label>
                                         <select
                                             name="postedWithin"
                                             value={projectFilters.postedWithin}
                                             onChange={handleProjectFilterChange}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-blue-500"
+                                            className="gc-input"
                                         >
                                             <option value="">Any time</option>
                                             <option value="1">Last 24 Hours</option>
@@ -522,12 +522,12 @@ const AdvancedSearch = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Sorting</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Sorting</label>
                                         <select
                                             name="sortBy"
                                             value={projectFilters.sortBy}
                                             onChange={handleProjectFilterChange}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-blue-500 font-semibold"
+                                            className="gc-input font-semibold"
                                         >
                                             <option value="newest">Newest Posted</option>
                                             <option value="oldest">Oldest Posted</option>
@@ -544,12 +544,12 @@ const AdvancedSearch = () => {
                                 /* Freelancer Filters Form */
                                 <div className="space-y-4 text-xs">
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Minimum Rating</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Minimum Rating</label>
                                         <select
                                             name="rating"
                                             value={freelancerFilters.rating}
                                             onChange={handleFreelancerFilterChange}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-purple-500"
+                                            className="gc-input"
                                         >
                                             <option value="">Any Rating</option>
                                             <option value="4.5">4.5+ Stars</option>
@@ -559,12 +559,12 @@ const AdvancedSearch = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Experience Level</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Experience Level</label>
                                         <select
                                             name="experience"
                                             value={freelancerFilters.experience}
                                             onChange={handleFreelancerFilterChange}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-purple-500"
+                                            className="gc-input"
                                         >
                                             <option value="">Any Experience</option>
                                             <option value="entry">Beginner (0-2 gigs completed)</option>
@@ -574,49 +574,49 @@ const AdvancedSearch = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Skills</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Skills</label>
                                         <input
                                             type="text"
                                             name="skills"
                                             value={freelancerFilters.skills}
                                             onChange={handleFreelancerFilterChange}
                                             placeholder="React, Python, Design"
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-purple-500"
+                                            className="gc-input"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Max Hourly Rate (₹)</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Max Hourly Rate (₹)</label>
                                         <input
                                             type="number"
                                             name="hourlyRate"
                                             value={freelancerFilters.hourlyRate}
                                             onChange={handleFreelancerFilterChange}
                                             placeholder="Hourly budget maximum limit"
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-purple-500"
+                                            className="gc-input"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Min Completed Gigs</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Min Completed Gigs</label>
                                         <input
                                             type="number"
                                             name="completedProjects"
                                             value={freelancerFilters.completedProjects}
                                             onChange={handleFreelancerFilterChange}
                                             placeholder="5"
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-purple-500"
+                                            className="gc-input"
                                         />
                                     </div>
 
                                     {/* AI Match settings for client projects */}
                                     {isAuthenticated && user?.role === 'student' && (
                                         <div>
-                                            <label className="block text-slate-500 font-bold mb-1.5 uppercase">✨ AI Skill Match Against Project</label>
+                                            <label className="block text-gc-muted font-bold mb-1.5 uppercase">✨ AI Skill Match Against Project</label>
                                             <select
                                                 value={selectedProjForMatch}
                                                 onChange={(e) => setSelectedProjForMatch(e.target.value)}
-                                                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-purple-500"
+                                                className="gc-input"
                                             >
                                                 <option value="">My Profile Skills (Default)</option>
                                                 {myProjects.map(p => (
@@ -628,36 +628,36 @@ const AdvancedSearch = () => {
 
                                     {/* Boolean filters checkboxes */}
                                     <div className="space-y-2 pt-2">
-                                        <label className="flex items-center space-x-2 text-slate-300 font-semibold cursor-pointer">
+                                        <label className="flex items-center space-x-2 text-gc-slate font-semibold cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 name="topRatedBadge"
                                                 checked={freelancerFilters.topRatedBadge}
                                                 onChange={handleFreelancerFilterChange}
-                                                className="rounded bg-slate-950 border-slate-800 text-purple-600 focus:ring-0 focus:ring-offset-0"
+                                                className="accent-gc-blue"
                                             />
                                             <span>🏆 Top Rated Badge Only</span>
                                         </label>
 
-                                        <label className="flex items-center space-x-2 text-slate-300 font-semibold cursor-pointer">
+                                        <label className="flex items-center space-x-2 text-gc-slate font-semibold cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 name="verifiedStatus"
                                                 checked={freelancerFilters.verifiedStatus}
                                                 onChange={handleFreelancerFilterChange}
-                                                className="rounded bg-slate-950 border-slate-800 text-purple-600 focus:ring-0 focus:ring-offset-0"
+                                                className="accent-gc-blue"
                                             />
                                             <span>🛡️ Verified Status Only</span>
                                         </label>
                                     </div>
 
                                     <div>
-                                        <label className="block text-slate-500 font-bold mb-1.5 uppercase">Sorting</label>
+                                        <label className="block text-gc-muted font-bold mb-1.5 uppercase">Sorting</label>
                                         <select
                                             name="sortBy"
                                             value={freelancerFilters.sortBy}
                                             onChange={handleFreelancerFilterChange}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-purple-500 font-semibold"
+                                            className="gc-input font-semibold"
                                         >
                                             <option value="highestRating">Highest Ratings Score</option>
                                             <option value="mostProjects">Most Gigs Finished</option>
@@ -671,7 +671,7 @@ const AdvancedSearch = () => {
 
                             <button
                                 onClick={triggerSearch}
-                                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-lg active:scale-95"
+                                className="w-full py-3 bg-gc-blue hover:bg-gc-navy text-white rounded-gc font-bold text-xs uppercase tracking-wider transition shadow-lg active:scale-95"
                             >
                                 Apply All Filters
                             </button>
@@ -679,24 +679,24 @@ const AdvancedSearch = () => {
 
                         {/* Saved Filters Sidebar Section */}
                         {isAuthenticated && savedFilters.length > 0 && (
-                            <div className="bg-slate-900/50 p-5 rounded-3xl border border-slate-800 shadow-xl space-y-4">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block border-b border-slate-800 pb-2">💾 Saved Filter Templates</span>
+                            <div className="bg-white p-5 rounded-gc-xl border border-gc-border shadow-gc space-y-4">
+                                <span className="text-[10px] font-black text-gc-muted uppercase tracking-wider block border-b border-gc-border pb-2">💾 Saved Filter Templates</span>
                                 <div className="space-y-2">
                                     {savedFilters.map((sf) => (
                                         <div
                                             key={sf._id}
                                             onClick={() => handleLoadSavedFilter(sf)}
-                                            className="p-3 bg-slate-950/40 border border-slate-800 rounded-2xl flex justify-between items-center hover:bg-slate-900/60 transition cursor-pointer group"
+                                            className="p-3 bg-gc-surface border border-gc-border rounded-gc flex justify-between items-center hover:bg-gc-soft transition cursor-pointer group"
                                         >
                                             <div>
-                                                <span className="font-bold text-white text-xs block truncate max-w-[120px]">{sf.name}</span>
-                                                <span className="text-[8px] uppercase font-bold text-slate-500 tracking-wider">
+                                                <span className="font-bold text-gc-navy text-xs block truncate max-w-[120px]">{sf.name}</span>
+                                                <span className="text-[8px] uppercase font-bold text-gc-muted tracking-wider">
                                                     {sf.type === 'projects' ? '📁 Project criteria' : '👤 Freelancer criteria'}
                                                 </span>
                                             </div>
                                             <button
                                                 onClick={(e) => handleDeleteSavedFilter(sf._id, e)}
-                                                className="text-slate-500 hover:text-rose-500 p-1 font-bold text-xs opacity-0 group-hover:opacity-100 transition"
+                                                className="text-gc-muted hover:text-gc-danger p-1 font-bold text-xs opacity-0 group-hover:opacity-100 transition"
                                             >
                                                 &times;
                                             </button>
@@ -711,18 +711,18 @@ const AdvancedSearch = () => {
                     <div className="lg:col-span-3 space-y-6">
                         {/* Search input with live suggestion drop panel */}
                         <div className="relative" ref={suggestionRef}>
-                            <div className="flex bg-slate-900/50 rounded-3xl p-2 border border-slate-800 shadow-xl gap-2">
+                            <div className="flex bg-white rounded-gc-xl p-2 border border-gc-border shadow-gc gap-2">
                                 <input
                                     type="text"
                                     placeholder={activeTab === 'projects' ? "Search gigs title or criteria..." : "Search freelancer name or background details..."}
                                     value={activeTab === 'projects' ? projectFilters.q : freelancerFilters.q}
                                     onChange={(e) => handleSearchInput(e.target.value)}
                                     onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                                    className="flex-1 bg-transparent px-6 py-4 border-0 focus:outline-none focus:ring-0 text-slate-200 text-sm placeholder:text-slate-500"
+                                    className="flex-1 gc-input border-0 focus:outline-none focus:ring-0"
                                 />
                                 <button
                                     onClick={triggerSearch}
-                                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-semibold transition active:scale-95 shadow-md shadow-indigo-600/10"
+                                    className="px-6 py-3 bg-gc-blue hover:bg-gc-navy text-white rounded-gc text-sm font-semibold transition active:scale-95 shadow-md"
                                 >
                                     Search
                                 </button>
@@ -730,12 +730,12 @@ const AdvancedSearch = () => {
 
                             {/* Autocomplete Panel */}
                             {showSuggestions && suggestions.length > 0 && (
-                                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl z-50 animate-fade-in text-sm divide-y divide-slate-800/50">
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gc-border rounded-gc-xl overflow-hidden shadow-2xl z-50 animate-fade-in text-sm divide-y divide-gc-border">
                                     {suggestions.map((sug, i) => (
                                         <button
                                             key={i}
                                             onClick={() => handleSelectSuggestion(sug)}
-                                            className="w-full px-6 py-3 text-left text-slate-300 hover:bg-slate-850 hover:text-white transition flex items-center gap-3 font-medium"
+                                            className="w-full px-6 py-3 text-left text-gc-slate hover:bg-gc-surface hover:text-gc-navy transition flex items-center gap-3 font-medium"
                                         >
                                             <span>🔍</span>
                                             <span>{sug}</span>
@@ -748,19 +748,19 @@ const AdvancedSearch = () => {
                         {/* Clickable historical query shortcuts */}
                         {isAuthenticated && history.length > 0 && (
                             <div className="flex flex-wrap items-center gap-2 text-xs">
-                                <span className="text-slate-500 font-bold uppercase tracking-wide">Recent Searches:</span>
+                                <span className="text-gc-muted font-bold uppercase tracking-wide">Recent Searches:</span>
                                 {history.map((h, i) => (
                                     <button
                                         key={i}
                                         onClick={() => handleSelectSuggestion(h.query)}
-                                        className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full font-medium transition active:scale-95"
+                                        className="px-3 py-1 bg-gc-surface hover:bg-gc-soft text-gc-slate rounded-full font-medium transition active:scale-95 border border-gc-border"
                                     >
                                         {h.query}
                                     </button>
                                 ))}
                                 <button
                                     onClick={handleClearHistory}
-                                    className="text-slate-500 hover:text-slate-400 font-black uppercase text-[10px] tracking-widest pl-2"
+                                    className="text-gc-muted hover:text-gc-slate font-black uppercase text-[10px] tracking-widest pl-2"
                                 >
                                     [Clear]
                                 </button>
@@ -770,18 +770,18 @@ const AdvancedSearch = () => {
                         {/* Search Results Display Area */}
                         {loading ? (
                             <div className="text-center py-24">
-                                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
-                                <p className="text-slate-500 mt-4 font-bold text-sm">Searching the database...</p>
+                                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-gc-blue mx-auto"></div>
+                                <p className="text-gc-muted mt-4 font-bold text-sm">Searching the database...</p>
                             </div>
                         ) : results.length === 0 ? (
-                            <div className="text-center py-24 bg-slate-900/20 border border-slate-800 border-dashed rounded-3xl">
+                            <div className="text-center py-24 bg-white border border-gc-border border-dashed rounded-gc-xl">
                                 <span className="text-5xl inline-block mb-4 grayscale">📂</span>
-                                <h3 className="text-lg font-bold text-white mb-1 uppercase tracking-wider">No Matches Found</h3>
-                                <p className="text-slate-500 text-xs">Try broadening your search query or relaxing filter criteria.</p>
+                                <h3 className="text-lg font-bold text-gc-navy mb-1 uppercase tracking-wider">No Matches Found</h3>
+                                <p className="text-gc-muted text-xs">Try broadening your search query or relaxing filter criteria.</p>
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                <div className="flex justify-between items-center text-xs text-slate-500 font-bold uppercase tracking-wider px-2">
+                                <div className="flex justify-between items-center text-xs text-gc-muted font-bold uppercase tracking-wider px-2">
                                     <span>Query completed successfully</span>
                                     <span>{totalResults} matches returned</span>
                                 </div>
@@ -790,17 +790,17 @@ const AdvancedSearch = () => {
                                     {activeTab === 'projects' ? (
                                         /* Project Cards */
                                         results.map((project) => (
-                                            <div key={project._id} className="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 hover:border-slate-700 transition flex flex-col justify-between shadow-xl">
+                                            <div key={project._id} className="bg-white border border-gc-border rounded-gc-xl p-6 hover:shadow-gc-md transition flex flex-col justify-between shadow-gc">
                                                 <div className="space-y-4">
                                                     <div className="flex justify-between items-center gap-4">
                                                         <div className="flex items-center gap-3">
-                                                            <span className="px-2 py-0.5 bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
+                                                            <span className="px-2 py-0.5 bg-gc-soft text-gc-blue border border-gc-border text-[10px] font-black rounded-lg uppercase tracking-wider">
                                                                 {project.category}
                                                             </span>
                                                             {isAuthenticated && (
                                                                 <button
                                                                     onClick={() => toggleBookmark(project._id)}
-                                                                    className="text-slate-500 hover:text-blue-400 transition cursor-pointer text-xs"
+                                                                    className="text-gc-muted hover:text-gc-blue transition cursor-pointer text-xs"
                                                                     title={bookmarkedProjectIds.has(project._id) ? "Remove Bookmark" : "Bookmark Project"}
                                                                 >
                                                                     {bookmarkedProjectIds.has(project._id) ? '💙' : '🤍'}
@@ -808,25 +808,25 @@ const AdvancedSearch = () => {
                                                             )}
                                                         </div>
                                                         {project.aiMatchScore !== undefined && (
-                                                            <span className="px-2 py-0.5 bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 text-[10px] font-black rounded-lg uppercase tracking-widest flex items-center gap-1">
+                                                            <span className="px-2 py-0.5 bg-gc-soft text-gc-blue border border-gc-border text-[10px] font-black rounded-lg uppercase tracking-widest flex items-center gap-1">
                                                                 ✨ Match {project.aiMatchScore}%
                                                             </span>
                                                         )}
                                                     </div>
 
                                                     <div>
-                                                        <h4 className="font-bold text-white text-base line-clamp-1">{project.title}</h4>
-                                                        <p className="text-slate-500 text-xs mt-1">Client: @{project.client?.username}</p>
+                                                        <h4 className="font-bold text-gc-navy text-base line-clamp-1">{project.title}</h4>
+                                                        <p className="text-gc-muted text-xs mt-1">Client: @{project.client?.username}</p>
                                                     </div>
 
-                                                    <p className="text-slate-400 text-xs leading-relaxed line-clamp-3 italic">
+                                                    <p className="text-gc-slate text-xs leading-relaxed line-clamp-3 italic">
                                                         "{project.description}"
                                                     </p>
 
                                                     {project.skills?.length > 0 && (
                                                         <div className="flex flex-wrap gap-1.5">
                                                             {project.skills.map((s, i) => (
-                                                                <span key={i} className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded-md text-[10px] font-semibold">
+                                                                <span key={i} className="px-2 py-0.5 bg-gc-surface text-gc-slate rounded-md text-[10px] font-semibold border border-gc-border">
                                                                     {s}
                                                                 </span>
                                                             ))}
@@ -834,16 +834,16 @@ const AdvancedSearch = () => {
                                                     )}
                                                 </div>
 
-                                                <div className="pt-6 mt-6 border-t border-slate-800/60 flex justify-between items-center gap-4">
+                                                <div className="pt-6 mt-6 border-t border-gc-border flex justify-between items-center gap-4">
                                                     <div>
-                                                        <span className="text-[10px] font-bold text-slate-500 block uppercase">Budget Scope</span>
-                                                        <span className="text-sm font-black italic text-blue-400">
+                                                        <span className="text-[10px] font-bold text-gc-muted block uppercase">Budget Scope</span>
+                                                        <span className="text-sm font-black italic text-gc-blue">
                                                             ₹{project.budget?.min} - ₹{project.budget?.max}
                                                         </span>
                                                     </div>
                                                     <Link
                                                         to={`/projects/${project._id}`}
-                                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition"
+                                                        className="px-4 py-2 bg-gc-surface hover:bg-gc-soft text-gc-navy border border-gc-border rounded-gc text-xs font-bold transition"
                                                     >
                                                         Details
                                                     </Link>
@@ -853,24 +853,24 @@ const AdvancedSearch = () => {
                                     ) : (
                                         /* Freelancer Cards */
                                         results.map((free) => (
-                                            <div key={free._id} className="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 hover:border-slate-700 transition flex flex-col justify-between shadow-xl">
+                                            <div key={free._id} className="bg-white border border-gc-border rounded-gc-xl p-6 hover:shadow-gc-md transition flex flex-col justify-between shadow-gc">
                                                 <div className="space-y-4">
                                                     <div className="flex justify-between items-center gap-4">
                                                         <div className="flex items-center gap-2">
                                                             {free.verified && (
-                                                                <span className="px-2 py-0.5 bg-blue-500/15 border border-blue-500/20 text-blue-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
+                                                                <span className="px-2 py-0.5 bg-gc-soft text-gc-blue border border-gc-border text-[10px] font-black rounded-lg uppercase tracking-wider">
                                                                     🛡️ Verified
                                                                 </span>
                                                             )}
                                                             {free.reputation?.totalReviews >= 20 && free.reputation?.score >= 4.8 && (
-                                                                <span className="px-2 py-0.5 bg-amber-500/15 border border-amber-500/20 text-amber-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
+                                                                <span className="px-2 py-0.5 bg-gc-soft text-gc-blue border border-gc-border text-[10px] font-black rounded-lg uppercase tracking-wider">
                                                                     🏆 Top Rated
                                                                 </span>
                                                             )}
                                                             {isAuthenticated && user?._id !== free._id && (
                                                                 <button
                                                                     onClick={() => toggleFavorite(free._id)}
-                                                                    className="text-slate-500 hover:text-purple-400 transition cursor-pointer text-xs"
+                                                                    className="text-gc-muted hover:text-gc-blue transition cursor-pointer text-xs"
                                                                     title={favoriteFreelancerIds.has(free._id) ? "Remove Favorite" : "Favorite Freelancer"}
                                                                 >
                                                                     {favoriteFreelancerIds.has(free._id) ? '💙' : '🤍'}
@@ -878,33 +878,33 @@ const AdvancedSearch = () => {
                                                             )}
                                                         </div>
                                                         {free.aiMatchScore !== undefined && (
-                                                            <span className="px-2 py-0.5 bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 text-[10px] font-black rounded-lg uppercase tracking-widest flex items-center gap-1">
+                                                            <span className="px-2 py-0.5 bg-gc-soft text-gc-blue border border-gc-border text-[10px] font-black rounded-lg uppercase tracking-widest flex items-center gap-1">
                                                                 ✨ Match {free.aiMatchScore}%
                                                             </span>
                                                         )}
                                                     </div>
 
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center text-xl font-black text-purple-400">
+                                                        <div className="w-12 h-12 bg-gc-soft rounded-2xl flex items-center justify-center text-xl font-black text-gc-blue">
                                                             {free.username ? free.username[0].toUpperCase() : 'U'}
                                                         </div>
                                                         <div>
-                                                            <h4 className="font-bold text-white text-base">@{free.username}</h4>
+                                                            <h4 className="font-bold text-gc-navy text-base">@{free.username}</h4>
                                                             <div className="flex items-center gap-2 mt-0.5">
                                                                 {renderStars(free.reputation?.score || 0)}
-                                                                <span className="text-[10px] text-slate-500 font-bold">({free.reputation?.totalReviews || 0} reviews)</span>
+                                                                <span className="text-[10px] text-gc-muted font-bold">({free.reputation?.totalReviews || 0} reviews)</span>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    <p className="text-slate-400 text-xs leading-relaxed line-clamp-3 italic">
+                                                    <p className="text-gc-slate text-xs leading-relaxed line-clamp-3 italic">
                                                         {free.profile?.bio ? `"${free.profile.bio}"` : 'No biography provided yet.'}
                                                     </p>
 
                                                     {free.profile?.skills?.length > 0 && (
                                                         <div className="flex flex-wrap gap-1.5">
                                                             {free.profile.skills.map((s, i) => (
-                                                                <span key={i} className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded-md text-[10px] font-semibold">
+                                                                <span key={i} className="px-2 py-0.5 bg-gc-surface text-gc-slate rounded-md text-[10px] font-semibold border border-gc-border">
                                                                     {s}
                                                                 </span>
                                                             ))}
@@ -912,16 +912,16 @@ const AdvancedSearch = () => {
                                                     )}
                                                 </div>
 
-                                                <div className="pt-6 mt-6 border-t border-slate-800/60 flex justify-between items-center gap-4">
+                                                <div className="pt-6 mt-6 border-t border-gc-border flex justify-between items-center gap-4">
                                                     <div>
-                                                        <span className="text-[10px] font-bold text-slate-500 block uppercase">Hourly Rate</span>
-                                                        <span className="text-sm font-black italic text-purple-400">
+                                                        <span className="text-[10px] font-bold text-gc-muted block uppercase">Hourly Rate</span>
+                                                        <span className="text-sm font-black italic text-gc-navy">
                                                             ₹{free.profile?.hourlyRate || 0}/hr
                                                         </span>
                                                     </div>
                                                     <Link
                                                         to={`/messages?user=${free._id}`}
-                                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition"
+                                                        className="px-4 py-2 bg-gc-surface hover:bg-gc-soft text-gc-navy border border-gc-border rounded-gc text-xs font-bold transition"
                                                     >
                                                         Hire Now
                                                     </Link>
@@ -937,15 +937,15 @@ const AdvancedSearch = () => {
                                         <button
                                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                             disabled={currentPage === 1}
-                                            className="px-4 py-2 bg-slate-800 text-white font-bold rounded-xl disabled:opacity-40 hover:bg-slate-700 transition text-xs"
+                                            className="px-4 py-2 bg-gc-surface text-gc-navy border border-gc-border font-bold rounded-gc disabled:opacity-40 hover:bg-gc-soft transition text-xs"
                                         >
                                             Previous
                                         </button>
-                                        <span className="text-xs text-slate-500 font-bold">Page {currentPage} of {totalPages}</span>
+                                        <span className="text-xs text-gc-muted font-bold">Page {currentPage} of {totalPages}</span>
                                         <button
                                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                             disabled={currentPage === totalPages}
-                                            className="px-4 py-2 bg-slate-800 text-white font-bold rounded-xl disabled:opacity-40 hover:bg-slate-700 transition text-xs"
+                                            className="px-4 py-2 bg-gc-surface text-gc-navy border border-gc-border font-bold rounded-gc disabled:opacity-40 hover:bg-gc-soft transition text-xs"
                                         >
                                             Next
                                         </button>
@@ -959,21 +959,21 @@ const AdvancedSearch = () => {
 
             {/* Save Filter Modal Dialog */}
             {showSaveModal && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div className="bg-slate-900 w-full max-w-md rounded-3xl p-6 border border-slate-850 shadow-2xl animate-in zoom-in-95 duration-300">
-                        <h3 className="font-bold text-white text-base mb-2">Save Filter Configuration</h3>
-                        <p className="text-slate-500 text-xs mb-4">Give this search criteria template a name to reload it later with one-click.</p>
+                <div className="fixed inset-0 bg-gc-navy/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-md rounded-gc-xl p-6 border border-gc-border shadow-2xl animate-in zoom-in-95 duration-300">
+                        <h3 className="font-bold text-gc-navy text-base mb-2">Save Filter Configuration</h3>
+                        <p className="text-gc-muted text-xs mb-4">Give this search criteria template a name to reload it later with one-click.</p>
 
                         <form onSubmit={handleSaveFilters} className="space-y-4">
                             <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Filter Template Name</label>
+                                <label className="block text-[10px] font-black text-gc-muted uppercase tracking-widest mb-1.5">Filter Template Name</label>
                                 <input
                                     type="text"
                                     required
                                     placeholder="e.g. React experts under 20k"
                                     value={saveName}
                                     onChange={(e) => setSaveName(e.target.value)}
-                                    className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-indigo-500 text-xs"
+                                    className="gc-input"
                                 />
                             </div>
 
@@ -981,13 +981,13 @@ const AdvancedSearch = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowSaveModal(false)}
-                                    className="px-4 py-2 text-slate-400 bg-slate-800 rounded-xl text-xs font-semibold hover:bg-slate-750 transition"
+                                    className="px-4 py-2 text-gc-muted bg-gc-surface rounded-gc text-xs font-semibold hover:bg-gc-soft transition"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition"
+                                    className="px-5 py-2 bg-gc-blue hover:bg-gc-navy text-white rounded-gc text-xs font-bold transition"
                                 >
                                     Save Filter
                                 </button>

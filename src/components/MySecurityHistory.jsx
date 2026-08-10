@@ -31,7 +31,7 @@ const MySecurityHistory = () => {
             case 'WARNING':
                 return <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-full">WARNING</span>;
             case 'BLOCKED':
-                return <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-full">BLOCKED</span>;
+                return <span className="px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 text-[10px] font-bold rounded-full">BLOCKED</span>;
             default:
                 return <span className="px-2 py-0.5 bg-gray-100 text-gray-800 text-[10px] font-bold rounded-full">{status}</span>;
         }

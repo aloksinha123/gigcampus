@@ -82,7 +82,7 @@ const StudentDashboard = () => {
     const colors = {
       open: 'bg-green-100 text-green-800',
       in_progress: 'bg-blue-100 text-blue-800',
-      completed: 'bg-purple-100 text-purple-800',
+      completed: 'bg-gc-soft text-gc-blue',
       cancelled: 'bg-red-100 text-red-800',
       disputed: 'bg-yellow-100 text-yellow-800'
     };
@@ -153,13 +153,13 @@ const StudentDashboard = () => {
             <p className="text-3xl sm:text-4xl font-black text-green-600">{stats.activeProjects}</p>
           </div>
 
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-purple-100 transition-all group">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-gc-light transition-all group">
             <div className="flex items-center justify-between mb-4">
               <span className="text-3xl sm:text-4xl group-hover:scale-110 transition-transform">💎</span>
-              <span className="text-xs font-black text-purple-500 uppercase tracking-widest">Done</span>
+              <span className="text-xs font-black text-gc-blue uppercase tracking-widest">Done</span>
             </div>
             <h3 className="text-gray-500 font-bold text-xs sm:text-sm uppercase mb-1">Completed</h3>
-            <p className="text-3xl sm:text-4xl font-black text-purple-600">{stats.completedProjects}</p>
+            <p className="text-3xl sm:text-4xl font-black text-gc-blue">{stats.completedProjects}</p>
           </div>
 
           <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-yellow-100 transition-all group">

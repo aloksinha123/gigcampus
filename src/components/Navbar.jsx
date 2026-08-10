@@ -9,44 +9,42 @@ const Navbar = ({ variant = 'light', className = '' }) => {
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // Base classes
     let navBaseClasses, brandClasses, linkClasses, mobileMenuBg, mobileTextClasses;
 
     if (variant === 'transparent') {
-        navBaseClasses = 'relative z-50 bg-white/10 backdrop-blur-md border-b border-white/20';
+        navBaseClasses = 'relative z-50 bg-gc-navy/20 backdrop-blur-md border-b border-white/10';
         brandClasses = 'text-white';
-        linkClasses = 'text-white/80 hover:text-white hover:bg-white/10';
-        mobileMenuBg = 'bg-slate-900 border-t border-white/10';
-        mobileTextClasses = 'text-white/60';
+        linkClasses = 'text-white/70 hover:text-white hover:bg-white/10';
+        mobileMenuBg = 'bg-gc-navy/95 border-t border-white/10';
+        mobileTextClasses = 'text-white/50';
     } else if (variant === 'dark') {
-        navBaseClasses = 'sticky top-0 z-50 bg-[#1e293b]/90 backdrop-blur-xl border-b border-slate-800';
+        navBaseClasses = 'sticky top-0 z-50 bg-gc-navy/95 backdrop-blur-xl border-b border-gc-navy/30';
         brandClasses = 'text-white';
         linkClasses = 'text-slate-300 hover:text-white hover:bg-white/10';
-        mobileMenuBg = 'bg-[#0f172a] border-t border-slate-800';
+        mobileMenuBg = 'bg-gc-navy border-t border-gc-navy/30';
         mobileTextClasses = 'text-slate-400';
     } else {
-        navBaseClasses = 'sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100';
-        brandClasses = 'bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent';
-        linkClasses = 'text-gray-600 hover:text-blue-600 hover:bg-gray-50';
-        mobileMenuBg = 'bg-white border-t border-gray-100 shadow-lg';
-        mobileTextClasses = 'text-gray-500';
+        navBaseClasses = 'sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-gc border-b border-gc-border';
+        brandClasses = 'text-gc-navy';
+        linkClasses = 'text-gc-slate hover:text-gc-blue hover:bg-gc-soft/50';
+        mobileMenuBg = 'bg-white border-t border-gc-border shadow-gc-lg';
+        mobileTextClasses = 'text-gc-muted';
     }
 
-    // Navigation Links Logic
     const getLinks = () => {
         if (!isAuthenticated) {
             return [
                 { name: 'Browse Projects', path: '/projects' },
-                { name: '🔎 Search', path: '/search' },
+                { name: 'Search', path: '/search' },
                 { name: 'Portfolios', path: '/portfolio' },
                 { name: 'Login', path: '/login', isButton: false },
-                { name: 'Sign Up', path: '/register', isButton: true, variant: 'primary' }
+                { name: 'Sign Up', path: '/register', isButton: true }
             ];
         }
 
         const commonLinks = [
             { name: 'Marketplace', path: '/projects' },
-            { name: '🔎 Search', path: '/search' },
+            { name: 'Search', path: '/search' },
             { name: 'Messages', path: '/messages' },
         ];
 
@@ -55,7 +53,7 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                 { name: 'Dashboard', path: '/student/dashboard' },
                 ...commonLinks,
                 { name: 'My Projects', path: '/my-projects' },
-                { name: '💰 Wallet', path: '/wallet' },
+                { name: 'Wallet', path: '/wallet' },
                 { name: 'Profile', path: '/profile' },
             ];
         }
@@ -65,7 +63,7 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                 { name: 'Dashboard', path: '/freelancer/dashboard' },
                 ...commonLinks,
                 { name: 'My Projects', path: '/my-projects' },
-                { name: '💰 Wallet', path: '/wallet' },
+                { name: 'Wallet', path: '/wallet' },
                 { name: 'Profile', path: '/profile' },
             ];
         }
@@ -76,7 +74,7 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                 { name: 'Users', path: '/admin/users' },
                 { name: 'Projects', path: '/admin/projects' },
                 { name: 'Disputes', path: '/admin/disputes' },
-                { name: '🔎 Search', path: '/search' }
+                { name: 'Search', path: '/search' }
             ];
         }
 
@@ -94,20 +92,25 @@ const Navbar = ({ variant = 'light', className = '' }) => {
     return (
         <nav className={`${navBaseClasses} ${className}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center py-4">
+                <div className="flex justify-between items-center h-16">
                     {/* Logo */}
-                    <Link to="/" className={`text-2xl font-black tracking-tight ${brandClasses} flex items-center gap-2`}>
-                        <span className="text-3xl">🚀</span> GigCampus
+                    <Link to="/" className={`flex items-center gap-2.5 ${brandClasses}`}>
+                        <div className="w-8 h-8 bg-gc-blue rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <span className="text-xl font-bold tracking-tight">GigCampus</span>
                     </Link>
 
                     {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-6">
+                    <div className="hidden md:flex items-center space-x-1">
                         {links.map((link) => (
                             link.isButton ? (
                                 <Link
                                     key={link.path}
                                     to={link.path}
-                                    className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-5 py-2 rounded-xl hover:from-blue-600 hover:to-purple-700 transition font-bold shadow-lg shadow-blue-500/20"
+                                    className="gc-btn-primary ml-2"
                                 >
                                     {link.name}
                                 </Link>
@@ -115,7 +118,7 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                                 <Link
                                     key={link.path}
                                     to={link.path}
-                                    className={`font-medium transition-colors ${linkClasses}`}
+                                    className={`px-3 py-2 rounded-gc text-sm font-medium transition-all ${linkClasses}`}
                                 >
                                     {link.name}
                                 </Link>
@@ -124,16 +127,20 @@ const Navbar = ({ variant = 'light', className = '' }) => {
 
                         {isAuthenticated && (
                             <>
+                                <div className="w-px h-6 bg-gc-border mx-2"></div>
                                 <NotificationBell />
                                 <Link
                                     to="/notification-settings"
-                                    className={`font-medium transition-colors ${variant === 'transparent' || variant === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                                    className={`p-2 rounded-gc transition-all ${variant === 'transparent' || variant === 'dark' ? 'text-slate-300 hover:text-white hover:bg-white/10' : 'text-gc-muted hover:text-gc-slate hover:bg-gc-surface'}`}
                                 >
-                                    Settings ⚙️
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
                                 </Link>
                                 <button
                                     onClick={handleLogout}
-                                    className={`font-medium transition-colors ${variant === 'transparent' || variant === 'dark' ? 'text-red-400 hover:text-red-300' : 'text-gray-500 hover:text-red-600'}`}
+                                    className={`px-3 py-2 rounded-gc text-sm font-medium transition-all ${variant === 'transparent' || variant === 'dark' ? 'text-slate-300 hover:text-white hover:bg-white/10' : 'text-gc-muted hover:text-gc-slate hover:bg-gc-surface'}`}
                                 >
                                     Logout
                                 </button>
@@ -142,12 +149,12 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="md:hidden flex items-center gap-3">
+                    <div className="md:hidden flex items-center gap-2">
                         {isAuthenticated && <NotificationBell />}
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             aria-label="Toggle navigation menu"
-                            className={`p-2.5 rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center ${variant === 'transparent' || variant === 'dark' ? 'text-white hover:bg-white/10 active:bg-white/20' : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'}`}
+                            className={`p-2 rounded-gc transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${variant === 'transparent' || variant === 'dark' ? 'text-white hover:bg-white/10' : 'text-gc-slate hover:bg-gc-surface'}`}
                         >
                             {isMenuOpen ? (
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,15 +172,15 @@ const Navbar = ({ variant = 'light', className = '' }) => {
 
             {/* Mobile Menu Dropdown */}
             {isMenuOpen && (
-                <div className={`md:hidden absolute top-full left-0 right-0 ${mobileMenuBg} backdrop-blur-2xl shadow-2xl z-50 border-b overflow-y-auto max-h-[calc(100vh-5rem)]`}>
-                    <div className="px-4 pt-3 pb-6 space-y-2">
+                <div className={`md:hidden absolute top-full left-0 right-0 ${mobileMenuBg} backdrop-blur-xl shadow-gc-xl z-50 border-b overflow-y-auto max-h-[calc(100vh-4rem)]`}>
+                    <div className="px-4 py-4 space-y-1">
                         {isAuthenticated && (
-                            <div className="px-4 py-3 border-b border-gray-100/10 mb-2 flex items-center justify-between">
+                            <div className="px-4 py-3 border-b border-gc-border/30 mb-2 flex items-center justify-between">
                                 <div>
-                                    <p className={`text-xs font-medium uppercase tracking-wider ${mobileTextClasses}`}>Signed in as</p>
-                                    <p className={`truncate font-bold text-base ${variant === 'transparent' || variant === 'dark' ? 'text-white' : 'text-gray-900'}`}>{user?.username || 'User'}</p>
+                                    <p className={`text-[10px] font-semibold uppercase tracking-wider ${mobileTextClasses}`}>Signed in as</p>
+                                    <p className={`truncate font-semibold text-sm ${variant === 'transparent' || variant === 'dark' ? 'text-white' : 'text-gc-navy'}`}>{user?.username || 'User'}</p>
                                 </div>
-                                <span className="text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider bg-gc-blue/10 text-gc-blue border border-gc-blue/20">
                                     {user?.role}
                                 </span>
                             </div>
@@ -186,11 +193,11 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                                     key={link.path}
                                     to={link.path}
                                     onClick={() => setIsMenuOpen(false)}
-                                    className={`block px-4 py-3 rounded-xl text-base font-medium transition-all ${
+                                    className={`block px-4 py-3 rounded-gc text-sm font-medium transition-all ${
                                         isActive
-                                            ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20'
+                                            ? 'bg-gc-blue text-white shadow-gc'
                                             : link.isButton
-                                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-center mt-2'
+                                            ? 'bg-gc-blue text-white text-center mt-2'
                                             : `${linkClasses}`
                                     }`}
                                 >
@@ -204,17 +211,17 @@ const Navbar = ({ variant = 'light', className = '' }) => {
                                 <Link
                                     to="/notification-settings"
                                     onClick={() => setIsMenuOpen(false)}
-                                    className={`block px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                                    className={`block px-4 py-3 rounded-gc text-sm font-medium transition-all ${
                                         location.pathname === '/notification-settings'
-                                            ? 'bg-blue-600 text-white font-bold'
+                                            ? 'bg-gc-blue text-white'
                                             : `${linkClasses}`
                                     }`}
                                 >
-                                    Notification Settings ⚙️
+                                    Settings
                                 </Link>
                                 <button
                                     onClick={handleLogout}
-                                    className={`w-full text-left block px-4 py-3 rounded-xl text-base font-medium transition-colors min-h-[44px] ${variant === 'transparent' || variant === 'dark' ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
+                                    className={`w-full text-left block px-4 py-3 rounded-gc text-sm font-medium transition-all min-h-[44px] ${variant === 'transparent' || variant === 'dark' ? 'text-slate-300 hover:text-white hover:bg-white/10' : 'text-gc-muted hover:text-gc-slate hover:bg-gc-surface'}`}
                                 >
                                     Logout
                                 </button>

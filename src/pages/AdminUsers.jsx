@@ -69,29 +69,29 @@ const AdminUsers = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0f172a] text-slate-200">
+        <div className="min-h-screen bg-gc-near">
             <Navbar variant="dark" />
 
             <div className="max-w-7xl mx-auto px-6 py-12">
                 <header className="mb-12">
-                    <h1 className="text-4xl font-black text-white mb-2 italic">User <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">Management</span></h1>
-                    <p className="text-slate-500 font-medium">Monitor and manage platform users</p>
+                    <h1 className="text-4xl font-black text-gc-navy mb-2 italic">User Management</h1>
+                    <p className="text-gc-slate font-medium">Monitor and manage platform users</p>
                 </header>
 
                 {/* Filters */}
-                <div className="bg-slate-900/50 rounded-3xl p-6 border border-slate-800 mb-8">
+                <div className="bg-white rounded-gc-xl p-6 border border-gc-border shadow-gc mb-8">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <input
                             type="text"
                             placeholder="Search username or email..."
                             value={filters.search}
                             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                            className="px-6 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500 transition-all"
+                            className="gc-input"
                         />
                         <select
                             value={filters.role}
                             onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-                            className="px-6 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white focus:outline-none focus:border-purple-500 transition-all"
+                            className="gc-input"
                         >
                             <option value="">All Roles</option>
                             <option value="student">Student</option>
@@ -101,7 +101,7 @@ const AdminUsers = () => {
                         <select
                             value={filters.status}
                             onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                            className="px-6 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white focus:outline-none focus:border-purple-500 transition-all"
+                            className="gc-input"
                         >
                             <option value="">All Status</option>
                             <option value="active">Active</option>
@@ -109,7 +109,7 @@ const AdminUsers = () => {
                         </select>
                         <button
                             onClick={() => setFilters({ role: '', status: '', search: '' })}
-                            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-2xl text-white font-bold transition-all"
+                            className="px-6 py-3 bg-gc-surface hover:bg-gc-border border border-gc-border rounded-gc-xl text-gc-navy font-bold transition-all"
                         >
                             Clear Filters
                         </button>
@@ -119,62 +119,62 @@ const AdminUsers = () => {
                 {/* Users Table */}
                 {loading ? (
                     <div className="text-center py-12">
-                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-purple-500"></div>
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-gc-blue"></div>
                     </div>
                 ) : (
-                    <div className="bg-slate-900/50 rounded-3xl border border-slate-800 overflow-hidden">
+                    <div className="bg-white rounded-gc-xl border border-gc-border overflow-hidden shadow-gc">
                         <div className="overflow-x-auto custom-scrollbar-x w-full">
                             <table className="w-full min-w-[640px]">
-                                <thead className="bg-slate-800/50">
+                                <thead className="bg-gc-surface">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-widest">User</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-widest">Email</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-widest">Role</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-widest">Status</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-widest">Joined</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-widest">Actions</th>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-gc-muted uppercase tracking-widest">User</th>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-gc-muted uppercase tracking-widest">Email</th>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-gc-muted uppercase tracking-widest">Role</th>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-gc-muted uppercase tracking-widest">Status</th>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-gc-muted uppercase tracking-widest">Joined</th>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-gc-muted uppercase tracking-widest">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-800">
+                            <tbody className="divide-y divide-gc-border">
                                 {users.map(u => (
-                                    <tr key={u._id} className="hover:bg-slate-800/30 transition-colors">
+                                    <tr key={u._id} className="hover:bg-gc-surface/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center font-black text-purple-400">
+                                                <div className="w-10 h-10 bg-gc-surface rounded-full flex items-center justify-center font-black text-gc-blue">
                                                     {u.username[0].toUpperCase()}
                                                 </div>
-                                                <span className="font-bold text-white">{u.username}</span>
+                                                <span className="font-bold text-gc-navy">{u.username}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-400">{u.email}</td>
+                                        <td className="px-6 py-4 text-sm text-gc-muted">{u.email}</td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${u.role === 'admin' ? 'bg-red-500/20 text-red-400' :
-                                                u.role === 'freelancer' ? 'bg-purple-500/20 text-purple-400' :
-                                                    'bg-blue-500/20 text-blue-400'
+                                            <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${u.role === 'admin' ? 'bg-gc-navy text-white' :
+                                                u.role === 'freelancer' ? 'bg-gc-soft text-gc-blue' :
+                                                    'bg-gc-soft text-gc-slate'
                                                 }`}>
                                                 {u.role}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${u.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                                            <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${u.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
                                                 }`}>
                                                 {u.isActive ? 'Active' : 'Suspended'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-400">{new Date(u.createdAt).toLocaleDateString()}</td>
+                                        <td className="px-6 py-4 text-sm text-gc-muted">{new Date(u.createdAt).toLocaleDateString()}</td>
                                         <td className="px-6 py-4">
                                             <div className="flex gap-2">
                                                 {u.isActive ? (
                                                     <button
                                                         onClick={() => handleSuspend(u._id)}
-                                                        className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-xs font-bold transition-all"
+                                                        className="px-3 py-1 bg-red-500 text-white hover:bg-red-600 rounded-lg text-xs font-bold transition-all"
                                                     >
                                                         Suspend
                                                     </button>
                                                 ) : (
                                                     <button
                                                         onClick={() => handleActivate(u._id)}
-                                                        className="px-3 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg text-xs font-bold transition-all"
+                                                        className="px-3 py-1 bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg text-xs font-bold transition-all"
                                                     >
                                                         Activate
                                                     </button>
@@ -182,7 +182,7 @@ const AdminUsers = () => {
                                                 {u.role === 'freelancer' && !u.isVerified && (
                                                     <button
                                                         onClick={() => handleVerify(u._id)}
-                                                        className="px-3 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-xs font-bold transition-all"
+                                                        className="px-3 py-1 bg-gc-blue text-white hover:bg-gc-navy rounded-lg text-xs font-bold transition-all"
                                                     >
                                                         Verify
                                                     </button>
@@ -203,17 +203,17 @@ const AdminUsers = () => {
                         <button
                             onClick={() => setPage(p => Math.max(1, p - 1))}
                             disabled={page === 1}
-                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white transition-all"
+                            className="px-4 py-2 bg-white hover:bg-gc-surface disabled:opacity-50 disabled:cursor-not-allowed border border-gc-border rounded-xl font-bold text-gc-navy transition-all"
                         >
                             Previous
                         </button>
-                        <span className="px-4 py-2 bg-slate-900 rounded-xl font-bold text-white">
+                        <span className="px-4 py-2 bg-gc-surface rounded-xl font-bold text-gc-navy">
                             Page {page} of {totalPages}
                         </span>
                         <button
                             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                             disabled={page === totalPages}
-                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white transition-all"
+                            className="px-4 py-2 bg-white hover:bg-gc-surface disabled:opacity-50 disabled:cursor-not-allowed border border-gc-border rounded-xl font-bold text-gc-navy transition-all"
                         >
                             Next
                         </button>

@@ -33,7 +33,7 @@ export const getFileDetails = (mimeType = '', fileName = '') => {
         return { isImage: false, icon: '📊', label: 'Presentation', color: 'bg-amber-50 text-amber-600 border-amber-200' };
     }
     if (type.includes('zip') || type.includes('compressed') || ['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
-        return { isImage: false, icon: '📦', label: 'Archive Zip', color: 'bg-purple-50 text-purple-600 border-purple-200' };
+        return { isImage: false, icon: '📦', label: 'Archive Zip', color: 'bg-gc-soft text-gc-blue border-gc-light' };
     }
     return { isImage: false, icon: '📎', label: 'File Attachment', color: 'bg-gray-50 text-gray-600 border-gray-200' };
 };

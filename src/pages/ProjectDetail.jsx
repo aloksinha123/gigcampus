@@ -342,7 +342,7 @@ const ProjectDetail = () => {
         const colors = {
             open: 'bg-green-100 text-green-800',
             in_progress: 'bg-blue-100 text-blue-800',
-            completed: 'bg-purple-100 text-purple-800',
+            completed: 'bg-gc-soft text-gc-blue',
             cancelled: 'bg-red-100 text-red-800',
             disputed: 'bg-yellow-100 text-yellow-800'
         };
@@ -361,9 +361,9 @@ const ProjectDetail = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gc-near flex items-center justify-center">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gc-blue"></div>
                     <p className="mt-4 text-gray-600">Loading project details...</p>
                 </div>
             </div>
@@ -372,9 +372,9 @@ const ProjectDetail = () => {
 
     if (!project) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gc-near flex items-center justify-center">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Project Not Found</h2>
+                    <h2 className="text-2xl font-bold text-gc-navy mb-2">Project Not Found</h2>
                     <p className="text-gray-600 mb-4">The project you're looking for doesn't exist.</p>
                     <Link to="/my-projects" className="text-blue-600 hover:underline">
                         Back to My Projects
@@ -403,7 +403,7 @@ const ProjectDetail = () => {
     const canReview = project.status === 'completed' && (isOwner || (String(user?._id) === String(project.freelancer?._id || project.freelancer))) && !hasReviewed;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="min-h-screen bg-gc-near">
             {/* Navbar */}
             <Navbar />
 
@@ -471,7 +471,7 @@ const ProjectDetail = () => {
                     {canBid && (
                         <button
                             onClick={() => setShowBidModal(true)}
-                            className="px-6 py-4 bg-purple-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-purple-100 hover:bg-purple-700 hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-2"
+                            className="px-6 py-4 bg-gc-blue text-white rounded-2xl font-black text-sm shadow-xl shadow-gc-blue/10 hover:bg-gc-navy hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-2"
                         >
                             <span>👋</span> PLACE A BID
                         </button>
@@ -615,7 +615,7 @@ const ProjectDetail = () => {
                                         onClick={handleRecommendFreelancers}
                                         disabled={recommendLoading || bids.length === 0}
                                         title={bids.length === 0 ? "No freelancer proposals available." : ""}
-                                        className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-purple-100 hover:shadow-purple-300 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+                                        className="px-6 py-4 bg-gc-blue text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-gc-blue/10 hover:shadow-gc-blue/20 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                                     >
                                         {recommendLoading ? (
                                             <>
@@ -850,7 +850,7 @@ const ProjectDetail = () => {
                     <div className="bg-white w-full max-w-lg rounded-[3rem] p-12 shadow-2xl animate-in zoom-in-95 duration-500">
                         <div className="flex justify-between items-center mb-10">
                             <div>
-                                <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase"><span className="text-purple-600">Submit</span> Proposal</h3>
+                                <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase"><span className="text-gc-blue">Submit</span> Proposal</h3>
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Freelancer Bidding Protocol</p>
                             </div>
                             <button onClick={() => setShowBidModal(false)} className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all font-black">X</button>
@@ -865,7 +865,7 @@ const ProjectDetail = () => {
                                     onChange={(e) => setBidData({ ...bidData, bidAmount: e.target.value })}
                                     required
                                     min="1"
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-purple-200 rounded-[2rem] text-gray-900 font-bold text-xl transition-all focus:outline-none placeholder:text-gray-300"
+                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-gc-blue/40 rounded-[2rem] text-gray-900 font-bold text-xl transition-all focus:outline-none placeholder:text-gray-300"
                                     placeholder="0.00"
                                 />
                             </div>
@@ -877,7 +877,7 @@ const ProjectDetail = () => {
                                     value={bidData.deliveryTime}
                                     onChange={(e) => setBidData({ ...bidData, deliveryTime: e.target.value })}
                                     required
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-purple-200 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
+                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-gc-blue/40 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
                                     placeholder="e.g., 7 Days"
                                 />
                             </div>
@@ -899,7 +899,7 @@ const ProjectDetail = () => {
                                             type="button"
                                             onClick={handleGenerateAIProposal}
                                             disabled={generatingProposal}
-                                            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-xl font-extrabold text-xs tracking-wider shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                                            className="bg-gc-blue hover:bg-gc-navy text-white px-4 py-2 rounded-xl font-extrabold text-xs tracking-wider shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                                         >
                                             {generatingProposal ? (
                                                 <>
@@ -920,7 +920,7 @@ const ProjectDetail = () => {
                                     onChange={(e) => setBidData({ ...bidData, proposal: e.target.value })}
                                     required
                                     rows="6"
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-purple-200 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
+                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-gc-blue/40 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
                                     placeholder="Why are you the best fit for this gig? Click 'Generate AI Proposal' above to auto-draft!"
                                 />
                             </div>
@@ -930,7 +930,7 @@ const ProjectDetail = () => {
                                     type="button"
                                     onClick={handleAnalyzeBid}
                                     disabled={analyzingBid}
-                                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100 hover:shadow-indigo-300 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                                    className="flex-1 bg-gc-blue text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-gc-blue/10 hover:shadow-gc-blue/20 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     {analyzingBid ? (
                                         <>
@@ -947,7 +947,7 @@ const ProjectDetail = () => {
                                 <button
                                     type="submit"
                                     disabled={analyzingBid}
-                                    className="flex-1 bg-purple-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-purple-100 hover:shadow-purple-300 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
+                                    className="flex-1 bg-gc-blue text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-gc-blue/10 hover:shadow-gc-blue/20 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
                                 >
                                     SUBMIT BID
                                 </button>

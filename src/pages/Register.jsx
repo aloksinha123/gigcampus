@@ -53,44 +53,42 @@ const Register = () => {
 
   const getRoleColor = () => {
     switch (formData.role) {
-      case 'student': return 'from-blue-500 to-cyan-600';
-      case 'freelancer': return 'from-emerald-500 to-green-600';
-      case 'admin': return 'from-purple-500 to-pink-600';
-      default: return 'from-blue-500 to-purple-600';
+      case 'student': return 'bg-gc-blue';
+      case 'freelancer': return 'bg-emerald-500';
+      case 'admin': return 'bg-gc-blue';
+      default: return 'bg-gc-blue';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-      </div>
-
-      <div className="relative z-10 w-full max-w-md px-2 sm:px-0">
-        <div className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl p-5 sm:p-8 border border-white/20">
+    <div className="min-h-screen bg-gc-soft/40 flex items-center justify-center p-4">
+      <div className="w-full max-w-md px-2 sm:px-0">
+        <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-8 border border-gc-border">
           <div className="text-center mb-8">
             <Link to="/" className="inline-block mb-4">
-              <span className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                🚀 GigCampus
+              <span className="text-3xl font-bold text-gc-navy flex items-center justify-center gap-2">
+                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>
+                </svg>
+                GigCampus
               </span>
             </Link>
-            <h2 className="text-3xl font-bold text-white mb-2">
+            <h2 className="text-3xl font-bold text-gc-navy mb-2">
               {registeredSuccess ? 'Check Your Inbox 📩' : 'Create Account'}
             </h2>
-            {!registeredSuccess && <p className="text-white/70">Join as a {formData.role}</p>}
+            {!registeredSuccess && <p className="text-gc-muted">Join as a {formData.role}</p>}
           </div>
 
           {registeredSuccess ? (
             <div className="text-center py-4 space-y-6 animate-in fade-in duration-300">
-              <div className="w-16 h-16 bg-blue-500/20 text-blue-300 rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner border border-blue-400/30">
+              <div className="w-16 h-16 bg-gc-soft text-gc-blue rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner border border-gc-light">
                 ✉️
               </div>
               <div className="space-y-2">
-                <p className="text-white text-base font-semibold">
-                  Verification email sent to <span className="text-blue-300 underline">{formData.email}</span>
+                <p className="text-gc-navy text-base font-semibold">
+                  Verification email sent to <span className="text-gc-blue underline">{formData.email}</span>
                 </p>
-                <p className="text-white/70 text-xs leading-relaxed">
+                <p className="text-gc-muted text-xs leading-relaxed">
                   Please click the link inside the verification email to activate your account before logging in.
                 </p>
               </div>
@@ -98,7 +96,7 @@ const Register = () => {
               <div className="pt-4">
                 <Link
                   to="/login"
-                  className="block w-full py-3.5 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition active:scale-95 text-sm text-center"
+                  className="block w-full py-3.5 px-6 bg-gc-blue hover:bg-gc-navy text-white font-bold rounded-xl shadow-lg transition active:scale-95 text-sm text-center"
                 >
                   Proceed to Login →
                 </Link>
@@ -108,66 +106,66 @@ const Register = () => {
             <>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-white/80 mb-2 font-medium">Username</label>
+                  <label className="block text-gc-navy mb-2 font-medium">Username</label>
                   <input
                     type="text"
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-white border border-gc-border rounded-xl text-gc-navy placeholder-gc-muted focus:outline-none focus:ring-2 focus:ring-gc-blue"
                     placeholder="johndoe"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-white/80 mb-2 font-medium">Email</label>
+                  <label className="block text-gc-navy mb-2 font-medium">Email</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-white border border-gc-border rounded-xl text-gc-navy placeholder-gc-muted focus:outline-none focus:ring-2 focus:ring-gc-blue"
                     placeholder="your@email.com"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-white/80 mb-2 font-medium">Role</label>
+                  <label className="block text-gc-navy mb-2 font-medium">Role</label>
                   <select
                     name="role"
                     value={formData.role}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-white border border-gc-border rounded-xl text-gc-navy focus:outline-none focus:ring-2 focus:ring-gc-blue"
                   >
-                    <option value="student" className="bg-slate-900 text-white">Student (Post Projects)</option>
-                    <option value="freelancer" className="bg-slate-900 text-white">Freelancer (Work on Projects)</option>
+                    <option value="student" className="bg-white text-gc-navy">Student (Post Projects)</option>
+                    <option value="freelancer" className="bg-white text-gc-navy">Freelancer (Work on Projects)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-white/80 mb-2 font-medium">Password</label>
+                  <label className="block text-gc-navy mb-2 font-medium">Password</label>
                   <input
                     type="password"
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-white border border-gc-border rounded-xl text-gc-navy placeholder-gc-muted focus:outline-none focus:ring-2 focus:ring-gc-blue"
                     placeholder="••••••••"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-white/80 mb-2 font-medium">Confirm Password</label>
+                  <label className="block text-gc-navy mb-2 font-medium">Confirm Password</label>
                   <input
                     type="password"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-white border border-gc-border rounded-xl text-gc-navy placeholder-gc-muted focus:outline-none focus:ring-2 focus:ring-gc-blue"
                     placeholder="••••••••"
                   />
                 </div>
@@ -175,23 +173,23 @@ const Register = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full bg-gradient-to-r ${getRoleColor()} text-white py-3 px-6 rounded-xl hover:opacity-90 transition font-semibold shadow-lg disabled:opacity-50`}
+                  className={`w-full ${getRoleColor()} text-white py-3 px-6 rounded-xl hover:opacity-90 transition font-semibold shadow-lg disabled:opacity-50`}
                 >
                   {loading ? 'Creating Account...' : 'Sign Up'}
                 </button>
               </form>
 
               <div className="mt-6 text-center">
-                <p className="text-white/70">
+                <p className="text-gc-muted">
                   Already have an account?{' '}
-                  <Link to="/login" className="text-blue-400 hover:text-blue-300 font-semibold">
+                  <Link to="/login" className="text-gc-blue hover:text-gc-navy font-semibold">
                     Login
                   </Link>
                 </p>
               </div>
 
               <div className="mt-6 text-center">
-                <Link to="/" className="text-white/60 hover:text-white/80 text-sm">
+                <Link to="/" className="text-gc-muted hover:text-gc-navy text-sm">
                   ← Back to Home
                 </Link>
               </div>

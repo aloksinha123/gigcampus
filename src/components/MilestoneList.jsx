@@ -118,11 +118,11 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
             <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden border border-slate-800">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative z-10">
                     <div>
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs font-bold mb-2 border border-purple-500/30">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-gc-soft text-gc-blue rounded-full text-xs font-bold mb-2 border border-gc-light">
                             <span>🎯 Milestone Escrow Vault</span>
                         </div>
                         <h3 className="text-3xl font-black tracking-tight italic uppercase">
-                            Project <span className="text-purple-400">Milestones</span>
+                            Project <span className="text-gc-blue">Milestones</span>
                         </h3>
                         <p className="text-xs text-slate-300 font-medium mt-1">
                             Funds are safely escrowed and released incrementally upon deliverable approval.
@@ -132,7 +132,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
                     {isOwnerCheck && (
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-purple-900/50 hover:scale-105 transition flex items-center gap-2 cursor-pointer"
+                            className="px-6 py-4 bg-gc-blue hover:bg-gc-navy text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-gc hover:scale-105 transition flex items-center gap-2 cursor-pointer"
                         >
                             <span>+</span> Create Milestone
                         </button>
@@ -147,7 +147,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
                     </div>
                     <div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Milestones Total</p>
-                        <p className="text-2xl font-black text-purple-400">₹{totalMilestoneSum}</p>
+                        <p className="text-2xl font-black text-gc-blue">₹{totalMilestoneSum}</p>
                     </div>
                     <div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Released Payout</p>
@@ -162,7 +162,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
                 {/* Progress Bar */}
                 <div className="mt-4 w-full bg-slate-800 h-2.5 rounded-full overflow-hidden p-0.5">
                     <div
-                        className="bg-gradient-to-r from-purple-500 to-emerald-400 h-full rounded-full transition-all duration-500"
+                        className="bg-gc-blue h-full rounded-full transition-all duration-500"
                         style={{ width: `${releaseProgressPercent}%` }}
                     ></div>
                 </div>
@@ -171,7 +171,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
             {/* Loading Spinner */}
             {loading ? (
                 <div className="text-center py-16 bg-white/50 rounded-[2.5rem] border border-gray-100">
-                    <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <div className="w-10 h-10 border-4 border-gc-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Loading project milestones...</p>
                 </div>
             ) : milestones.length === 0 ? (
@@ -186,7 +186,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
                     {isOwnerCheck && (
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="mt-6 px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-purple-200 hover:scale-105 transition cursor-pointer"
+                            className="mt-6 px-8 py-4 bg-gc-blue hover:bg-gc-navy text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-gc-light hover:scale-105 transition cursor-pointer"
                         >
                             + Create First Milestone
                         </button>
@@ -211,7 +211,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
 
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-black text-lg">
+                                        <div className="w-12 h-12 rounded-2xl bg-gc-soft text-gc-blue flex items-center justify-center font-black text-lg">
                                             #{item.order || index + 1}
                                         </div>
                                         <div>
@@ -228,7 +228,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
                                         <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${getStatusBadge(item.status)}`}>
                                             {item.status === 'submitted' ? '⏳ Submitted (In Review)' : item.status.toUpperCase()}
                                         </span>
-                                        <p className="text-3xl font-black text-purple-600 tracking-tight">₹{item.amount}</p>
+                                        <p className="text-3xl font-black text-gc-blue tracking-tight">₹{item.amount}</p>
                                     </div>
                                 </div>
 
@@ -321,7 +321,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
                                             <button
                                                 onClick={() => setSelectedMilestoneForSubmit(item)}
                                                 disabled={isActionLoading}
-                                                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-purple-200 transition flex items-center gap-2 cursor-pointer"
+                                                className="px-6 py-2.5 bg-gc-blue hover:bg-gc-navy text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-gc-light transition flex items-center gap-2 cursor-pointer"
                                             >
                                                 <span>📤</span> {item.status === 'rejected' ? 'Resubmit Deliverable' : 'Submit Deliverable'}
                                             </button>

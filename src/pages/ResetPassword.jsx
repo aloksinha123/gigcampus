@@ -55,32 +55,30 @@ const ResetPassword = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-            </div>
-
-            <div className="relative z-10 w-full max-w-md px-2 sm:px-0">
-                <div className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl p-5 sm:p-8 border border-white/20">
+        <div className="min-h-screen bg-gc-soft/40 flex items-center justify-center p-4">
+            <div className="w-full max-w-md px-2 sm:px-0">
+                <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-8 border border-gc-border">
                     <div className="text-center mb-8">
                         <Link to="/" className="inline-block mb-4">
-                            <span className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                                🚀 GigCampus
+                            <span className="text-3xl font-bold text-gc-navy flex items-center justify-center gap-2">
+                                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>
+                                </svg>
+                                GigCampus
                             </span>
                         </Link>
-                        <h2 className="text-3xl font-bold text-white mb-2">Reset Password</h2>
-                        <p className="text-white/70 text-sm">Enter your new secure password below</p>
+                        <h2 className="text-3xl font-bold text-gc-navy mb-2">Reset Password</h2>
+                        <p className="text-gc-muted text-sm">Enter your new secure password below</p>
                     </div>
 
                     {status === 'success' ? (
                         <div className="text-center py-4 space-y-6 animate-in fade-in duration-300">
-                            <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner border border-emerald-400/30">
+                            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner border border-emerald-200">
                                 ✓
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-bold text-white">Password Updated! 🎉</h3>
-                                <p className="text-white/80 text-xs leading-relaxed bg-white/5 p-4 rounded-2xl border border-white/10">
+                                <h3 className="text-xl font-bold text-gc-navy">Password Updated! 🎉</h3>
+                                <p className="text-gc-navy text-xs leading-relaxed bg-gc-soft p-4 rounded-2xl border border-gc-light">
                                     {statusMsg}
                                 </p>
                             </div>
@@ -88,7 +86,7 @@ const ResetPassword = () => {
                             <div className="pt-4">
                                 <Link
                                     to="/login"
-                                    className="block w-full py-3.5 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition active:scale-95 text-sm text-center"
+                                    className="block w-full py-3.5 px-6 bg-gc-blue hover:bg-gc-navy text-white font-bold rounded-xl shadow-lg transition active:scale-95 text-sm text-center"
                                 >
                                     Login with New Password →
                                 </Link>
@@ -96,12 +94,12 @@ const ResetPassword = () => {
                         </div>
                     ) : status === 'expired' ? (
                         <div className="text-center py-4 space-y-6 animate-in fade-in duration-300">
-                            <div className="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner border border-rose-400/30">
+                            <div className="w-16 h-16 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner border border-rose-200">
                                 ⏰
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-bold text-white">Reset Link Expired</h3>
-                                <p className="text-white/80 text-xs leading-relaxed bg-white/5 p-4 rounded-2xl border border-white/10">
+                                <h3 className="text-xl font-bold text-gc-navy">Reset Link Expired</h3>
+                                <p className="text-gc-navy text-xs leading-relaxed bg-gc-soft p-4 rounded-2xl border border-gc-light">
                                     {statusMsg || 'Password reset links expire after 15 minutes for security.'}
                                 </p>
                             </div>
@@ -109,7 +107,7 @@ const ResetPassword = () => {
                             <div className="pt-4">
                                 <Link
                                     to="/forgot-password"
-                                    className="block w-full py-3.5 px-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transition active:scale-95 text-sm text-center"
+                                    className="block w-full py-3.5 px-6 bg-gc-blue hover:bg-gc-navy text-white font-bold rounded-xl shadow-lg transition active:scale-95 text-sm text-center"
                                 >
                                     Request New Reset Link →
                                 </Link>
@@ -118,27 +116,27 @@ const ResetPassword = () => {
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-white/80 mb-2 font-medium text-sm">New Password</label>
+                                <label className="block text-gc-navy mb-2 font-medium text-sm">New Password</label>
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     minLength={6}
-                                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                    className="w-full px-4 py-3 bg-white border border-gc-border rounded-xl text-gc-navy placeholder-gc-muted focus:outline-none focus:ring-2 focus:ring-gc-blue text-sm"
                                     placeholder="••••••••"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-white/80 mb-2 font-medium text-sm">Confirm New Password</label>
+                                <label className="block text-gc-navy mb-2 font-medium text-sm">Confirm New Password</label>
                                 <input
                                     type="password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
                                     minLength={6}
-                                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                    className="w-full px-4 py-3 bg-white border border-gc-border rounded-xl text-gc-navy placeholder-gc-muted focus:outline-none focus:ring-2 focus:ring-gc-blue text-sm"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -146,7 +144,7 @@ const ResetPassword = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 px-6 rounded-xl transition font-semibold shadow-lg disabled:opacity-50 text-sm cursor-pointer"
+                                className="w-full bg-gc-blue hover:bg-gc-navy text-white py-3 px-6 rounded-xl transition font-semibold shadow-lg disabled:opacity-50 text-sm cursor-pointer"
                             >
                                 {loading ? 'Updating Password...' : '🔒 Reset Password'}
                             </button>
@@ -154,7 +152,7 @@ const ResetPassword = () => {
                     )}
 
                     <div className="mt-6 text-center">
-                        <Link to="/login" className="text-white/60 hover:text-white/80 text-sm">
+                        <Link to="/login" className="text-gc-muted hover:text-gc-navy text-sm">
                             ← Back to Login
                         </Link>
                     </div>

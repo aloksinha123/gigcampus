@@ -51,11 +51,11 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
 
                 {/* Header */}
                 <div className="mb-8 pr-12">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-bold mb-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-gc-soft text-gc-blue rounded-full text-xs font-bold mb-2">
                         <span>✨ AI Talent Matchmaker</span>
                     </div>
                     <h2 className="text-3xl font-black text-gray-900 tracking-tight italic uppercase">
-                        <span className="text-purple-600">AI Recommended</span> Freelancers
+                        <span className="text-gc-blue">AI Recommended</span> Freelancers
                     </h2>
                     {projectTitle && (
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Project: {projectTitle}</p>
@@ -64,19 +64,19 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
 
                 {/* Top Summary Banner (#1 Recommended Freelancer) */}
                 {topRecommendation && (
-                    <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white p-6 sm:p-8 rounded-[2.5rem] mb-10 shadow-xl border border-purple-800/50 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div className="bg-gc-navy text-white p-6 sm:p-8 rounded-[2.5rem] mb-10 shadow-xl border border-gc-navy/50 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-gc-blue/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 relative z-10">
                             <div className="flex items-center gap-3">
                                 <span className="px-4 py-1.5 bg-yellow-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg flex items-center gap-1.5">
                                     <span>🏆</span> Best Match
                                 </span>
-                                <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">Top Candidate</span>
+                                <span className="text-xs font-bold text-gc-light uppercase tracking-widest">Top Candidate</span>
                             </div>
 
-                            <div className="flex items-center gap-2 bg-purple-950/80 px-5 py-2 rounded-2xl border border-purple-700/50">
-                                <span className="text-[10px] font-black text-purple-300 uppercase tracking-widest">Match %</span>
+                            <div className="flex items-center gap-2 bg-gc-blue/10 px-5 py-2 rounded-2xl border border-gc-blue/20">
+                                <span className="text-[10px] font-black text-gc-light uppercase tracking-widest">Match %</span>
                                 <span className="text-2xl font-black text-yellow-400">{topRecommendation.matchScore || topRecommendation.score || 95}%</span>
                             </div>
                         </div>
@@ -86,7 +86,7 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
                                 <h3 className="text-2xl font-black text-white tracking-tight uppercase">
                                     {topRecommendation.fullName || topRecommendation.username || 'Freelancer'}
                                 </h3>
-                                <p className="text-xs text-purple-200 font-medium">@{topRecommendation.username || 'freelancer'}</p>
+                                <p className="text-xs text-gc-light font-medium">@{topRecommendation.username || 'freelancer'}</p>
                             </div>
                             <button
                                 onClick={() => handleInvite(topRecommendation.userId || topRecommendation.freelancerId, topRecommendation.fullName || topRecommendation.username || 'Freelancer')}
@@ -108,7 +108,7 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
                         </div>
 
                         <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 relative z-10">
-                            <p className="text-xs font-medium text-purple-100 leading-relaxed italic">
+                            <p className="text-xs font-medium text-gc-navy leading-relaxed italic">
                                 "{topRecommendation.reason}"
                             </p>
                         </div>
@@ -132,12 +132,12 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
                                 key={id}
                                 className={`rounded-[2rem] p-6 sm:p-8 transition-all ${
                                     isTop
-                                        ? 'bg-purple-50/40 border-2 border-purple-500/80 shadow-xl shadow-purple-100/50 relative'
-                                        : 'bg-white border-2 border-gray-100 hover:border-purple-200 shadow-sm'
+                                        ? 'bg-gc-soft/40 border-2 border-gc-blue shadow-xl shadow-gc relative'
+                                        : 'bg-white border-2 border-gray-100 hover:border-gc-light shadow-sm'
                                 }`}
                             >
                                 {isTop && (
-                                    <div className="absolute -top-3.5 left-8 bg-purple-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1">
+                                    <div className="absolute -top-3.5 left-8 bg-gc-blue text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1">
                                         <span>🏆</span> Best Match
                                     </div>
                                 )}
@@ -145,7 +145,7 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg ${
-                                            isTop ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'bg-gray-100 text-gray-700'
+                                            isTop ? 'bg-gc-blue text-white shadow-lg shadow-gc-light' : 'bg-gray-100 text-gray-700'
                                         }`}>
                                             #{index + 1}
                                         </div>
@@ -175,7 +175,7 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
                                             className={`px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer ${
                                                 isInvited
                                                     ? 'bg-emerald-600 text-white shadow-emerald-200'
-                                                    : 'bg-purple-600 hover:bg-purple-700 text-white hover:scale-105'
+                                                    : 'bg-gc-blue hover:bg-gc-navy text-white hover:scale-105'
                                             } disabled:opacity-80`}
                                         >
                                             {isInviting ? 'Sending...' : isInvited ? 'Invited ✓' : 'Invite ✉️'}
@@ -187,7 +187,7 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
                                 {Array.isArray(item.skills) && item.skills.length > 0 && (
                                     <div className="flex flex-wrap gap-2 mb-4">
                                         {item.skills.map((skill, sIdx) => (
-                                            <span key={sIdx} className="px-3 py-1 bg-purple-50 text-purple-700 rounded-xl text-[10px] font-bold">
+                                            <span key={sIdx} className="px-3 py-1 bg-gc-soft text-gc-blue rounded-xl text-[10px] font-bold">
                                                 {skill}
                                             </span>
                                         ))}

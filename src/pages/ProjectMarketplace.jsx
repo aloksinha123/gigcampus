@@ -143,34 +143,34 @@ const ProjectMarketplace = () => {
     const getBudgetColor = (budget) => {
         const num = getNumericBudget(budget);
         if (num < 500) return 'text-green-600';
-        if (num < 2000) return 'text-blue-600';
-        return 'text-purple-600';
+        if (num < 2000) return 'text-gc-blue';
+        return 'text-gc-navy';
     };
 
     const getStatusBadge = (status) => {
         const colors = {
-            open: 'bg-green-100 text-green-800',
-            in_progress: 'bg-blue-100 text-blue-800',
-            completed: 'bg-purple-100 text-purple-800',
-            cancelled: 'bg-red-100 text-red-800'
+            open: 'gc-badge-success',
+            in_progress: 'gc-badge-info',
+            completed: 'gc-badge-info',
+            cancelled: 'gc-badge-danger'
         };
-        return colors[status] || 'bg-gray-100 text-gray-800';
+        return colors[status] || 'bg-gc-surface text-gc-muted';
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="min-h-screen bg-gc-near">
             {/* Navbar */}
             <Navbar />
 
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-gray-800 mb-2">Project Marketplace</h1>
-                    <p className="text-gray-600">Discover and bid on exciting projects</p>
+                    <h1 className="text-4xl font-bold text-gc-navy mb-2">Project Marketplace</h1>
+                    <p className="text-gc-muted">Discover and bid on exciting projects</p>
                 </div>
 
                 {/* Filters & Search */}
-                <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm mb-8">
+                <div className="bg-white p-4 sm:p-6 rounded-gc-xl border border-gc-border shadow-gc mb-8">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4">
                         <input
                             type="text"
@@ -178,14 +178,14 @@ const ProjectMarketplace = () => {
                             value={filters.search}
                             onChange={handleFilterChange}
                             placeholder="Search projects..."
-                            className="px-4 py-3 sm:py-2 border border-gray-300 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-h-[44px]"
+                            className="gc-input min-h-[44px]"
                         />
 
                         <select
                             name="category"
                             value={filters.category}
                             onChange={handleFilterChange}
-                            className="px-4 py-3 sm:py-2 border border-gray-300 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-h-[44px]"
+                            className="gc-input min-h-[44px]"
                         >
                             <option value="">All Categories</option>
                             {categories.map(cat => (
@@ -199,7 +199,7 @@ const ProjectMarketplace = () => {
                             value={filters.minBudget}
                             onChange={handleFilterChange}
                             placeholder="Min Budget (₹)"
-                            className="px-4 py-3 sm:py-2 border border-gray-300 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-h-[44px]"
+                            className="gc-input min-h-[44px]"
                         />
 
                         <input
@@ -208,7 +208,7 @@ const ProjectMarketplace = () => {
                             value={filters.maxBudget}
                             onChange={handleFilterChange}
                             placeholder="Max Budget (₹)"
-                            className="px-4 py-3 sm:py-2 border border-gray-300 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-h-[44px]"
+                            className="gc-input min-h-[44px]"
                         />
                     </div>
                 </div>
@@ -227,14 +227,14 @@ const ProjectMarketplace = () => {
                         onRetry={fetchProjects}
                     />
                 ) : filteredProjects.length === 0 ? (
-                    <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-                        <p className="text-gray-500 text-lg">No projects found matching your criteria.</p>
+                    <div className="bg-white rounded-gc-xl border border-gc-border shadow-gc p-8 text-center">
+                        <p className="text-gc-muted text-lg">No projects found matching your criteria.</p>
                     </div>
                 ) : (
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {paginatedProjects.map(project => (
-                                <div key={project._id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition p-5 sm:p-6 flex flex-col justify-between">
+                                <div key={project._id} className="bg-white rounded-gc-xl border border-gc-border shadow-gc hover:shadow-gc-md transition p-5 sm:p-6 flex flex-col justify-between">
                                     <div>
                                         <div className="flex justify-between items-start mb-4 gap-2">
                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(project.status)}`}>
@@ -244,49 +244,49 @@ const ProjectMarketplace = () => {
                                                 {localStorage.getItem('token') && (
                                                     <button
                                                         onClick={() => toggleBookmark(project._id)}
-                                                        className="text-gray-400 hover:text-blue-600 transition text-base p-1 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+                                                        className="text-gc-muted hover:text-gc-blue transition text-base p-1 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
                                                         title={bookmarkedProjectIds.has(project._id) ? "Unbookmark" : "Bookmark"}
                                                     >
                                                         {bookmarkedProjectIds.has(project._id) ? '💙' : '🤍'}
                                                     </button>
                                                 )}
-                                                <span className="text-xs text-gray-500 whitespace-nowrap">
+                                                <span className="text-xs text-gc-muted whitespace-nowrap">
                                                     {new Date(project.createdAt).toLocaleDateString()}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <h3 className="text-xl font-bold mb-2 line-clamp-2">{project.title}</h3>
-                                        <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
+                                        <h3 className="text-xl font-bold text-gc-navy mb-2 line-clamp-2">{project.title}</h3>
+                                        <p className="text-gc-muted text-sm mb-4 line-clamp-3">{project.description}</p>
 
                                         <div className="mb-4">
-                                            <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-md font-medium">
+                                            <span className="inline-block bg-gc-soft text-gc-blue text-xs px-2.5 py-1 rounded-md font-medium">
                                                 {project.category}
                                             </span>
                                         </div>
 
-                                        <div className="flex justify-between items-center mb-4 p-3 bg-gray-50 rounded-xl">
+                                        <div className="flex justify-between items-center mb-4 p-3 bg-gc-surface rounded-gc">
                                             <div>
-                                                <p className="text-xs text-gray-500 font-medium">Budget</p>
+                                                <p className="text-xs text-gc-muted font-medium">Budget</p>
                                                 <p className={`text-xl sm:text-2xl font-bold ${getBudgetColor(project.budget)}`}>
                                                     {renderBudget(project.budget)}
                                                 </p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-xs text-gray-500 font-medium">Bids</p>
-                                                <p className="text-xl sm:text-2xl font-bold text-gray-700">{project.bidsCount || 0}</p>
+                                                <p className="text-xs text-gc-muted font-medium">Bids</p>
+                                                <p className="text-xl sm:text-2xl font-bold text-gc-slate">{project.bidsCount || 0}</p>
                                             </div>
                                         </div>
 
                                         <div className="mb-4">
-                                            <p className="text-xs text-gray-500 mb-1">Timeline</p>
-                                            <p className="text-sm font-semibold">{project.timeline}</p>
+                                            <p className="text-xs text-gc-muted mb-1">Timeline</p>
+                                            <p className="text-sm font-semibold text-gc-navy">{project.timeline}</p>
                                         </div>
                                     </div>
 
                                     <Link
                                         to={`/projects/${project._id}`}
-                                        className="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition font-bold shadow-md shadow-blue-500/10 min-h-[44px] flex items-center justify-center"
+                                        className="block w-full bg-gc-blue hover:bg-gc-navy text-white text-center py-3 rounded-gc transition font-bold min-h-[44px] flex items-center justify-center"
                                     >
                                         View Details
                                     </Link>
@@ -300,19 +300,19 @@ const ProjectMarketplace = () => {
                                 <button
                                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                     disabled={currentPage === 1}
-                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                    className="px-5 py-2.5 bg-white border border-gc-border rounded-gc font-bold text-xs text-gc-slate hover:bg-gc-surface disabled:opacity-40 disabled:cursor-not-allowed transition"
                                 >
                                     ← Previous
                                 </button>
 
-                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest px-3">
+                                <span className="text-xs font-black text-gc-muted uppercase tracking-widest px-3">
                                     Page {currentPage} of {totalPages}
                                 </span>
 
                                 <button
                                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                     disabled={currentPage === totalPages}
-                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                    className="px-5 py-2.5 bg-white border border-gc-border rounded-gc font-bold text-xs text-gc-slate hover:bg-gc-surface disabled:opacity-40 disabled:cursor-not-allowed transition"
                                 >
                                     Next →
                                 </button>
@@ -323,7 +323,7 @@ const ProjectMarketplace = () => {
 
                 {/* Stats */}
                 {!loading && filteredProjects.length > 0 && (
-                    <div className="mt-8 text-center text-gray-600">
+                    <div className="mt-8 text-center text-gc-muted">
                         Showing {filteredProjects.length} of {projects.length} projects
                     </div>
                 )}

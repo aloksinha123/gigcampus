@@ -195,7 +195,7 @@ const MyProjects = () => {
         const colors = {
             open: 'bg-green-100 text-green-700',
             in_progress: 'bg-blue-100 text-blue-700',
-            completed: 'bg-purple-100 text-purple-700',
+            completed: 'bg-gc-soft text-gc-blue',
             cancelled: 'bg-red-100 text-red-700',
             disputed: 'bg-yellow-100 text-yellow-700'
         };
@@ -203,7 +203,7 @@ const MyProjects = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/50">
+        <div className="min-h-screen bg-gc-near">
             {/* Navbar */}
             <Navbar />
 
@@ -211,8 +211,8 @@ const MyProjects = () => {
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                     <div>
-                        <h1 className="text-5xl font-black text-gray-900 mb-2 tracking-tight">
-                            {user?.role === 'freelancer' ? 'My Active' : 'Project'} <span className="text-blue-600">{user?.role === 'freelancer' ? 'Contracts' : 'Inventory'}</span>
+                        <h1 className="text-5xl font-black text-gc-navy mb-2 tracking-tight">
+                            {user?.role === 'freelancer' ? 'My Active' : 'Project'} <span className="text-gc-blue">{user?.role === 'freelancer' ? 'Contracts' : 'Inventory'}</span>
                         </h1>
                         <p className="text-lg text-gray-500 font-medium">
                             {user?.role === 'freelancer'
@@ -223,7 +223,7 @@ const MyProjects = () => {
                     {user?.role === 'student' && (
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-1 transition-all flex items-center gap-2"
+                            className="bg-gc-blue text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-gc-blue/20 hover:shadow-gc-blue/30 hover:-translate-y-1 transition-all flex items-center gap-2"
                         >
                             <span className="text-xl">➕</span> Post New Listing
                         </button>
@@ -232,8 +232,8 @@ const MyProjects = () => {
 
                 {/* Dashboard Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                        <span className="text-gray-400 font-black text-xs uppercase tracking-widest mb-1">Total {user?.role === 'freelancer' ? 'Gigs' : 'Ads'}</span>
+                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gc-border flex flex-col justify-between">
+                        <span className="text-gc-muted font-black text-xs uppercase tracking-widest mb-1">Total {user?.role === 'freelancer' ? 'Gigs' : 'Ads'}</span>
                         <span className="text-4xl font-black text-gray-900">{projects.length}</span>
                     </div>
                     <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
@@ -248,9 +248,9 @@ const MyProjects = () => {
                         <span className="text-blue-500 font-black text-xs uppercase tracking-widest mb-1">Progressing</span>
                         <span className="text-4xl font-black text-blue-600">{projects.filter(p => p.status === 'in_progress').length}</span>
                     </div>
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                        <span className="text-purple-500 font-black text-xs uppercase tracking-widest mb-1">{user?.role === 'freelancer' ? 'Avg. Pay' : 'Fulfilled'}</span>
-                        <span className="text-4xl font-black text-purple-600">
+                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gc-border flex flex-col justify-between">
+                        <span className="text-gc-muted font-black text-xs uppercase tracking-widest mb-1">{user?.role === 'freelancer' ? 'Avg. Pay' : 'Fulfilled'}</span>
+                        <span className="text-4xl font-black text-gc-blue">
                             {user?.role === 'freelancer'
                                 ? `$${(projects.reduce((s, p) => s + (p.budget?.max || 0), 0) / (projects.length || 1)).toFixed(0)}`
                                 : projects.filter(p => p.status === 'completed').length}
@@ -399,7 +399,7 @@ const MyProjects = () => {
                                                 type="button"
                                                 onClick={handleAiImprove}
                                                 disabled={aiLoading}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-indigo-200 hover:scale-105 transition-all disabled:opacity-50 cursor-pointer"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-gc-blue text-white rounded-xl text-xs font-bold shadow-md transition-all disabled:opacity-50 cursor-pointer"
                                             >
                                                 {aiLoading ? (
                                                     <>
@@ -427,8 +427,8 @@ const MyProjects = () => {
                                 </div>
 
                                 {riskAnalysis && (
-                                    <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-3xl border border-indigo-800/40 shadow-xl space-y-4">
-                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-indigo-800/40">
+                                    <div className="bg-gc-navy text-white p-6 rounded-3xl border border-gc-blue/40 shadow-xl space-y-4">
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-gc-blue/40">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-xl">🛡️</span>
                                                 <h4 className="text-lg font-black tracking-tight italic">AI Risk & Complexity Audit</h4>
@@ -441,7 +441,7 @@ const MyProjects = () => {
                                                 }`}>
                                                     Risk: {riskAnalysis.risk}
                                                 </span>
-                                                <span className="px-3 py-1 bg-purple-500/20 text-purple-300 border border-purple-500/40 rounded-full text-xs font-black uppercase tracking-wider">
+                                                <span className="px-3 py-1 bg-gc-blue/20 text-gc-light border border-gc-blue/40 rounded-full text-xs font-black uppercase tracking-wider">
                                                     Complexity: {riskAnalysis.estimatedComplexity}
                                                 </span>
                                             </div>
@@ -452,7 +452,7 @@ const MyProjects = () => {
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-amber-300">Identified Issues</p>
                                                 <ul className="space-y-1">
                                                     {riskAnalysis.issues.map((issue, idx) => (
-                                                        <li key={idx} className="text-xs text-indigo-100 flex items-start gap-2">
+                                                        <li key={idx} className="text-xs text-gc-light flex items-start gap-2">
                                                             <span className="text-amber-400 font-bold">•</span>
                                                             <span>{issue}</span>
                                                         </li>
@@ -466,7 +466,7 @@ const MyProjects = () => {
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Strategic Recommendations</p>
                                                 <ul className="space-y-1">
                                                     {riskAnalysis.recommendations.map((rec, idx) => (
-                                                        <li key={idx} className="text-xs text-indigo-100 flex items-start gap-2">
+                                                        <li key={idx} className="text-xs text-gc-light flex items-start gap-2">
                                                             <span className="text-emerald-400 font-bold">•</span>
                                                             <span>{rec}</span>
                                                         </li>
@@ -558,7 +558,7 @@ const MyProjects = () => {
                             <div className="flex flex-col md:flex-row gap-4 pt-6">
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-5 rounded-[1.5rem] font-black text-xl shadow-xl shadow-blue-100 hover:shadow-blue-300 transition-all active:scale-95"
+                                    className="flex-1 bg-gc-blue text-white py-5 rounded-[1.5rem] font-black text-xl shadow-xl shadow-gc-blue/10 hover:shadow-gc-blue/20 transition-all active:scale-95"
                                 >
                                     Launch Project Card 🚀
                                 </button>
