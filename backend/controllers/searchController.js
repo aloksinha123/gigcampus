@@ -125,6 +125,15 @@ export const searchProjects = async (req, res) => {
             } else {
                 projectsQuery = projectsQuery.sort({ createdAt: -1 });
             }
+        } else if (sortBy === 'aiRecommended') {
+            // aiRecommended requires authentication for personalized skill matching
+            // If unauthenticated, fall back to newest sorting
+            if (req.user) {
+                // Sorting will be handled in-memory after fetch (line 133+)
+            } else {
+                // Fallback for unauthenticated users: newest first
+                projectsQuery = projectsQuery.sort({ createdAt: -1 });
+            }
         }
 
         let projects = await projectsQuery;
@@ -308,6 +317,10 @@ export const searchFreelancers = async (req, res) => {
                 const score = clientSkills.length > 0 ? (matchCount / clientSkills.length) * 100 : 0;
                 return { ...f.getPublicProfile(), aiMatchScore: Math.round(score) };
             }).sort((a, b) => b.aiMatchScore - a.aiMatchScore);
+        } else if (sortBy === 'aiMatchScore') {
+            // aiMatchScore requires authentication for personalized matching
+            // If unauthenticated and no projectId, fall back to highestRating
+            freelancers = freelancers.map(f => f.getPublicProfile()).sort((a, b) => b.reputation.score - a.reputation.score);
         } else {
             // Clean/sanitize public profile representation
             freelancers = freelancers.map(f => f.getPublicProfile());
