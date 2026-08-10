@@ -6,7 +6,7 @@ const ACTION_CONFIG = {
     BID_SUBMITTED: { icon: '📩', label: 'Bid Submitted', color: 'bg-gc-soft text-gc-blue border-gc-light' },
     BID_ACCEPTED: { icon: '🤝', label: 'Bid Accepted', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
     ESCROW_CREATED: { icon: '🔒', label: 'Escrow Funds Created', color: 'bg-amber-100 text-amber-800 border-amber-200' },
-    DELIVERABLE_SUBMITTED: { icon: '📦', label: 'Deliverable Submitted', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+    DELIVERABLE_SUBMITTED: { icon: '📦', label: 'Deliverable Submitted', color: 'bg-gc-soft text-gc-blue border-gc-light' },
     PAYMENT_RELEASED: { icon: '💸', label: 'Payment Released', color: 'bg-green-100 text-green-800 border-green-200' },
     PROJECT_COMPLETED: { icon: '🎉', label: 'Project Completed', color: 'bg-teal-100 text-teal-800 border-teal-200' },
     REVIEW_SUBMITTED: { icon: '⭐', label: 'Review Submitted', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' }
@@ -40,7 +40,7 @@ const ProjectTimeline = ({ projectId }) => {
     if (loading) {
         return (
             <div className="p-6 text-center text-gray-500">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gc-blue mx-auto mb-2"></div>
                 Loading activity timeline...
             </div>
         );
@@ -68,7 +68,7 @@ const ProjectTimeline = ({ projectId }) => {
                 ⏱️ Project Activity Timeline
             </h3>
 
-            <div className="relative border-l-2 border-indigo-100 ml-4 space-y-6">
+            <div className="relative border-l-2 border-gc-light ml-4 space-y-6">
                 {activities.map((item) => {
                     const cfg = ACTION_CONFIG[item.action] || {
                         icon: '📌',
@@ -84,7 +84,7 @@ const ProjectTimeline = ({ projectId }) => {
                     return (
                         <div key={item._id} className="relative pl-6">
                             {/* Circle Marker */}
-                            <div className="absolute -left-[17px] top-1.5 w-8 h-8 rounded-full bg-white border-2 border-indigo-500 flex items-center justify-center text-sm shadow-sm">
+                            <div className="absolute -left-[17px] top-1.5 w-8 h-8 rounded-full bg-white border-2 border-gc-blue flex items-center justify-center text-sm shadow-sm">
                                 {cfg.icon}
                             </div>
 

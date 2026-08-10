@@ -115,7 +115,7 @@ const MilestoneList = ({ project, isOwner, isFreelancer, toastError, toastSucces
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             {/* Header & Escrow Summary Metrics Card */}
-            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden border border-slate-800">
+            <div className="bg-gc-navy text-white p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden border border-gc-navy/80">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative z-10">
                     <div>
                         <div className="inline-flex items-center gap-2 px-3 py-1 bg-gc-soft text-gc-blue rounded-full text-xs font-bold mb-2 border border-gc-light">

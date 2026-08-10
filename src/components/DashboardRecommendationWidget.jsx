@@ -90,7 +90,7 @@ const DashboardRecommendationWidget = ({ user }) => {
                         onClick={() => setActiveSubTab('recommended')}
                         className={`text-xs font-black uppercase tracking-widest transition-all pb-2 border-b-2 ${
                             activeSubTab === 'recommended'
-                                ? 'text-indigo-400 border-indigo-400'
+                                ? 'text-gc-cyan border-gc-cyan'
                                 : 'text-slate-500 border-transparent hover:text-slate-300'
                         }`}
                     >
@@ -100,7 +100,7 @@ const DashboardRecommendationWidget = ({ user }) => {
                         onClick={() => setActiveSubTab('favorites')}
                         className={`text-xs font-black uppercase tracking-widest transition-all pb-2 border-b-2 ${
                             activeSubTab === 'favorites'
-                                ? 'text-indigo-400 border-indigo-400'
+                                ? 'text-gc-cyan border-gc-cyan'
                                 : 'text-slate-500 border-transparent hover:text-slate-300'
                         }`}
                     >
@@ -110,7 +110,7 @@ const DashboardRecommendationWidget = ({ user }) => {
                         onClick={() => setActiveSubTab('recent')}
                         className={`text-xs font-black uppercase tracking-widest transition-all pb-2 border-b-2 ${
                             activeSubTab === 'recent'
-                                ? 'text-indigo-400 border-indigo-400'
+                                ? 'text-gc-cyan border-gc-cyan'
                                 : 'text-slate-500 border-transparent hover:text-slate-300'
                         }`}
                     >
@@ -131,7 +131,7 @@ const DashboardRecommendationWidget = ({ user }) => {
             {/* Content Body */}
             {loading ? (
                 <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gc-blue mx-auto"></div>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -155,11 +155,11 @@ const DashboardRecommendationWidget = ({ user }) => {
                                                     </div>
                                                     <h4 className="font-bold text-white text-sm line-clamp-1">{item.project.title}</h4>
                                                     <p className="text-slate-400 text-xs mt-2 line-clamp-2 leading-relaxed italic">"{item.project.description}"</p>
-                                                    <p className="text-[10px] text-indigo-400 font-medium mt-3 bg-indigo-500/5 p-2 rounded-xl border border-indigo-500/10">💡 {item.reason}</p>
+                                                    <p className="text-[10px] text-gc-blue font-medium mt-3 bg-gc-soft/50 p-2 rounded-xl border border-gc-light">💡 {item.reason}</p>
                                                 </div>
                                                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-850">
                                                     <span className="text-xs font-bold text-slate-400">Budget: ₹{item.project.budget?.max}</span>
-                                                    <Link to={`/projects/${item.project._id}`} className="text-xs font-black text-indigo-400 uppercase tracking-wider hover:underline">
+                                                    <Link to={`/projects/${item.project._id}`} className="text-xs font-black text-gc-cyan uppercase tracking-wider hover:underline">
                                                         Apply &rarr;
                                                     </Link>
                                                 </div>
@@ -180,11 +180,11 @@ const DashboardRecommendationWidget = ({ user }) => {
                                                     </div>
                                                     <h4 className="font-bold text-white text-sm">@{item.freelancer.username}</h4>
                                                     <p className="text-slate-400 text-xs mt-2 line-clamp-2 leading-relaxed">{item.freelancer.profile?.bio || 'Freelancer details match your search profile.'}</p>
-                                                    <p className="text-[10px] text-indigo-400 font-medium mt-3 bg-indigo-500/5 p-2 rounded-xl border border-indigo-500/10">💡 {item.reason}</p>
+                                                    <p className="text-[10px] text-gc-blue font-medium mt-3 bg-gc-soft/50 p-2 rounded-xl border border-gc-light">💡 {item.reason}</p>
                                                 </div>
                                                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-850">
                                                     <span className="text-xs font-bold text-slate-400">Rate: ₹{item.freelancer.profile?.hourlyRate || 0}/hr</span>
-                                                    <Link to={`/portfolio/${item.freelancerId}`} className="text-xs font-black text-indigo-400 uppercase tracking-wider hover:underline">
+                                                    <Link to={`/portfolio/${item.freelancerId}`} className="text-xs font-black text-gc-cyan uppercase tracking-wider hover:underline">
                                                         Showcase &rarr;
                                                     </Link>
                                                 </div>
@@ -215,7 +215,7 @@ const DashboardRecommendationWidget = ({ user }) => {
                                                 <div>
                                                     <div className="flex justify-between items-center mb-3">
                                                         <span className="text-[10px] font-bold text-slate-500 uppercase">{item.category}</span>
-                                                        <button onClick={(e) => handleToggleBookmark(item._id, e)} className="text-indigo-400 hover:text-rose-400 transition text-xs">
+                                                        <button onClick={(e) => handleToggleBookmark(item._id, e)} className="text-gc-blue hover:text-rose-400 transition text-xs">
                                                             💙
                                                         </button>
                                                     </div>
@@ -224,7 +224,7 @@ const DashboardRecommendationWidget = ({ user }) => {
                                                 </div>
                                                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-850">
                                                     <span className="text-xs font-bold text-slate-400">Budget: ₹{item.budget?.max}</span>
-                                                    <Link to={`/projects/${item._id}`} className="text-xs font-black text-indigo-400 uppercase tracking-wider hover:underline">
+                                                    <Link to={`/projects/${item._id}`} className="text-xs font-black text-gc-cyan uppercase tracking-wider hover:underline">
                                                         Apply &rarr;
                                                     </Link>
                                                 </div>
@@ -236,7 +236,7 @@ const DashboardRecommendationWidget = ({ user }) => {
                                                 <div>
                                                     <div className="flex justify-between items-center mb-3">
                                                         <span className="text-[10px] font-bold text-slate-500 uppercase">Freelancer</span>
-                                                        <button onClick={(e) => handleToggleFavorite(item._id, e)} className="text-indigo-400 hover:text-rose-400 transition text-xs">
+                                                        <button onClick={(e) => handleToggleFavorite(item._id, e)} className="text-gc-blue hover:text-rose-400 transition text-xs">
                                                             💙
                                                         </button>
                                                     </div>
@@ -245,7 +245,7 @@ const DashboardRecommendationWidget = ({ user }) => {
                                                 </div>
                                                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-850">
                                                     <span className="text-xs font-bold text-slate-400">Rate: ₹{item.profile?.hourlyRate || 0}/hr</span>
-                                                    <Link to={`/portfolio/${item._id}`} className="text-xs font-black text-indigo-400 uppercase tracking-wider hover:underline">
+                                                    <Link to={`/portfolio/${item._id}`} className="text-xs font-black text-gc-cyan uppercase tracking-wider hover:underline">
                                                         Showcase &rarr;
                                                     </Link>
                                                 </div>
@@ -274,7 +274,7 @@ const DashboardRecommendationWidget = ({ user }) => {
                                                 </div>
                                                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-850">
                                                     <span className="text-xs font-bold text-slate-400">Budget: ₹{item.project.budget?.max}</span>
-                                                    <Link to={`/projects/${item.project._id}`} className="text-xs font-black text-indigo-400 uppercase tracking-wider hover:underline">
+                                                    <Link to={`/projects/${item.project._id}`} className="text-xs font-black text-gc-cyan uppercase tracking-wider hover:underline">
                                                         Apply &rarr;
                                                     </Link>
                                                 </div>
@@ -290,7 +290,7 @@ const DashboardRecommendationWidget = ({ user }) => {
                                                 </div>
                                                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-850">
                                                     <span className="text-xs font-bold text-slate-400">Rate: ₹{item.freelancer.profile?.hourlyRate || 0}/hr</span>
-                                                    <Link to={`/portfolio/${item.freelancer._id}`} className="text-xs font-black text-indigo-400 uppercase tracking-wider hover:underline">
+                                                    <Link to={`/portfolio/${item.freelancer._id}`} className="text-xs font-black text-gc-cyan uppercase tracking-wider hover:underline">
                                                         Showcase &rarr;
                                                     </Link>
                                                 </div>

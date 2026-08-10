@@ -227,7 +227,7 @@ const ReviewSummaryCard = ({ review: initialReview, onUpdate }) => {
                     {isReviewee && !reply && !isReplying && (
                         <button
                             onClick={() => setIsReplying(true)}
-                            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors py-1.5"
+                            className="text-xs font-bold text-gc-blue hover:text-gc-navy transition-colors py-1.5"
                         >
                             💬 Reply to Review
                         </button>
@@ -259,7 +259,7 @@ const ReviewSummaryCard = ({ review: initialReview, onUpdate }) => {
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
                         placeholder="Write a public response to this review..."
-                        className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white resize-none"
+                        className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-gc-blue focus:border-transparent bg-white resize-none"
                         required
                     />
                     <div className="flex justify-end space-x-2">
@@ -273,7 +273,7 @@ const ReviewSummaryCard = ({ review: initialReview, onUpdate }) => {
                         <button
                             type="submit"
                             disabled={replyLoading || !replyText.trim()}
-                            className="px-4 py-1 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                            className="px-4 py-1 bg-gc-blue text-white rounded-lg text-xs font-semibold hover:bg-gc-navy disabled:opacity-50"
                         >
                             {replyLoading ? 'Saving...' : 'Submit'}
                         </button>
@@ -283,9 +283,9 @@ const ReviewSummaryCard = ({ review: initialReview, onUpdate }) => {
 
             {/* Display Existing Reply */}
             {reply && (
-                <div className="mt-3 p-3.5 bg-indigo-50/40 rounded-2xl border border-indigo-100/30 pl-4 border-l-4 border-l-indigo-500 flex justify-between items-start group">
+                <div className="mt-3 p-3.5 bg-gc-soft/40 rounded-2xl border border-gc-border/30 pl-4 border-l-4 border-l-gc-blue flex justify-between items-start group">
                     <div className="space-y-1">
-                        <span className="text-xs font-bold text-indigo-700 block">
+                        <span className="text-xs font-bold text-gc-navy block">
                             Response from recipient {editedAt && <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">(Edited)</span>}:
                         </span>
                         <p className="text-slate-600 text-xs italic">"{reply}"</p>
@@ -293,7 +293,7 @@ const ReviewSummaryCard = ({ review: initialReview, onUpdate }) => {
                     {isReviewee && !isReplying && (
                         <button
                             onClick={() => setIsReplying(true)}
-                            className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="text-[10px] font-bold text-gc-blue hover:text-gc-navy opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                             Edit Reply
                         </button>

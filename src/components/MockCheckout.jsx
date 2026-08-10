@@ -22,9 +22,11 @@ const MockCheckout = ({ amount, onConfirm, onCancel, projectName }) => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-300">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white text-center">
+                <div className="bg-gc-navy p-6 text-white text-center">
                     <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/30 backdrop-blur-md">
-                        <span className="text-3xl">🛡️</span>
+                        <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
                     </div>
                     <h2 className="text-2xl font-bold">Secure Escrow</h2>
                     <p className="text-blue-100 text-sm mt-1">Funds will be held safely until project completion</p>
@@ -87,7 +89,7 @@ const MockCheckout = ({ amount, onConfirm, onCancel, projectName }) => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 rounded-xl hover:shadow-lg hover:shadow-blue-200 active:scale-[0.98] transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                                className="w-full bg-gc-blue text-white font-bold py-4 rounded-xl hover:bg-gc-navy hover:shadow-lg hover:shadow-blue-200 active:scale-[0.98] transition-all disabled:opacity-70 flex items-center justify-center gap-2"
                             >
                                 {loading ? (
                                     <>

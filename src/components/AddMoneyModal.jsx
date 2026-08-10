@@ -70,7 +70,7 @@ const AddMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                     contact: user?.profile?.phone || ''
                 },
                 theme: {
-                    color: '#6366f1' // Indigo brand theme
+                    color: '#0077B6' // GigCampus brand
                 },
                 handler: async function (paymentResponse) {
                     console.log('--- Razorpay Payment Completed ---');
@@ -138,10 +138,13 @@ const AddMoneyModal = ({ isOpen, onClose, onSuccess }) => {
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in duration-200">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gc-border animate-in fade-in zoom-in duration-200">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                        💳 Add Money to Wallet
+                        <svg className="w-6 h-6 text-gc-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Add Money to Wallet
                     </h2>
                     <button
                         onClick={onClose}
@@ -186,15 +189,17 @@ const AddMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                                 type="button"
                                 onClick={() => setAmount(preset.toString())}
                                 disabled={loading}
-                                className="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                                className="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-gc-soft text-gc-blue hover:bg-gc-light transition-colors"
                             >
                                 +₹{preset}
                             </button>
                         ))}
                     </div>
 
-                    <div className="p-3.5 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl text-xs text-indigo-700 dark:text-indigo-300 flex items-start gap-2">
-                        <span>🔒</span>
+                    <div className="p-3.5 bg-gc-soft rounded-xl text-xs text-gc-navy flex items-start gap-2">
+                        <svg className="w-4 h-4 text-gc-blue flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
                         <span>Secured by Razorpay. Test mode enabled.</span>
                     </div>
 
@@ -202,7 +207,7 @@ const AddMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-1 bg-gc-blue hover:bg-gc-navy text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
