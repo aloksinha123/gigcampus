@@ -105,7 +105,7 @@ const AdminDashboard = () => {
   };
 
   // Helper SVG Bar Chart Renderer
-  const renderBarChart = (data, valueKey, labelKey, colorClass = 'from-blue-500 to-indigo-600') => {
+  const renderBarChart = (data, valueKey, labelKey, colorClass = 'from-blue-500 to-gc-cyan') => {
     if (!data || data.length === 0) return null;
     const maxVal = Math.max(...data.map(d => Number(d[valueKey]) || 1), 1);
 
@@ -385,7 +385,7 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-400">Active Project Chats:</span>
-                    <span className="font-bold text-indigo-400">{analytics.messages.activeConversations}</span>
+                    <span className="font-bold text-cyan-400">{analytics.messages.activeConversations}</span>
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t border-slate-800">
                     <span className="text-slate-400 font-bold">Socket State:</span>

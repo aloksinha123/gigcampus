@@ -148,7 +148,7 @@ const Profile = () => {
             };
 
             const response = await api.auth.updateProfile(updateData);
-            setUser(response.data);
+            if (refreshUser) await refreshUser();
             success('Profile updated successfully!');
             setIsEditing(false);
         } catch (err) {
@@ -555,7 +555,7 @@ const Profile = () => {
                             /* Client Profile Stats */
                             <div className="md:col-span-2 bg-slate-50 p-5 rounded-2xl border border-slate-100 grid grid-cols-2 gap-4">
                                 <div className="p-3 bg-white rounded-xl border border-slate-100 text-center shadow-sm">
-                                    <span className="text-2xl font-black text-indigo-600 block">
+                                    <span className="text-2xl font-black text-gc-blue block">
                                         {reviews.length > 0 && reviewsAverages.totalReviews > 0
                                             ? `${((reviewsAverages.wouldRecommendCount / reviewsAverages.totalReviews) * 100).toFixed(0)}%`
                                             : '100%'
@@ -587,14 +587,14 @@ const Profile = () => {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     {user?.reputation?.overallSentiment && (
-                                        <span className={`px-3 py-1 border text-xs font-bold rounded-lg uppercase tracking-wider flex items-center gap-1 bg-white border-indigo-200 text-indigo-700 shadow-sm`}>
+                                        <span className={`px-3 py-1 border text-xs font-bold rounded-lg uppercase tracking-wider flex items-center gap-1 bg-white border-gc-light text-gc-navy shadow-sm`}>
                                             Overall: {user.reputation.overallSentiment === 'Positive' ? '😊' : user.reputation.overallSentiment === 'Negative' ? '😟' : '😐'} {user.reputation.overallSentiment}
                                         </span>
                                     )}
                                     <button
                                         onClick={handleRegenerateAISummary}
                                         disabled={regeneratingAI}
-                                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
+                                        className="px-3.5 py-1.5 bg-gc-blue hover:bg-gc-navy text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
                                     >
                                         {regeneratingAI ? 'Analyzing...' : '🔄 Regenerate AI Insights'}
                                     </button>
@@ -602,11 +602,11 @@ const Profile = () => {
                             </div>
 
                             {user?.reputation?.aiSummary ? (
-                                <p className="text-slate-700 text-sm leading-relaxed mb-5 italic bg-white/60 p-4 rounded-2xl border border-indigo-50">
+                                <p className="text-slate-700 text-sm leading-relaxed mb-5 italic bg-white/60 p-4 rounded-2xl border border-gc-soft">
                                     "{user.reputation.aiSummary}"
                                 </p>
                             ) : (
-                                <div className="py-4 text-center text-xs text-slate-400 bg-white/40 border border-dashed border-indigo-100 rounded-2xl mb-5">
+                                <div className="py-4 text-center text-xs text-slate-400 bg-white/40 border border-dashed border-gc-light rounded-2xl mb-5">
                                     AI insights summary is pending. Click "Regenerate AI Insights" to compile.
                                 </div>
                             )}

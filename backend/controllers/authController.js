@@ -445,10 +445,14 @@ export const updateProfile = async (req, res) => {
         const user = await User.findById(req.user._id);
 
         if (user) {
+            const { profile: nestedProfile, username, email, ...rest } = req.body;
             user.profile = {
                 ...user.profile,
-                ...req.body
+                ...rest,
+                ...(nestedProfile || {})
             };
+            if (username) user.username = username;
+            if (email) user.email = email;
 
             const updatedUser = await user.save();
             res.json(updatedUser.getPublicProfile());

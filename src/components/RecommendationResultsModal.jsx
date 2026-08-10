@@ -167,7 +167,7 @@ const RecommendationResultsModal = ({ recommendations = [], onClose, projectTitl
                                     <div className="flex items-center gap-4">
                                         <div className="px-5 py-2.5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-2">
                                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Match %</span>
-                                            <span className="text-2xl font-black text-indigo-600">{score}%</span>
+                                            <span className="text-2xl font-black text-gc-blue">{score}%</span>
                                         </div>
                                         <button
                                             onClick={() => handleInvite(id, name)}

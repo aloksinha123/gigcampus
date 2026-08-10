@@ -92,7 +92,7 @@ const StudentDashboard = () => {
   const getPaymentStatusBadge = (status) => {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
-      escrowed: 'bg-indigo-100 text-indigo-800',
+      escrowed: 'bg-cyan-50 text-cyan-800',
       released: 'bg-green-100 text-green-800',
       refunded: 'bg-red-100 text-red-800',
       disputed: 'bg-orange-100 text-orange-800'
@@ -102,7 +102,7 @@ const StudentDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gc-soft flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           <p className="mt-4 text-gray-600 font-medium">Assembling your workspace...</p>
@@ -112,7 +112,7 @@ const StudentDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-gc-soft/50">
       {/* Navbar */}
       <Navbar />
 
@@ -121,13 +121,13 @@ const StudentDashboard = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 sm:mb-12">
           <div>
             <h1 className="text-3xl sm:text-5xl font-black text-gray-900 mb-2 tracking-tight">
-              Welcome, <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{user?.username}</span>! 👋
+              Welcome, <span className="bg-gradient-to-r from-blue-600 to-gc-cyan bg-clip-text text-transparent">{user?.username}</span>! 👋
             </h1>
             <p className="text-sm sm:text-lg text-gray-500 font-medium">Manage your projects and talent from one central hub.</p>
           </div>
           <Link
             to="/my-projects"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-bold shadow-lg shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 w-full sm:w-fit min-h-[44px]"
+            className="bg-gradient-to-r from-blue-600 to-gc-cyan text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-bold shadow-lg shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 w-full sm:w-fit min-h-[44px]"
           >
             <span className="text-xl">➕</span> Post a New Project
           </Link>
@@ -185,7 +185,7 @@ const StudentDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-200">
+          <div className="bg-gradient-to-br from-blue-600 to-gc-navy rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-200">
             <div className="relative z-10">
               <h3 className="text-blue-200 font-bold text-sm uppercase tracking-widest mb-2">Live Status</h3>
               <p className="text-3xl sm:text-5xl font-black mb-4">{stats.openProjects} <span className="text-xl sm:text-2xl font-medium">Open Listings</span></p>

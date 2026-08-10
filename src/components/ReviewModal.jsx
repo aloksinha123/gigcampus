@@ -84,7 +84,7 @@ const ReviewModal = ({ isOpen, onClose, project, reviewee, onReviewSubmitted }) 
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
             <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100 transform scale-100 transition-all max-h-[90vh] flex flex-col">
                 {/* Header */}
-                <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex justify-between items-center flex-shrink-0">
+                <div className="px-5 sm:px-6 py-4 bg-gc-navy text-white flex justify-between items-center flex-shrink-0">
                     <div>
                         <h3 className="font-bold text-base sm:text-lg">Leave a Review</h3>
                         <p className="text-xs text-blue-100 truncate max-w-[240px] sm:max-w-none">For {reviewee.profile?.fullName || reviewee.username} • Project: {project.title}</p>
@@ -136,7 +136,7 @@ const ReviewModal = ({ isOpen, onClose, project, reviewee, onReviewSubmitted }) 
                             type="button"
                             onClick={() => setWouldRecommend(!wouldRecommend)}
                             className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                                wouldRecommend ? 'bg-indigo-600' : 'bg-slate-200'
+                                wouldRecommend ? 'bg-gc-blue' : 'bg-slate-200'
                             }`}
                         >
                             <span
@@ -155,7 +155,7 @@ const ReviewModal = ({ isOpen, onClose, project, reviewee, onReviewSubmitted }) 
                             value={review}
                             onChange={(e) => setReview(e.target.value)}
                             placeholder="Describe your experience working together. How was the execution, quality, communication, and professionalism? (Minimum 20 characters)"
-                            className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none"
+                            className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gc-blue focus:border-transparent text-sm resize-none"
                             required
                         />
                         <div className="flex justify-between text-xs">
@@ -184,7 +184,7 @@ const ReviewModal = ({ isOpen, onClose, project, reviewee, onReviewSubmitted }) 
                             className={`px-5 py-2 text-sm font-semibold text-white rounded-xl shadow-md transition-colors ${
                                 loading || review.length < 20 || review.length > 1000
                                     ? 'bg-slate-300 cursor-not-allowed shadow-none'
-                                    : 'bg-indigo-600 hover:bg-indigo-700'
+                                    : 'bg-gc-blue hover:bg-gc-navy'
                             }`}
                         >
                             {loading ? 'Submitting...' : 'Submit Review'}

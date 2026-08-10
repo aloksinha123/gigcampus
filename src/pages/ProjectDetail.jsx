@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -33,17 +33,14 @@ const ProjectDetail = () => {
         timeliness: 5
     });
 
-    // Payment/Checkout states
     const [showCheckout, setShowCheckout] = useState(false);
     const [selectedBidForCheckout, setSelectedBidForCheckout] = useState(null);
 
-    // New Tab and Action states
-    const [activeTab, setActiveTab] = useState('details'); // 'details', 'bids', 'deliverables', 'milestones'
+    const [activeTab, setActiveTab] = useState('details');
     const [deliverableData, setDeliverableData] = useState({ title: '', description: '', files: [] });
     const [disputeReason, setDisputeReason] = useState('');
     const [showDisputeModal, setShowDisputeModal] = useState(false);
 
-    // Bid Modal State
     const [showBidModal, setShowBidModal] = useState(false);
     const [bidData, setBidData] = useState({
         bidAmount: '',
@@ -51,16 +48,13 @@ const ProjectDetail = () => {
         deliveryTime: ''
     });
 
-    // Submit Work Modal State
     const [showSubmitWorkModal, setShowSubmitWorkModal] = useState(false);
 
-    // AI Smart Bid Analyzer State
     const [analyzingBid, setAnalyzingBid] = useState(false);
     const [bidAnalysisResult, setBidAnalysisResult] = useState(null);
     const [showBidAnalysisModal, setShowBidAnalysisModal] = useState(false);
     const [hasReviewed, setHasReviewed] = useState(false);
 
-    // AI Proposal Generator State
     const [generatingProposal, setGeneratingProposal] = useState(false);
     const [selectedTone, setSelectedTone] = useState('professional');
 
@@ -70,7 +64,7 @@ const ProjectDetail = () => {
             const res = await api.ai.generateProposal(id, selectedTone);
             if (res.data?.success && res.data?.proposal) {
                 setBidData(prev => ({ ...prev, proposal: res.data.proposal }));
-                success('✨ AI Proposal generated successfully! You can edit it before submitting.');
+                success('AI Proposal generated successfully! You can edit it before submitting.');
             } else {
                 error(res.data?.message || 'Failed to generate AI proposal.');
             }
@@ -111,7 +105,7 @@ const ProjectDetail = () => {
             if (response.data?.success || response.data?.score) {
                 setBidAnalysisResult(response.data);
                 setShowBidAnalysisModal(true);
-                success('✨ AI Bid Quality Audit Complete!');
+                success('AI Bid Quality Audit Complete!');
             } else {
                 error('Unable to analyze bid proposal.');
             }
@@ -126,10 +120,9 @@ const ProjectDetail = () => {
     const handleApplyImprovedBid = (improvedBidText) => {
         setBidData(prev => ({ ...prev, proposal: improvedBidText }));
         setShowBidAnalysisModal(false);
-        success('✨ Improved bid proposal applied to your bid form!');
+        success('Improved bid proposal applied to your bid form!');
     };
 
-    // AI Freelancer Recommendation Engine State
     const [recommendLoading, setRecommendLoading] = useState(false);
     const [recommendationResults, setRecommendationResults] = useState(null);
     const [showRecommendationModal, setShowRecommendationModal] = useState(false);
@@ -137,13 +130,11 @@ const ProjectDetail = () => {
     const handleRecommendFreelancers = async () => {
         try {
             setRecommendLoading(true);
-
             const response = await api.ai.recommendFreelancers(id);
-
             if (response.data?.success && Array.isArray(response.data.recommendations)) {
                 setRecommendationResults(response.data.recommendations);
                 setShowRecommendationModal(true);
-                success('✨ AI Freelancer Recommendation complete!');
+                success('AI Freelancer Recommendation complete!');
             } else {
                 error('Unable to generate AI freelancer recommendations.');
             }
@@ -154,8 +145,6 @@ const ProjectDetail = () => {
             setRecommendLoading(false);
         }
     };
-
-    // Review Modal State - Already declared above
 
     useEffect(() => {
         fetchProjectDetails();
@@ -209,7 +198,6 @@ const ProjectDetail = () => {
             const response = await api.payments.getByProject(id);
             setPayment(response.data);
         } catch (err) {
-            // Silently handle 404 - payment doesn't exist yet (no bid accepted)
             if (err.response?.status !== 404) {
                 console.error('Failed to load payment:', err);
             }
@@ -223,7 +211,6 @@ const ProjectDetail = () => {
 
     const processAcceptBid = async () => {
         if (!selectedBidForCheckout) return;
-
         try {
             await api.projects.acceptBid(id, selectedBidForCheckout.id);
             success('Bid accepted! Escrow payment created.');
@@ -239,18 +226,15 @@ const ProjectDetail = () => {
 
     const handleCompleteProject = async () => {
         if (!window.confirm('Mark this project as complete? Payment will be released to the freelancer.')) return;
-
         try {
             const res = await api.projects.complete(id);
             if (refreshUser) refreshUser();
-
             if (res.data?.alreadyCompleted) {
-                success('Project was already completed via milestones — all payments have been released! 🎉');
+                success('Project was already completed via milestones -- all payments have been released!');
             } else {
                 success('Payment released successfully. Project completed!');
                 setShowReviewModal(true);
             }
-
             fetchProjectDetails();
             fetchPayment();
         } catch (err) {
@@ -258,10 +242,8 @@ const ProjectDetail = () => {
         }
     };
 
-
     const handleDeleteProject = async () => {
         if (!window.confirm('Are you sure you want to delete this project? This cannot be undone.')) return;
-
         try {
             await api.projects.delete(id);
             success('Project deleted successfully');
@@ -270,8 +252,6 @@ const ProjectDetail = () => {
             error(err.response?.data?.message || 'Failed to delete project');
         }
     };
-
-
 
     const handleRejectBid = async (bidId) => {
         if (!window.confirm('Are you sure you want to reject this bid?')) return;
@@ -336,8 +316,6 @@ const ProjectDetail = () => {
         }
     };
 
-
-
     const getStatusBadge = (status) => {
         const colors = {
             open: 'bg-green-100 text-green-800',
@@ -364,7 +342,7 @@ const ProjectDetail = () => {
             <div className="min-h-screen bg-gc-near flex items-center justify-center">
                 <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gc-blue"></div>
-                    <p className="mt-4 text-gray-600">Loading project details...</p>
+                    <p className="mt-4 text-gc-slate font-medium">Loading project details...</p>
                 </div>
             </div>
         );
@@ -374,9 +352,12 @@ const ProjectDetail = () => {
         return (
             <div className="min-h-screen bg-gc-near flex items-center justify-center">
                 <div className="text-center">
+                    <div className="mx-auto mb-6 w-20 h-20 rounded-full bg-gc-soft flex items-center justify-center">
+                        <svg className="w-10 h-10 text-gc-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                     <h2 className="text-2xl font-bold text-gc-navy mb-2">Project Not Found</h2>
-                    <p className="text-gray-600 mb-4">The project you're looking for doesn't exist.</p>
-                    <Link to="/my-projects" className="text-blue-600 hover:underline">
+                    <p className="text-gc-slate mb-6">The project you're looking for doesn't exist.</p>
+                    <Link to="/my-projects" className="inline-flex items-center px-6 py-3 bg-gc-blue text-white rounded-lg font-semibold text-sm hover:bg-gc-navy transition-colors">
                         Back to My Projects
                     </Link>
                 </div>
@@ -386,13 +367,6 @@ const ProjectDetail = () => {
 
     const isOwner = String(user?._id) === String(project.client?._id || project.client);
 
-    // Debugging Logs
-    console.log('--- Project Detail Debug ---');
-    console.log('Project Status:', project.status);
-    console.log('Is Owner:', isOwner);
-    console.log('User ID:', user?._id);
-    console.log('Client ID:', project.client?._id || project.client);
-    console.log('--------------------------');
     const canComplete = isOwner && (project.status === 'in_progress' || project.status === 'completed');
     const canEdit = isOwner && project.status === 'open';
     const canDelete = isOwner && project.status === 'open';
@@ -404,7 +378,6 @@ const ProjectDetail = () => {
 
     return (
         <div className="min-h-screen bg-gc-near">
-            {/* Navbar */}
             <Navbar />
 
             {showCheckout && selectedBidForCheckout && (
@@ -420,50 +393,70 @@ const ProjectDetail = () => {
             )}
 
             <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
-                {/* Header Section with Actions */}
-                <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8 sm:mb-12">
+                {/* Breadcrumb */}
+                <nav className="flex items-center gap-2 text-sm text-gc-slate mb-6">
+                    <Link to="/my-projects" className="hover:text-gc-blue transition-colors">Projects</Link>
+                    <svg className="w-4 h-4 text-gc-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    <span className="text-gc-navy font-semibold">Project Details</span>
+                </nav>
+
+                {/* Page Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
                     <div>
-                        <Link to="/my-projects" className="inline-flex items-center text-blue-600 font-bold text-xs sm:text-sm mb-3 hover:gap-2 transition-all">
-                            <span>←</span> <span className="ml-2 uppercase tracking-widest">Back to Inventory</span>
-                        </Link>
                         <div className="flex flex-wrap items-center gap-3 mb-2">
-                            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight leading-tight">{project.title}</h1>
-                            <span className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm ${getStatusBadge(project.status)}`}>
+                            <h1 className="text-2xl sm:text-4xl font-bold text-gc-navy leading-tight">{project.title}</h1>
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusBadge(project.status)}`}>
                                 {project.status.replace('_', ' ')}
                             </span>
                         </div>
-                        <p className="text-gray-500 text-xs sm:text-sm font-medium font-bold">Gig initiated on {new Date(project.createdAt).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
+                        <div className="flex items-center gap-4 text-sm text-gc-slate">
+                            <span className="flex items-center gap-1.5">
+                                <svg className="w-4 h-4 text-gc-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                {new Date(project.createdAt).toLocaleDateString(undefined, { dateStyle: 'long' })}
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                                <svg className="w-4 h-4 text-gc-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+                                {project.category}
+                            </span>
+                        </div>
                     </div>
 
                     {isOwner && (
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-wrap gap-2">
                             {(project.status === 'in_progress' || project.status === 'disputed') && (
                                 <button
                                     onClick={() => setShowDisputeModal(true)}
                                     disabled={project.status === 'disputed'}
-                                    className={`px-6 py-4 text-white rounded-2xl font-black text-sm shadow-xl transition-all active:scale-95 flex items-center gap-2 ${project.status === 'disputed'
-                                        ? 'bg-red-500 shadow-red-100 cursor-default hover:translate-y-0'
-                                        : 'bg-orange-500 shadow-orange-100 hover:bg-orange-600 hover:-translate-y-1'
-                                        }`}
+                                    className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                                        project.status === 'disputed'
+                                            ? 'bg-red-100 text-red-600 cursor-default'
+                                            : 'bg-orange-500 text-white hover:bg-orange-600'
+                                    }`}
                                 >
-                                    <span>{project.status === 'disputed' ? '🛑' : '⚠'}</span>
+                                    {project.status === 'disputed' ? (
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                                    ) : (
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                                    )}
                                     {project.status === 'disputed' ? 'DISPUTE ACTIVE' : 'RAISE DISPUTE'}
                                 </button>
                             )}
                             {canComplete && (
                                 <button
                                     onClick={handleCompleteProject}
-                                    className="px-6 py-4 bg-green-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-green-100 hover:bg-green-700 hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-2"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
                                 >
-                                    <span>✓</span> COMPLETE PROJECT
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    COMPLETE PROJECT
                                 </button>
                             )}
                             {canEdit && (
                                 <button
                                     onClick={() => setShowEditModal(true)}
-                                    className="px-6 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-700 hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-2"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gc-blue text-white rounded-lg text-sm font-semibold hover:bg-gc-navy transition-colors"
                                 >
-                                    <span>✎</span> EDIT DETAILS
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    EDIT DETAILS
                                 </button>
                             )}
                         </div>
@@ -471,72 +464,74 @@ const ProjectDetail = () => {
                     {canBid && (
                         <button
                             onClick={() => setShowBidModal(true)}
-                            className="px-6 py-4 bg-gc-blue text-white rounded-2xl font-black text-sm shadow-xl shadow-gc-blue/10 hover:bg-gc-navy hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-2"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gc-blue text-white rounded-lg text-sm font-semibold hover:bg-gc-navy transition-colors"
                         >
-                            <span>👋</span> PLACE A BID
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" /></svg>
+                            PLACE A BID
                         </button>
                     )}
                     {canSubmitWork && (
                         <button
                             onClick={() => setShowSubmitWorkModal(true)}
-                            className="px-6 py-4 bg-green-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-green-100 hover:bg-green-700 hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-2"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
                         >
-                            <span>📤</span> SUBMIT WORK
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                            SUBMIT WORK
                         </button>
                     )}
                     {canReview && (
                         <button
                             onClick={() => setShowReviewModal(true)}
-                            className="px-6 py-4 bg-yellow-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-yellow-100 hover:bg-yellow-600 hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-2"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-yellow-500 text-white rounded-lg text-sm font-semibold hover:bg-yellow-600 transition-colors"
                         >
-                            <span>⭐</span> LEAVE REVIEW
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                            LEAVE REVIEW
                         </button>
                     )}
                 </div>
 
-                {/* Performance Tabs */}
-                <div className="flex border-b border-gray-100 mb-10 bg-white/50 backdrop-blur-md rounded-3xl px-6 py-2 sticky top-[80px] z-40 border border-white/20">
-                    {[
-                        { id: 'details', label: 'Gig Details', icon: '📄', show: true },
-                        { id: 'bids', label: `Proposals (${bids.length})`, icon: '🤝', show: project.status === 'open' || isOwner },
-                        { id: 'workspace', label: 'Project Workspace', icon: '💻', show: project.status !== 'open' },
-                        { id: 'milestones', label: 'Milestones', icon: '🎯', show: project.status !== 'open' },
-                        { id: 'timeline', label: 'Timeline', icon: '⏱️' }
-                    ].map(tab => tab.show !== false && (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-3 px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative ${activeTab === tab.id
-                                ? 'text-blue-600'
-                                : 'text-gray-400 hover:text-gray-600'
+                {/* Tabs */}
+                <div className="border-b-2 border-gc-border mb-8">
+                    <div className="flex gap-0 overflow-x-auto">
+                        {[
+                            { id: 'details', label: 'Gig Details', show: true },
+                            { id: 'bids', label: `Proposals (${bids.length})`, show: project.status === 'open' || isOwner },
+                            { id: 'workspace', label: 'Project Workspace', show: project.status !== 'open' },
+                            { id: 'milestones', label: 'Milestones', show: project.status !== 'open' },
+                            { id: 'timeline', label: 'Timeline', show: true }
+                        ].map(tab => tab.show !== false && (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-5 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors -mb-0.5 ${
+                                    activeTab === tab.id
+                                        ? 'border-gc-blue text-gc-blue'
+                                        : 'border-transparent text-gc-slate hover:text-gc-navy hover:border-gc-border'
                                 }`}
-                        >
-                            <span>{tab.icon}</span>
-                            {tab.label}
-                            {activeTab === tab.id && <div className="absolute bottom-0 left-8 right-8 h-1 bg-blue-600 rounded-full animate-in slide-in-from-bottom-1"></div>}
-                        </button>
-                    ))}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                {/* Tab View Container */}
-                <div className="min-h-[500px] animate-in fade-in duration-500">
+                <div className="min-h-[500px]">
                     {activeTab === 'details' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                            {/* Left Column: Core Info */}
-                            <div className="lg:col-span-2 space-y-10">
-                                <div className="bg-white rounded-[2.5rem] p-12 shadow-sm border border-gray-50">
-                                    <h3 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] mb-8">Gig Description</h3>
-                                    <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-wrap font-medium">{project.description}</p>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 space-y-8">
+                                <div className="bg-white rounded-xl p-6 sm:p-8 border border-gc-border shadow-sm">
+                                    <h3 className="text-xs font-bold text-gc-muted uppercase tracking-wider mb-4">Gig Description</h3>
+                                    <p className="text-gc-navy text-base leading-relaxed whitespace-pre-wrap">{project.description}</p>
                                 </div>
 
                                 {project.requirements?.length > 0 && (
-                                    <div className="bg-white rounded-[2.5rem] p-12 shadow-sm border border-gray-50">
-                                        <h3 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] mb-8">Asset Requirements</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-white rounded-xl p-6 sm:p-8 border border-gc-border shadow-sm">
+                                        <h3 className="text-xs font-bold text-gc-muted uppercase tracking-wider mb-4">Asset Requirements</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             {project.requirements.map((req, i) => (
-                                                <div key={i} className="flex items-center gap-4 bg-blue-50/50 p-5 rounded-2xl border border-blue-50 text-blue-900 font-bold text-sm">
-                                                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-[10px]">✓</div>
-                                                    {req}
+                                                <div key={i} className="flex items-center gap-3 bg-gc-soft px-4 py-3 rounded-lg">
+                                                    <svg className="w-4 h-4 text-gc-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                                                    <span className="text-sm text-gc-navy font-medium">{req}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -544,156 +539,144 @@ const ProjectDetail = () => {
                                 )}
                             </div>
 
-                            {/* Right Column: Key Stats & Freelancer */}
-                            <div className="space-y-8">
-                                <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-10 rounded-[2.5rem] text-white shadow-2xl">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8 italic">Financial Matrix</h3>
-                                    <div className="space-y-8">
+                            <div className="space-y-6">
+                                <div className="bg-white rounded-xl p-6 border border-gc-border shadow-sm">
+                                    <h3 className="text-xs font-bold text-gc-muted uppercase tracking-wider mb-4">Budget & Timeline</h3>
+                                    <div className="space-y-4">
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Approved Budget Range</p>
-                                            <p className="text-3xl font-black italic text-blue-400">₹{project.budget.min} <span className="text-slate-600">to</span> ₹{project.budget.max}</p>
+                                            <p className="text-xs font-medium text-gc-slate">Budget Range</p>
+                                            <p className="text-2xl font-bold text-gc-navy">₹{project.budget.min} - ₹{project.budget.max}</p>
                                         </div>
-                                        <div className="flex justify-between items-center bg-slate-800/50 p-6 rounded-2xl border border-white/5">
+                                        <div className="flex items-center gap-4 pt-3 border-t border-gc-border">
                                             <div>
-                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Duration</p>
-                                                <p className="text-xl font-bold uppercase">{project.timeline}</p>
+                                                <p className="text-xs font-medium text-gc-slate">Duration</p>
+                                                <p className="text-sm font-bold text-gc-navy">{project.timeline}</p>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Category</p>
-                                                <p className="text-xl font-bold text-blue-400 uppercase tracking-tighter italic">{project.category}</p>
+                                            <div className="w-px h-8 bg-gc-border"></div>
+                                            <div>
+                                                <p className="text-xs font-medium text-gc-slate">Proposals</p>
+                                                <p className="text-sm font-bold text-gc-navy">{bids.length}</p>
                                             </div>
                                         </div>
                                     </div>
-                                    {project.skills?.length > 0 && (
-                                        <div className="mt-10 pt-10 border-t border-white/5">
-                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Required Skillset</p>
-                                            <div className="flex flex-wrap gap-2">
-                                                {project.skills.map((skill, i) => (
-                                                    <span key={i} className="bg-white/10 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter border border-white/5">
-                                                        {skill}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
 
+                                {project.skills?.length > 0 && (
+                                    <div className="bg-white rounded-xl p-6 border border-gc-border shadow-sm">
+                                        <h3 className="text-xs font-bold text-gc-muted uppercase tracking-wider mb-3">Required Skills</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {project.skills.map((skill, i) => (
+                                                <span key={i} className="inline-block px-3 py-1 bg-gc-soft text-gc-blue rounded-full text-xs font-semibold">{skill}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {project.freelancer && (
-                                    <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-50">
-                                        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-8">Collaborating Freelancer</h3>
-                                        <div className="flex items-center gap-5 mb-8">
-                                            <div className="w-20 h-20 bg-blue-100 rounded-3xl flex items-center justify-center text-4xl font-black text-blue-600 shadow-inner">
+                                    <div className="bg-white rounded-xl p-6 border border-gc-border shadow-sm">
+                                        <h3 className="text-xs font-bold text-gc-muted uppercase tracking-wider mb-3">Assigned Freelancer</h3>
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-10 h-10 bg-gc-soft rounded-full flex items-center justify-center text-sm font-bold text-gc-blue">
                                                 {project.freelancer.username ? project.freelancer.username[0].toUpperCase() : 'U'}
                                             </div>
                                             <div>
-                                                <h4 className="text-2xl font-black text-gray-900 tracking-tighter uppercase">{project.freelancer.username}</h4>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-yellow-400">★</span>
-                                                    <span className="text-sm font-black text-gray-600">{project.freelancer.reputation?.rating?.toFixed(1) || '0.0'}</span>
-                                                    <span className="text-xs font-bold text-gray-400 italic">Reputation Score</span>
+                                                <h4 className="text-sm font-bold text-gc-navy">{project.freelancer.username}</h4>
+                                                <div className="flex items-center gap-1.5">
+                                                    <svg className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                                                    <span className="text-xs font-semibold text-gc-navy">{project.freelancer.reputation?.rating?.toFixed(1) || '0.0'}</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <Link
                                             to={`/messages?user=${project.freelancer._id || project.freelancer}`}
-                                            className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-100 hover:shadow-blue-300 transition-all flex items-center justify-center gap-3"
+                                            className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gc-blue border border-gc-border rounded-lg text-sm font-semibold hover:bg-gc-soft transition-colors"
                                         >
-                                            <span>💬</span> SECURE CHAT
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                                            Send Message
                                         </Link>
                                     </div>
                                 )}
+
+                                <div className="bg-white rounded-xl p-6 border border-gc-border shadow-sm">
+                                    <h3 className="text-xs font-bold text-gc-muted uppercase tracking-wider mb-3">Posted By</h3>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-gc-soft rounded-full flex items-center justify-center text-sm font-bold text-gc-blue">
+                                            {project.client?.username ? project.client.username[0].toUpperCase() : 'C'}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-gc-navy">{project.client?.username || 'Client'}</p>
+                                            <p className="text-xs text-gc-slate">Project Owner</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
 
                     {activeTab === 'bids' && (
                         <div className="max-w-4xl mx-auto">
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-                                <h3 className="text-3xl font-black text-gray-900 italic uppercase tracking-tighter"><span className="text-blue-600">Qualified</span> Proposals</h3>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                                <h3 className="text-xl font-bold text-gc-navy">Proposals</h3>
                                 {isOwner && (
                                     <button
                                         onClick={handleRecommendFreelancers}
                                         disabled={recommendLoading || bids.length === 0}
                                         title={bids.length === 0 ? "No freelancer proposals available." : ""}
-                                        className="px-6 py-4 bg-gc-blue text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-gc-blue/10 hover:shadow-gc-blue/20 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-gc-blue text-white rounded-lg text-sm font-semibold hover:bg-gc-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {recommendLoading ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                <span>Analyzing Freelancers...</span>
-                                            </>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                         ) : (
-                                            <>
-                                                <span>✨</span>
-                                                <span>Recommend Best Freelancer</span>
-                                            </>
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                                         )}
+                                        <span>Recommend Best Freelancer</span>
                                     </button>
                                 )}
                             </div>
                             {bids.length === 0 ? (
-                                <div className="text-center py-20 bg-gray-50/50 rounded-[3rem] border-2 border-dashed border-gray-200">
-                                    <div className="text-7xl mb-6 grayscale opacity-20">📂</div>
-                                    <p className="text-gray-400 font-black text-xs uppercase tracking-widest">Awaiting Initial Bids from the Marketplace</p>
+                                <div className="text-center py-16 bg-white rounded-xl border border-gc-border">
+                                    <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-gc-soft flex items-center justify-center">
+                                        <svg className="w-8 h-8 text-gc-blue opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    </div>
+                                    <p className="text-gc-slate text-sm font-medium">No proposals submitted yet</p>
                                 </div>
                             ) : (
-                                <div className="space-y-8">
+                                <div className="space-y-4">
                                     {bids.map((bid) => (
-                                        <div key={bid._id} className="bg-white border-2 border-transparent hover:border-blue-100 rounded-[2.5rem] p-10 hover:shadow-2xl transition-all group overflow-hidden relative shadow-sm">
-                                            {bid.status === 'accepted' && <div className="absolute top-0 right-0 bg-green-500 text-white px-8 py-2 font-black text-[10px] uppercase tracking-widest rotate-45 translate-x-10 translate-y-4">HIRED</div>}
-
-                                            <div className="flex flex-col md:flex-row justify-between gap-8 mb-10">
-                                                <div className="flex items-center gap-6">
-                                                    <div className="w-20 h-20 bg-blue-50 rounded-[1.5rem] flex items-center justify-center text-4xl font-black text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+                                        <div key={bid._id} className="bg-white rounded-xl border border-gc-border p-6 hover:shadow-md transition-shadow">
+                                            <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-gc-soft rounded-full flex items-center justify-center text-lg font-bold text-gc-blue">
                                                         {bid.freelancer.username ? bid.freelancer.username[0].toUpperCase() : 'U'}
                                                     </div>
                                                     <div>
-                                                        <div className="flex items-center gap-3">
-                                                            <h4 className="text-2xl font-black text-gray-900 tracking-tighter uppercase">{bid.freelancer.username}</h4>
-                                                            <UserPresence
-                                                                userId={bid.freelancer._id}
-                                                                initialIsOnline={bid.freelancer.isOnline}
-                                                                initialLastSeen={bid.freelancer.lastSeen}
-                                                            />
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="text-base font-bold text-gc-navy">{bid.freelancer.username}</h4>
+                                                            <UserPresence userId={bid.freelancer._id} initialIsOnline={bid.freelancer.isOnline} initialLastSeen={bid.freelancer.lastSeen} />
                                                         </div>
-                                                        <div className="flex items-center gap-3 mt-1">
-                                                            <div className="flex items-center gap-1">
-                                                                <span className="text-yellow-400">★</span>
-                                                                <span className="text-sm font-black text-gray-700">{bid.freelancer.reputation?.rating?.toFixed(1) || '0.0'}</span>
-                                                            </div>
-                                                            <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
-                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{bid.freelancer.reputation?.completedProjects || 0} GIGS FINISHED</span>
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            <svg className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                                                            <span className="text-xs font-semibold text-gc-navy">{bid.freelancer.reputation?.rating?.toFixed(1) || '0.0'}</span>
+                                                            <span className="text-xs text-gc-slate">{bid.freelancer.reputation?.completedProjects || 0} gigs</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="md:text-right">
-                                                    <p className="text-4xl font-black text-blue-600 italic tracking-tighter">₹{bid.price}</p>
-                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">PROPOSED DELIVERY: {bid.timeline}</p>
+                                                    <p className="text-xl font-bold text-gc-blue">₹{bid.price}</p>
+                                                    <p className="text-xs text-gc-slate">Delivery: {bid.timeline}</p>
                                                 </div>
                                             </div>
 
-                                            <div className="p-8 bg-gray-50/50 rounded-3xl border border-gray-100 mb-10">
-                                                <p className="text-gray-600 font-medium leading-relaxed italic">"{bid.proposal}"</p>
+                                            <div className="p-4 bg-gc-soft/50 rounded-lg mb-4">
+                                                <p className="text-sm text-gc-navy leading-relaxed">{bid.proposal}</p>
                                             </div>
 
-                                            <div className="flex justify-between items-center pt-8 border-t border-gray-50">
-                                                <span className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${getBidStatusBadge(bid.status)}`}>
-                                                    {bid.status}
-                                                </span>
+                                            <div className="flex justify-between items-center pt-4 border-t border-gc-border">
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${getBidStatusBadge(bid.status)}`}>{bid.status}</span>
                                                 {isOwner && bid.status === 'pending' && (
-                                                    <div className="flex gap-4">
-                                                        <button
-                                                            onClick={() => handleRejectBid(bid._id)}
-                                                            className="px-8 py-4 rounded-2xl font-black text-[11px] text-red-500 hover:bg-red-50 uppercase tracking-widest transition-all"
-                                                        >
-                                                            Reject
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleAcceptBid(bid._id, bid.price)}
-                                                            className="px-10 py-4 bg-blue-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-blue-100 hover:shadow-blue-300 hover:-translate-y-1 transition-all active:scale-95"
-                                                        >
-                                                            HIRE NOW
-                                                        </button>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => handleRejectBid(bid._id)} className="px-4 py-2 text-red-600 text-sm font-semibold rounded-lg hover:bg-red-50 transition-colors">Reject</button>
+                                                        <button onClick={() => handleAcceptBid(bid._id, bid.price)} className="px-4 py-2 bg-gc-blue text-white rounded-lg text-sm font-semibold hover:bg-gc-navy transition-colors">Hire Now</button>
                                                     </div>
                                                 )}
                                             </div>
@@ -705,74 +688,50 @@ const ProjectDetail = () => {
                     )}
 
                     {activeTab === 'workspace' && (
-                        <div className="max-w-4xl mx-auto space-y-10">
-                            <div className="flex justify-between items-center px-4">
-                                <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase"><span className="text-blue-600">Gig</span> Assets</h3>
-                                <div className="flex items-center gap-3 px-5 py-2 bg-green-50 text-green-600 rounded-full font-black text-[10px] tracking-widest">
-                                    <span className="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
-                                    SECURE CLOUD DRIVE
-                                </div>
+                        <div className="max-w-4xl mx-auto space-y-6">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-bold text-gc-navy">Deliverables</h3>
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 rounded-full text-xs font-semibold">
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                    Cloud Drive
+                                </span>
                             </div>
 
                             {project.deliverables?.length === 0 ? (
-                                <div className="text-center py-24 bg-white rounded-[3rem] border border-gray-100 shadow-sm">
-                                    <div className="text-8xl mb-8 grayscale opacity-10">📦</div>
-                                    <p className="text-gray-400 font-black text-xs uppercase tracking-widest max-w-xs mx-auto text-center leading-loose">The vault is currently empty. Deliverables from your freelancer will materialize here.</p>
+                                <div className="text-center py-16 bg-white rounded-xl border border-gc-border">
+                                    <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-gc-soft flex items-center justify-center">
+                                        <svg className="w-8 h-8 text-gc-blue opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                                    </div>
+                                    <p className="text-gc-slate text-sm font-medium">No deliverables submitted yet</p>
                                 </div>
                             ) : (
-                                <div className="space-y-8">
+                                <div className="space-y-4">
                                     {project.deliverables.map((del, idx) => (
-                                        <div key={idx} className="bg-white border border-gray-50 rounded-[2.5rem] p-12 shadow-sm hover:shadow-xl transition-all">
-                                            <div className="flex justify-between items-start mb-8">
+                                        <div key={idx} className="bg-white rounded-xl border border-gc-border p-6 hover:shadow-md transition-shadow">
+                                            <div className="flex justify-between items-start mb-4">
                                                 <div>
-                                                    <h4 className="text-2xl font-black text-gray-900 tracking-tight">{del.title}</h4>
-                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2 bg-gray-50 inline-block px-3 py-1 rounded-lg">
-                                                        LOGGED {new Date(del.submittedAt).toLocaleString()}
-                                                    </p>
+                                                    <h4 className="text-lg font-bold text-gc-navy">{del.title}</h4>
+                                                    <p className="text-xs text-gc-slate mt-1">Submitted {new Date(del.submittedAt).toLocaleString()}</p>
                                                 </div>
-                                                <span className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${del.status === 'approved' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
-                                                    {del.status}
-                                                </span>
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${del.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>{del.status}</span>
                                             </div>
-
-                                            <div className="p-8 bg-blue-50/30 rounded-[1.5rem] mb-10 border border-blue-50/50">
-                                                <p className="text-gray-700 font-medium leading-relaxed">{del.description}</p>
-                                            </div>
+                                            <p className="text-sm text-gc-navy leading-relaxed mb-4">{del.description}</p>
 
                                             {del.files?.length > 0 && (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                                                     {del.files.map((file, fIdx) => (
-                                                        <a
-                                                            key={fIdx}
-                                                            href={file.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="flex items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all group"
-                                                        >
-                                                            <div className="text-3xl grayscale group-hover:grayscale-0 transition-all">📂</div>
-                                                            <div className="overflow-hidden">
-                                                                <p className="text-xs font-black text-gray-900 truncate uppercase tracking-tight">{file.name}</p>
-                                                                <p className="text-[9px] font-bold text-gray-400 uppercase mt-0.5">Asset Reference</p>
-                                                            </div>
+                                                        <a key={fIdx} href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-gc-soft/50 rounded-lg border border-gc-border hover:border-gc-blue transition-colors group">
+                                                            <svg className="w-5 h-5 text-gc-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                                                            <span className="text-xs font-semibold text-gc-navy truncate">{file.name}</span>
                                                         </a>
                                                     ))}
                                                 </div>
                                             )}
 
                                             {isOwner && del.status === 'pending' && (
-                                                <div className="flex justify-end gap-4 pt-10 border-t border-gray-50">
-                                                    <button
-                                                        onClick={() => error('Feedback feature coming soon')}
-                                                        className="px-8 py-4 rounded-2xl font-black text-[11px] text-orange-600 uppercase tracking-widest hover:bg-orange-50 transition-all"
-                                                    >
-                                                        Revision Required
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleApproveDeliverable(del._id)}
-                                                        className="px-10 py-4 bg-green-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-green-100 hover:bg-green-700 hover:-translate-y-1 transition-all active:scale-95"
-                                                    >
-                                                        AUTHORIZE & APPROVE
-                                                    </button>
+                                                <div className="flex justify-end gap-2 pt-4 border-t border-gc-border">
+                                                    <button onClick={() => error('Feedback feature coming soon')} className="px-4 py-2 text-orange-600 text-sm font-semibold rounded-lg hover:bg-orange-50 transition-colors">Revision Required</button>
+                                                    <button onClick={() => handleApproveDeliverable(del._id)} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">Approve</button>
                                                 </div>
                                             )}
                                         </div>
@@ -794,165 +753,135 @@ const ProjectDetail = () => {
                     )}
 
                     {activeTab === 'timeline' && (
-                        <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
+                        <div className="max-w-4xl mx-auto bg-white rounded-xl p-6 border border-gc-border shadow-sm">
                             <ProjectTimeline projectId={id} />
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Dispute Modal */}
             {showDisputeModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-lg rounded-[3rem] overflow-hidden shadow-2xl border border-white/20 animate-in slide-in-from-bottom-8 duration-500">
-                        <div className="p-12">
-                            <div className="flex justify-between items-center mb-10">
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-lg rounded-xl shadow-xl">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
                                 <div>
-                                    <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase"><span className="text-orange-600">Raise</span> Dispute</h3>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Arbitration Request Protocol</p>
+                                    <h3 className="text-lg font-bold text-gc-navy">Raise Dispute</h3>
+                                    <p className="text-xs text-gc-slate mt-1">Describe the issue for arbitration</p>
                                 </div>
-                                <button onClick={() => setShowDisputeModal(false)} className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all font-black">X</button>
+                                <button onClick={() => setShowDisputeModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gc-slate hover:bg-gc-soft transition-colors">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
                             </div>
 
-                            <form onSubmit={handleRaiseDispute} className="space-y-8">
+                            <form onSubmit={handleRaiseDispute} className="space-y-4">
+                                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                                    <p className="text-xs text-orange-700 font-medium">Raising a dispute will pause all payments and notify the GigCampus arbitration team.</p>
+                                </div>
                                 <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 italic">Specify Grievance Reason</label>
+                                    <label className="block text-xs font-semibold text-gc-slate mb-2">Reason for Dispute</label>
                                     <textarea
                                         value={disputeReason}
                                         onChange={(e) => setDisputeReason(e.target.value)}
                                         required
-                                        rows="5"
-                                        className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-orange-200 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300 shadow-inner"
-                                        placeholder="Detail the project discrepancies for arbitration..."
+                                        rows="4"
+                                        className="w-full px-4 py-3 bg-gc-near border border-gc-border rounded-lg text-sm text-gc-navy focus:outline-none focus:border-gc-blue focus:ring-1 focus:ring-gc-blue transition-colors placeholder:text-gc-muted"
+                                        placeholder="Describe the issue in detail..."
                                     />
                                 </div>
-                                <div className="p-6 bg-orange-50 rounded-3xl border border-orange-100">
-                                    <p className="text-[10px] text-orange-800 font-bold leading-relaxed uppercase tracking-tight">
-                                        Note: Raising a dispute will pause all payments and notify the GigCampus arbitration team.
-                                    </p>
-                                </div>
-                                <button
-                                    type="submit"
-                                    className="w-full bg-orange-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-orange-100 hover:shadow-orange-300 hover:-translate-y-1 transition-all active:scale-95"
-                                >
-                                    INITIATE ARBITRATION
-                                </button>
+                                <button type="submit" className="w-full bg-orange-600 text-white py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 transition-colors">Initiate Dispute</button>
                             </form>
                         </div>
                     </div>
                 </div>
             )}
 
-
-            {/* Bid Modal */}
             {showBidModal && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-lg rounded-[3rem] p-12 shadow-2xl animate-in zoom-in-95 duration-500">
-                        <div className="flex justify-between items-center mb-10">
-                            <div>
-                                <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase"><span className="text-gc-blue">Submit</span> Proposal</h3>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Freelancer Bidding Protocol</p>
-                            </div>
-                            <button onClick={() => setShowBidModal(false)} className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all font-black">X</button>
-                        </div>
-
-                        <form onSubmit={handlePlaceBid} className="space-y-8">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Bid Amount (₹)</label>
-                                <input
-                                    type="number"
-                                    value={bidData.bidAmount}
-                                    onChange={(e) => setBidData({ ...bidData, bidAmount: e.target.value })}
-                                    required
-                                    min="1"
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-gc-blue/40 rounded-[2rem] text-gray-900 font-bold text-xl transition-all focus:outline-none placeholder:text-gray-300"
-                                    placeholder="0.00"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Delivery Timeline</label>
-                                <input
-                                    type="text"
-                                    value={bidData.deliveryTime}
-                                    onChange={(e) => setBidData({ ...bidData, deliveryTime: e.target.value })}
-                                    required
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-gc-blue/40 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
-                                    placeholder="e.g., 7 Days"
-                                />
-                            </div>
-
-                            <div>
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Proposal / Cover Letter</label>
-                                    <div className="flex items-center gap-2">
-                                        <select
-                                            value={selectedTone}
-                                            onChange={(e) => setSelectedTone(e.target.value)}
-                                            className="text-xs bg-gray-100 border border-gray-200 rounded-xl px-3 py-1.5 font-bold text-gray-700 focus:outline-none"
-                                        >
-                                            <option value="professional">Professional</option>
-                                            <option value="persuasive">Persuasive</option>
-                                            <option value="concise">Concise</option>
-                                        </select>
-                                        <button
-                                            type="button"
-                                            onClick={handleGenerateAIProposal}
-                                            disabled={generatingProposal}
-                                            className="bg-gc-blue hover:bg-gc-navy text-white px-4 py-2 rounded-xl font-extrabold text-xs tracking-wider shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
-                                        >
-                                            {generatingProposal ? (
-                                                <>
-                                                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                    <span>Generating Proposal...</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span>✨</span>
-                                                    <span>Generate AI Proposal</span>
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-lg rounded-xl shadow-xl">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h3 className="text-lg font-bold text-gc-navy">Submit Proposal</h3>
+                                    <p className="text-xs text-gc-slate mt-1">Send your bid for this project</p>
                                 </div>
-                                <textarea
-                                    value={bidData.proposal}
-                                    onChange={(e) => setBidData({ ...bidData, proposal: e.target.value })}
-                                    required
-                                    rows="6"
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-gc-blue/40 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
-                                    placeholder="Why are you the best fit for this gig? Click 'Generate AI Proposal' above to auto-draft!"
-                                />
+                                <button onClick={() => setShowBidModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gc-slate hover:bg-gc-soft transition-colors">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <button
-                                    type="button"
-                                    onClick={handleAnalyzeBid}
-                                    disabled={analyzingBid}
-                                    className="flex-1 bg-gc-blue text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-gc-blue/10 hover:shadow-gc-blue/20 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-                                >
-                                    {analyzingBid ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                            <span>Analyzing...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>✨</span>
-                                            <span>Analyze My Bid</span>
-                                        </>
-                                    )}
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={analyzingBid}
-                                    className="flex-1 bg-gc-blue text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-gc-blue/10 hover:shadow-gc-blue/20 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
-                                >
-                                    SUBMIT BID
-                                </button>
-                            </div>
-                        </form>
+                            <form onSubmit={handlePlaceBid} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gc-slate mb-2">Bid Amount (₹)</label>
+                                    <input
+                                        type="number"
+                                        value={bidData.bidAmount}
+                                        onChange={(e) => setBidData({ ...bidData, bidAmount: e.target.value })}
+                                        required
+                                        min="1"
+                                        className="w-full px-4 py-3 bg-gc-near border border-gc-border rounded-lg text-sm text-gc-navy focus:outline-none focus:border-gc-blue focus:ring-1 focus:ring-gc-blue transition-colors placeholder:text-gc-muted"
+                                        placeholder="Enter amount"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gc-slate mb-2">Delivery Timeline</label>
+                                    <input
+                                        type="text"
+                                        value={bidData.deliveryTime}
+                                        onChange={(e) => setBidData({ ...bidData, deliveryTime: e.target.value })}
+                                        required
+                                        className="w-full px-4 py-3 bg-gc-near border border-gc-border rounded-lg text-sm text-gc-navy focus:outline-none focus:border-gc-blue focus:ring-1 focus:ring-gc-blue transition-colors placeholder:text-gc-muted"
+                                        placeholder="e.g., 7 Days"
+                                    />
+                                </div>
+
+                                <div>
+                                    <div className="flex items-center justify-between gap-2 mb-2">
+                                        <label className="text-xs font-semibold text-gc-slate">Proposal</label>
+                                        <div className="flex items-center gap-2">
+                                            <select
+                                                value={selectedTone}
+                                                onChange={(e) => setSelectedTone(e.target.value)}
+                                                className="text-xs bg-gc-near border border-gc-border rounded-lg px-2 py-1 text-gc-navy focus:outline-none"
+                                            >
+                                                <option value="professional">Professional</option>
+                                                <option value="persuasive">Persuasive</option>
+                                                <option value="concise">Concise</option>
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={handleGenerateAIProposal}
+                                                disabled={generatingProposal}
+                                                className="inline-flex items-center gap-1.5 bg-gc-blue hover:bg-gc-navy text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+                                            >
+                                                {generatingProposal ? (
+                                                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                ) : (
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                                                )}
+                                                <span>{generatingProposal ? 'Generating...' : 'AI Draft'}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <textarea
+                                        value={bidData.proposal}
+                                        onChange={(e) => setBidData({ ...bidData, proposal: e.target.value })}
+                                        required
+                                        rows="5"
+                                        className="w-full px-4 py-3 bg-gc-near border border-gc-border rounded-lg text-sm text-gc-navy focus:outline-none focus:border-gc-blue focus:ring-1 focus:ring-gc-blue transition-colors placeholder:text-gc-muted"
+                                        placeholder="Why are you the best fit for this gig?"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <button type="button" onClick={handleAnalyzeBid} disabled={analyzingBid} className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-gc-blue text-white rounded-lg text-sm font-semibold hover:bg-gc-navy transition-colors disabled:opacity-50 cursor-pointer">
+                                        {analyzingBid ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>}
+                                        <span>{analyzingBid ? 'Analyzing...' : 'Analyze Bid'}</span>
+                                    </button>
+                                    <button type="submit" disabled={analyzingBid} className="flex-1 px-4 py-3 bg-gc-navy text-white rounded-lg text-sm font-semibold hover:bg-gc-blue transition-colors disabled:opacity-50">Submit Bid</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
@@ -966,71 +895,6 @@ const ProjectDetail = () => {
                 />
             )}
 
-            {/* AI Freelancer Recommendation Modal */}
-            {showRecommendationModal && (
-                <RecommendationResultsModal
-                    recommendations={recommendationResults}
-                    onClose={() => setShowRecommendationModal(false)}
-                    projectTitle={project?.title}
-                />
-            )}
-
-
-            {/* Submit Work Modal */}
-            {console.log('Rendering Submit Work Modal, show:', showSubmitWorkModal)}
-            {showSubmitWorkModal && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-lg rounded-[3rem] p-12 shadow-2xl animate-in zoom-in-95 duration-500">
-                        <div className="flex justify-between items-center mb-10">
-                            <div>
-                                <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase"><span className="text-green-600">Submit</span> Work</h3>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Deliverable Submission Protocol</p>
-                            </div>
-                            <button onClick={() => setShowSubmitWorkModal(false)} className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all font-black">X</button>
-                        </div>
-
-                        <form onSubmit={handleSubmitWork} className="space-y-8">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Deliverable Title</label>
-                                <input
-                                    type="text"
-                                    value={deliverableData.title}
-                                    onChange={(e) => setDeliverableData({ ...deliverableData, title: e.target.value })}
-                                    required
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-green-200 rounded-[2rem] text-gray-900 font-bold text-xl transition-all focus:outline-none placeholder:text-gray-300"
-                                    placeholder="e.g., Final Design Files"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Description</label>
-                                <textarea
-                                    value={deliverableData.description}
-                                    onChange={(e) => setDeliverableData({ ...deliverableData, description: e.target.value })}
-                                    required
-                                    rows="4"
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-green-200 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
-                                    placeholder="Describe what you're submitting..."
-                                />
-                            </div>
-
-                            <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100">
-                                <p className="text-[10px] text-blue-800 font-bold leading-relaxed uppercase tracking-tight">
-                                    💡 Note: For file uploads, please share a link to your files (Google Drive, Dropbox, etc.) in the description above.
-                                </p>
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full bg-green-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-green-100 hover:shadow-green-300 hover:-translate-y-1 transition-all active:scale-95"
-                            >
-                                SUBMIT DELIVERABLE
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
             {showRecommendationModal && (
                 <RecommendationResultsModal
                     recommendations={recommendationResults}
@@ -1040,46 +904,53 @@ const ProjectDetail = () => {
                 />
             )}
 
-            {showDisputeModal && (
-                <div className="fixed inset-0 bg-orange-950/60 backdrop-blur-xl z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-lg rounded-[3rem] p-12 shadow-2xl animate-in zoom-in-95 duration-500 border-4 border-orange-100">
-                        <div className="flex justify-between items-center mb-10">
-                            <div>
-                                <h3 className="text-3xl font-black text-gray-900 italic tracking-tighter uppercase"><span className="text-orange-600">Raise</span> Dispute</h3>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Escalation Protocol</p>
+            {showSubmitWorkModal && (
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-lg rounded-xl shadow-xl">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h3 className="text-lg font-bold text-gc-navy">Submit Work</h3>
+                                    <p className="text-xs text-gc-slate mt-1">Upload your deliverable</p>
+                                </div>
+                                <button onClick={() => setShowSubmitWorkModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gc-slate hover:bg-gc-soft transition-colors">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
                             </div>
-                            <button onClick={() => setShowDisputeModal(false)} className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all font-black">X</button>
+
+                            <form onSubmit={handleSubmitWork} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gc-slate mb-2">Deliverable Title</label>
+                                    <input
+                                        type="text"
+                                        value={deliverableData.title}
+                                        onChange={(e) => setDeliverableData({ ...deliverableData, title: e.target.value })}
+                                        required
+                                        className="w-full px-4 py-3 bg-gc-near border border-gc-border rounded-lg text-sm text-gc-navy focus:outline-none focus:border-gc-blue focus:ring-1 focus:ring-gc-blue transition-colors placeholder:text-gc-muted"
+                                        placeholder="e.g., Final Design Files"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gc-slate mb-2">Description</label>
+                                    <textarea
+                                        value={deliverableData.description}
+                                        onChange={(e) => setDeliverableData({ ...deliverableData, description: e.target.value })}
+                                        required
+                                        rows="4"
+                                        className="w-full px-4 py-3 bg-gc-near border border-gc-border rounded-lg text-sm text-gc-navy focus:outline-none focus:border-gc-blue focus:ring-1 focus:ring-gc-blue transition-colors placeholder:text-gc-muted"
+                                        placeholder="Describe what you're submitting..."
+                                    />
+                                </div>
+                                <div className="p-3 bg-gc-soft rounded-lg">
+                                    <p className="text-xs text-gc-blue font-medium">For file uploads, share a link (Google Drive, Dropbox, etc.) in the description above.</p>
+                                </div>
+                                <button type="submit" className="w-full bg-green-600 text-white py-3 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">Submit Deliverable</button>
+                            </form>
                         </div>
-
-                        <form onSubmit={handleRaiseDispute} className="space-y-8">
-                            <div className="p-6 bg-orange-50 rounded-3xl border border-orange-100 mb-6">
-                                <p className="text-xs text-orange-800 font-bold leading-relaxed">
-                                    🛑 Escalating a dispute will freeze all funds and require Admin intervention. This action cannot be undone.
-                                </p>
-                            </div>
-
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Reason for Dispute</label>
-                                <textarea
-                                    value={disputeReason}
-                                    onChange={(e) => setDisputeReason(e.target.value)}
-                                    required
-                                    rows="5"
-                                    className="w-full px-8 py-6 bg-gray-50 border-2 border-transparent focus:border-orange-200 rounded-[2rem] text-gray-900 font-medium transition-all focus:outline-none placeholder:text-gray-300"
-                                    placeholder="Please describe the issue in detail..."
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full bg-orange-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-orange-100 hover:shadow-orange-300 hover:-translate-y-1 transition-all active:scale-95"
-                            >
-                                CONFIRM & ESCALATE
-                            </button>
-                        </form>
                     </div>
                 </div>
             )}
+
             {showReviewModal && (
                 <ReviewModal
                     isOpen={showReviewModal}

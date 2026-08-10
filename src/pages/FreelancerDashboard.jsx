@@ -8,7 +8,7 @@ const FreelancerDashboard = () => {
   const { user, logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gc-soft">
       {/* Navbar */}
       <Navbar />
 
@@ -50,7 +50,7 @@ const FreelancerDashboard = () => {
         <div className="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-xl sm:text-2xl font-bold mb-6 text-gray-800">Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <Link to="/projects" className="group bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-5 sm:p-6 rounded-2xl text-center hover:shadow-lg hover:shadow-blue-200 transition-all active:scale-[0.98] min-h-[44px] flex flex-col items-center justify-center">
+            <Link to="/projects" className="group bg-gradient-to-br from-blue-500 to-gc-cyan text-white p-5 sm:p-6 rounded-2xl text-center hover:shadow-lg hover:shadow-blue-200 transition-all active:scale-[0.98] min-h-[44px] flex flex-col items-center justify-center">
               <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">🔍</div>
               <span className="font-bold text-base sm:text-lg">Browse Projects</span>
             </Link>
