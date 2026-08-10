@@ -55,7 +55,7 @@ export const authLimiter = rateLimit({
     handler: createLimitHandler(rateLimitConfig.auth.message)
 });
 
-// 2. AI Limiter (20 req / hour per user)
+// 2. AI Limiter (10 req / hour per user)
 export const aiLimiter = rateLimit({
     windowMs: rateLimitConfig.ai.windowMs,
     max: rateLimitConfig.ai.max,

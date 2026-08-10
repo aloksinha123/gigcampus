@@ -9,11 +9,11 @@ export const rateLimitConfig = {
         message: 'Too many login attempts. Please try again after 15 minutes.'
     },
 
-    // 2. AI Feature Rate Limiting (20 requests per hour per user)
+    // 2. AI Feature Rate Limiting (10 requests per hour per user)
     ai: {
         windowMs: 60 * 60 * 1000, // 1 hour
-        max: 20,
-        message: 'AI generation limit reached. You can make up to 20 AI requests per hour.'
+        max: 10,
+        message: 'AI generation limit reached. You can make up to 10 AI requests per hour.'
     },
 
     // 3. Payment Rate Limiting (30 requests per hour per user)
