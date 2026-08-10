@@ -60,11 +60,32 @@ export const updateNotificationPreferences = async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found.' });
         }
 
+        // Explicit allowlist of valid notification preference fields from User schema
+        const allowedFields = [
+            'browserNotifications',
+            'messageNotifications',
+            'paymentNotifications',
+            'bidNotifications',
+            'projectNotifications',
+            'aiNotifications',
+            'marketingNotifications',
+            'emailNotifications',
+            'messageEmails',
+            'bidEmails',
+            'paymentEmails',
+            'projectEmails',
+            'reviewEmails'
+        ];
+
         const current = user.notificationPreferences ? user.notificationPreferences.toObject() : {};
-        const updated = {
-            ...current,
-            ...req.body
-        };
+        const updated = { ...current };
+
+        // Only update explicitly allowed fields from req.body
+        for (const field of allowedFields) {
+            if (req.body[field] !== undefined) {
+                updated[field] = req.body[field];
+            }
+        }
 
         user.notificationPreferences = updated;
         await user.save();
