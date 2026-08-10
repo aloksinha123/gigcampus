@@ -14,8 +14,19 @@ import { logActivity } from '../services/activityService.js';
 // @access  Private (Student/Client)
 export const createProject = async (req, res) => {
     try {
+        // Whitelist allowed fields to prevent mass assignment
+        const { title, description, category, budget, timeline, deadline, requirements, skills, experienceLevel, attachments } = req.body;
         const project = await Project.create({
-            ...req.body,
+            title,
+            description,
+            category,
+            budget,
+            timeline,
+            deadline,
+            requirements,
+            skills,
+            experienceLevel,
+            attachments,
             client: req.user._id
         });
 
@@ -115,7 +126,18 @@ export const updateProject = async (req, res) => {
             return res.status(400).json({ message: 'Cannot update project in current status' });
         }
 
-        Object.assign(project, req.body);
+        // Whitelist allowed fields to prevent mass assignment
+        const { title, description, category, budget, timeline, deadline, requirements, skills, experienceLevel, attachments } = req.body;
+        if (title !== undefined) project.title = title;
+        if (description !== undefined) project.description = description;
+        if (category !== undefined) project.category = category;
+        if (budget !== undefined) project.budget = budget;
+        if (timeline !== undefined) project.timeline = timeline;
+        if (deadline !== undefined) project.deadline = deadline;
+        if (requirements !== undefined) project.requirements = requirements;
+        if (skills !== undefined) project.skills = skills;
+        if (experienceLevel !== undefined) project.experienceLevel = experienceLevel;
+        if (attachments !== undefined) project.attachments = attachments;
         const updatedProject = await project.save();
 
         res.json(updatedProject);

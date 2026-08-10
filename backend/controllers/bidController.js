@@ -201,7 +201,13 @@ export const updateBid = async (req, res) => {
             return res.status(400).json({ message: 'Cannot update bid in current status' });
         }
 
-        Object.assign(bid, req.body);
+        // Whitelist allowed fields to prevent mass assignment
+        const { proposal, price, timeline, deliverables, attachments } = req.body;
+        if (proposal !== undefined) bid.proposal = proposal;
+        if (price !== undefined) bid.price = price;
+        if (timeline !== undefined) bid.timeline = timeline;
+        if (deliverables !== undefined) bid.deliverables = deliverables;
+        if (attachments !== undefined) bid.attachments = attachments;
         const updatedBid = await bid.save();
 
         res.json(updatedBid);
