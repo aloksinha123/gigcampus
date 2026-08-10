@@ -371,6 +371,22 @@ export const disputePayment = async (req, res) => {
 // @access  Private
 export const getPaymentByProject = async (req, res) => {
     try {
+        // First, verify the project exists and user is authorized
+        const project = await Project.findById(req.params.projectId);
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        // Authorization: only project client, assigned freelancer, or admin can access payment info
+        const isClient = project.client.toString() === req.user._id.toString();
+        const isFreelancer = project.freelancer && project.freelancer.toString() === req.user._id.toString();
+        const isAdmin = req.user.role === 'admin';
+
+        if (!isClient && !isFreelancer && !isAdmin) {
+            return res.status(403).json({ message: 'Not authorized to access payment information for this project' });
+        }
+
         const payment = await Payment.findOne({ project: req.params.projectId })
             .populate('client', 'username email profile.fullName')
             .populate('freelancer', 'username email profile.fullName')
