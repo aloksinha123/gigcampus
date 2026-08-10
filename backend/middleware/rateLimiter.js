@@ -93,3 +93,17 @@ export const generalLimiter = rateLimit({
     legacyHeaders: true,
     handler: createLimitHandler(rateLimitConfig.general.message)
 });
+
+// 6. Webhook Limiter (100 req / min per IP)
+// IP-based: webhooks are server-to-server with no auth token
+// Uses ipKeyGenerator for consistent IPv4/IPv6 handling
+// Note: trust proxy is NOT set, so req.ip is the raw socket IP,
+// preventing X-Forwarded-For spoofing for rate limit bypass
+export const webhookLimiter = rateLimit({
+    windowMs: rateLimitConfig.webhook.windowMs,
+    max: rateLimitConfig.webhook.max,
+    keyGenerator: ipKeyGenerator,
+    standardHeaders: true,
+    legacyHeaders: true,
+    handler: createLimitHandler(rateLimitConfig.webhook.message)
+});

@@ -35,5 +35,13 @@ export const rateLimitConfig = {
         windowMs: 15 * 60 * 1000, // 15 minutes
         max: 1500,
         message: 'Too many requests. Please try again later.'
+    },
+
+    // 6. Webhook Rate Limiting (100 requests per minute per IP)
+    // Server-to-server: conservative limit to prevent request flooding / CPU-based DoS
+    webhook: {
+        windowMs: 60 * 1000, // 1 minute
+        max: 100,
+        message: 'Too many webhook requests. Rate limit exceeded.'
     }
 };

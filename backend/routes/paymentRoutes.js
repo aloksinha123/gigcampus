@@ -11,6 +11,7 @@ import {
     fetchPayment
 } from '../controllers/razorpayController.js';
 import { protect } from '../middleware/auth.js';
+import { webhookLimiter } from '../middleware/rateLimiter.js';
 
 const optionalAuth = async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -120,7 +121,7 @@ router.get('/history', protect, getMyPaymentHistory);
  *       400:
  *         description: Signature mismatch.
  */
-router.post('/webhook', handleWebhook);
+router.post('/webhook', webhookLimiter, handleWebhook);
 
 /**
  * @openapi
@@ -173,7 +174,7 @@ router.post('/razorpay/verify', protect, verifySignature);
  *       200:
  *         description: Webhook received.
  */
-router.post('/razorpay/webhook', handleWebhook);
+router.post('/razorpay/webhook', webhookLimiter, handleWebhook);
 
 /**
  * @openapi
