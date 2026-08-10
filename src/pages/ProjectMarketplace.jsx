@@ -89,7 +89,6 @@ const ProjectMarketplace = () => {
             setLoading(true);
             setHasError(false);
             const response = await api.projects.getAll({ status: 'open' });
-            // The API returns { projects: [], totalPages, currentPage, total } or directly []
             const projectsData = response.data.projects || (Array.isArray(response.data) ? response.data : []);
             setProjects(projectsData);
         } catch (err) {
@@ -150,42 +149,62 @@ const ProjectMarketplace = () => {
     const getStatusBadge = (status) => {
         const colors = {
             open: 'gc-badge-success',
-            in_progress: 'gc-badge-info',
+            in_progress: 'gc-badge-warning',
             completed: 'gc-badge-info',
             cancelled: 'gc-badge-danger'
         };
         return colors[status] || 'bg-gc-surface text-gc-muted';
     };
 
+    const getStatusLabel = (status) => {
+        const labels = {
+            open: 'Open',
+            in_progress: 'In Progress',
+            completed: 'Completed',
+            cancelled: 'Cancelled'
+        };
+        return labels[status] || status.replace('_', ' ');
+    };
+
     return (
         <div className="min-h-screen bg-gc-near">
-            {/* Navbar */}
             <Navbar />
 
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-gc-navy mb-2">Project Marketplace</h1>
-                    <p className="text-gc-muted">Discover and bid on exciting projects</p>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+                {/* Page Header */}
+                <div className="mb-10 sm:mb-14 max-w-2xl">
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gc-navy tracking-tight leading-tight mb-3">
+                        Project Marketplace
+                    </h1>
+                    <p className="text-base sm:text-lg text-gc-muted leading-relaxed">
+                        Discover projects, find your next opportunity, and start building.
+                    </p>
                 </div>
 
-                {/* Filters & Search */}
-                <div className="bg-white p-4 sm:p-6 rounded-gc-xl border border-gc-border shadow-gc mb-8">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4">
-                        <input
-                            type="text"
-                            name="search"
-                            value={filters.search}
-                            onChange={handleFilterChange}
-                            placeholder="Search projects..."
-                            className="gc-input min-h-[44px]"
-                        />
+                {/* Search & Filter Panel */}
+                <div className="bg-white rounded-2xl border border-gc-border shadow-sm mb-8 sm:mb-10 p-4 sm:p-5">
+                    <div className="flex flex-col lg:flex-row gap-3">
+                        {/* Search Input - Primary */}
+                        <div className="relative flex-1">
+                            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gc-muted pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                name="search"
+                                value={filters.search}
+                                onChange={handleFilterChange}
+                                placeholder="Search projects by title or description..."
+                                className="w-full pl-10 pr-4 py-3 bg-gc-surface/50 border border-gc-border rounded-xl text-sm text-gc-navy placeholder:text-gc-muted focus:outline-none focus:border-gc-blue focus:ring-2 focus:ring-gc-blue/10 transition-all"
+                            />
+                        </div>
 
+                        {/* Category Select */}
                         <select
                             name="category"
                             value={filters.category}
                             onChange={handleFilterChange}
-                            className="gc-input min-h-[44px]"
+                            className="lg:w-52 px-4 py-3 bg-gc-surface/50 border border-gc-border rounded-xl text-sm text-gc-slate focus:outline-none focus:border-gc-blue focus:ring-2 focus:ring-gc-blue/10 transition-all appearance-none cursor-pointer"
                         >
                             <option value="">All Categories</option>
                             {categories.map(cat => (
@@ -193,29 +212,31 @@ const ProjectMarketplace = () => {
                             ))}
                         </select>
 
-                        <input
-                            type="number"
-                            name="minBudget"
-                            value={filters.minBudget}
-                            onChange={handleFilterChange}
-                            placeholder="Min Budget (₹)"
-                            className="gc-input min-h-[44px]"
-                        />
-
-                        <input
-                            type="number"
-                            name="maxBudget"
-                            value={filters.maxBudget}
-                            onChange={handleFilterChange}
-                            placeholder="Max Budget (₹)"
-                            className="gc-input min-h-[44px]"
-                        />
+                        {/* Budget Range */}
+                        <div className="flex gap-2">
+                            <input
+                                type="number"
+                                name="minBudget"
+                                value={filters.minBudget}
+                                onChange={handleFilterChange}
+                                placeholder="Min ₹"
+                                className="w-full lg:w-28 px-3 py-3 bg-gc-surface/50 border border-gc-border rounded-xl text-sm text-gc-slate placeholder:text-gc-muted focus:outline-none focus:border-gc-blue focus:ring-2 focus:ring-gc-blue/10 transition-all"
+                            />
+                            <input
+                                type="number"
+                                name="maxBudget"
+                                value={filters.maxBudget}
+                                onChange={handleFilterChange}
+                                placeholder="Max ₹"
+                                className="w-full lg:w-28 px-3 py-3 bg-gc-surface/50 border border-gc-border rounded-xl text-sm text-gc-slate placeholder:text-gc-muted focus:outline-none focus:border-gc-blue focus:ring-2 focus:ring-gc-blue/10 transition-all"
+                            />
+                        </div>
                     </div>
                 </div>
 
-                {/* Project Grid */}
+                {/* Content Area */}
                 {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                         <CardSkeleton />
                         <CardSkeleton />
                         <CardSkeleton />
@@ -227,66 +248,93 @@ const ProjectMarketplace = () => {
                         onRetry={fetchProjects}
                     />
                 ) : filteredProjects.length === 0 ? (
-                    <div className="bg-white rounded-gc-xl border border-gc-border shadow-gc p-8 text-center">
-                        <p className="text-gc-muted text-lg">No projects found matching your criteria.</p>
+                    <div className="bg-white rounded-2xl border border-gc-border shadow-sm p-12 sm:p-16 text-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gc-soft rounded-2xl mb-5">
+                            <svg className="w-8 h-8 text-gc-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-bold text-gc-navy mb-2">No projects found</h3>
+                        <p className="text-sm text-gc-muted max-w-md mx-auto leading-relaxed">
+                            Try adjusting your search or filters to find more opportunities.
+                        </p>
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                             {paginatedProjects.map(project => (
-                                <div key={project._id} className="bg-white rounded-gc-xl border border-gc-border shadow-gc hover:shadow-gc-md transition p-5 sm:p-6 flex flex-col justify-between">
-                                    <div>
-                                        <div className="flex justify-between items-start mb-4 gap-2">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(project.status)}`}>
-                                                {project.status.replace('_', ' ').toUpperCase()}
+                                <div
+                                    key={project._id}
+                                    className="group bg-white rounded-2xl border border-gc-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 sm:p-6 flex flex-col"
+                                >
+                                    {/* Top Row: Status + Date + Bookmark */}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${getStatusBadge(project.status)}`}>
+                                            {getStatusLabel(project.status)}
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            {localStorage.getItem('token') && (
+                                                <button
+                                                    onClick={() => toggleBookmark(project._id)}
+                                                    className="p-1.5 rounded-lg hover:bg-gc-surface transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+                                                    title={bookmarkedProjectIds.has(project._id) ? "Remove bookmark" : "Bookmark project"}
+                                                >
+                                                    {bookmarkedProjectIds.has(project._id) ? (
+                                                        <svg className="w-5 h-5 text-gc-blue" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg className="w-5 h-5 text-gc-muted group-hover:text-gc-blue transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                        </svg>
+                                                    )}
+                                                </button>
+                                            )}
+                                            <span className="text-[11px] text-gc-muted tabular-nums">
+                                                {new Date(project.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                                             </span>
-                                            <div className="flex items-center gap-3">
-                                                {localStorage.getItem('token') && (
-                                                    <button
-                                                        onClick={() => toggleBookmark(project._id)}
-                                                        className="text-gc-muted hover:text-gc-blue transition text-base p-1 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
-                                                        title={bookmarkedProjectIds.has(project._id) ? "Unbookmark" : "Bookmark"}
-                                                    >
-                                                        {bookmarkedProjectIds.has(project._id) ? '💙' : '🤍'}
-                                                    </button>
-                                                )}
-                                                <span className="text-xs text-gc-muted whitespace-nowrap">
-                                                    {new Date(project.createdAt).toLocaleDateString()}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <h3 className="text-xl font-bold text-gc-navy mb-2 line-clamp-2">{project.title}</h3>
-                                        <p className="text-gc-muted text-sm mb-4 line-clamp-3">{project.description}</p>
-
-                                        <div className="mb-4">
-                                            <span className="inline-block bg-gc-soft text-gc-blue text-xs px-2.5 py-1 rounded-md font-medium">
-                                                {project.category}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex justify-between items-center mb-4 p-3 bg-gc-surface rounded-gc">
-                                            <div>
-                                                <p className="text-xs text-gc-muted font-medium">Budget</p>
-                                                <p className={`text-xl sm:text-2xl font-bold ${getBudgetColor(project.budget)}`}>
-                                                    {renderBudget(project.budget)}
-                                                </p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-xs text-gc-muted font-medium">Bids</p>
-                                                <p className="text-xl sm:text-2xl font-bold text-gc-slate">{project.bidsCount || 0}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="mb-4">
-                                            <p className="text-xs text-gc-muted mb-1">Timeline</p>
-                                            <p className="text-sm font-semibold text-gc-navy">{project.timeline}</p>
                                         </div>
                                     </div>
 
+                                    {/* Title */}
+                                    <h3 className="text-lg font-bold text-gc-navy mb-2 line-clamp-2 leading-snug group-hover:text-gc-blue transition-colors duration-200">
+                                        {project.title}
+                                    </h3>
+
+                                    {/* Description */}
+                                    <p className="text-sm text-gc-muted leading-relaxed mb-4 line-clamp-2">
+                                        {project.description}
+                                    </p>
+
+                                    {/* Category Badge */}
+                                    <div className="mb-5">
+                                        <span className="inline-flex items-center px-2.5 py-1 bg-gc-soft text-gc-blue text-[11px] font-semibold rounded-lg">
+                                            {project.category}
+                                        </span>
+                                    </div>
+
+                                    {/* Info Row */}
+                                    <div className="grid grid-cols-3 gap-3 mb-5 pt-4 border-t border-gc-border/60">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-gc-muted uppercase tracking-wider mb-0.5">Budget</p>
+                                            <p className={`text-sm font-bold tabular-nums ${getBudgetColor(project.budget)}`}>
+                                                {renderBudget(project.budget)}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-gc-muted uppercase tracking-wider mb-0.5">Bids</p>
+                                            <p className="text-sm font-bold text-gc-slate tabular-nums">{project.bidsCount || 0}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-gc-muted uppercase tracking-wider mb-0.5">Timeline</p>
+                                            <p className="text-sm font-bold text-gc-slate truncate">{project.timeline}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* CTA */}
                                     <Link
                                         to={`/projects/${project._id}`}
-                                        className="block w-full bg-gc-blue hover:bg-gc-navy text-white text-center py-3 rounded-gc transition font-bold min-h-[44px] flex items-center justify-center"
+                                        className="mt-auto block w-full text-center py-3 bg-gc-blue hover:bg-gc-navy text-white text-sm font-bold rounded-xl transition-all duration-200 min-h-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gc-blue focus-visible:ring-offset-2"
                                     >
                                         View Details
                                     </Link>
@@ -294,37 +342,45 @@ const ProjectMarketplace = () => {
                             ))}
                         </div>
 
-                        {/* Pagination Controls */}
+                        {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="mt-12 flex justify-center items-center gap-4">
+                            <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
                                 <button
                                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                     disabled={currentPage === 1}
-                                    className="px-5 py-2.5 bg-white border border-gc-border rounded-gc font-bold text-xs text-gc-slate hover:bg-gc-surface disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gc-border rounded-xl text-xs font-bold text-gc-slate hover:bg-gc-surface hover:border-gc-slate/30 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gc-border transition-all duration-200 min-h-[40px]"
                                 >
-                                    ← Previous
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    Previous
                                 </button>
 
-                                <span className="text-xs font-black text-gc-muted uppercase tracking-widest px-3">
+                                <span className="text-xs font-bold text-gc-muted tabular-nums px-2">
                                     Page {currentPage} of {totalPages}
                                 </span>
 
                                 <button
                                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                     disabled={currentPage === totalPages}
-                                    className="px-5 py-2.5 bg-white border border-gc-border rounded-gc font-bold text-xs text-gc-slate hover:bg-gc-surface disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gc-border rounded-xl text-xs font-bold text-gc-slate hover:bg-gc-surface hover:border-gc-slate/30 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gc-border transition-all duration-200 min-h-[40px]"
                                 >
-                                    Next →
+                                    Next
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
                                 </button>
                             </div>
                         )}
                     </>
                 )}
 
-                {/* Stats */}
+                {/* Results Count */}
                 {!loading && filteredProjects.length > 0 && (
-                    <div className="mt-8 text-center text-gc-muted">
-                        Showing {filteredProjects.length} of {projects.length} projects
+                    <div className="mt-6 sm:mt-8 text-center">
+                        <span className="text-xs font-bold text-gc-muted uppercase tracking-widest">
+                            Showing {filteredProjects.length} of {projects.length} projects
+                        </span>
                     </div>
                 )}
             </div>
