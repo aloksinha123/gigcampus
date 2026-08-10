@@ -44,10 +44,29 @@ router.get('/', protect, admin, async (req, res) => {
  *         schema: { type: string }
  *     responses:
  *       200:
- *         description: User profile data.
+ *         description: User public profile data.
  *         content:
  *           application/json:
- *             schema: { $ref: '#/components/schemas/User' }
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 username: { type: string }
+ *                 role: { type: string }
+ *                 profile:
+ *                   type: object
+ *                   properties:
+ *                     fullName: { type: string }
+ *                     avatar: { type: string }
+ *                     bio: { type: string }
+ *                     skills: { type: array, items: { type: string } }
+ *                 reputation:
+ *                   type: object
+ *                   properties:
+ *                     score: { type: number }
+ *                     totalReviews: { type: integer }
+ *                     completedProjects: { type: integer }
+ *                 verified: { type: boolean }
  *       404:
  *         description: User not found.
  */
@@ -57,7 +76,26 @@ router.get('/:id', async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        res.json(user);
+
+        const publicProfile = {
+            _id: user._id,
+            username: user.username,
+            role: user.role,
+            profile: {
+                fullName: user.profile?.fullName || '',
+                avatar: user.profile?.avatar || '',
+                bio: user.profile?.bio || '',
+                skills: user.profile?.skills || []
+            },
+            reputation: {
+                score: user.reputation?.score || 0,
+                totalReviews: user.reputation?.totalReviews || 0,
+                completedProjects: user.reputation?.completedProjects || 0
+            },
+            verified: user.verified || false
+        };
+
+        res.json(publicProfile);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
