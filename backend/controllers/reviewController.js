@@ -638,6 +638,12 @@ export const dismissReports = async (req, res) => {
 export const regenerateSummary = async (req, res) => {
     try {
         const userId = req.params.userId;
+
+        // Authorization: only the user themselves or admin can regenerate summary
+        if (req.user._id.toString() !== userId && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized to regenerate summary for this user' });
+        }
+
         const reviews = await Review.find({ reviewee: userId, isHidden: false });
 
         if (reviews.length < 5) {
